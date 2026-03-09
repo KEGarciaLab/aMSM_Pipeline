@@ -979,9 +979,9 @@ def run_msm_short_time_windows(dataset: str, output: str, slurm_account: str, sl
             younger_time = time_point
             older_time = time_points[i + 1]
             if younger_time != starting_time and older_time != starting_time:
-                run_msm(dataset, output, subject, younger_time, older_time, "forward", younger_uses_mcribs, older_uses_mcribs, False,
+                run_msm(dataset, output, subject, younger_time, older_time, "forward", younger_uses_mcribs, older_uses_mcribs, False, None,
                         levels, config, max_anat, max_cp, slurm_email, slurm_account, slurm_user, slurm_job_limit)
-                run_msm(dataset, output, subject, younger_time, older_time, "reverse", younger_uses_mcribs, older_uses_mcribs, False,
+                run_msm(dataset, output, subject, younger_time, older_time, "reverse", younger_uses_mcribs, older_uses_mcribs, False, None,
                         levels, config, max_anat, max_cp, slurm_email, slurm_account, slurm_user, slurm_job_limit)
 
 
