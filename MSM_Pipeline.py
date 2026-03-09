@@ -78,7 +78,7 @@ def is_slurm_queue_open(slurm_user: str, slurm_job_limit: int=500):
     print(f"\nChecking slurm queue for {slurm_user}")
     jobs = check_output(
         ["squeue",
-         f"-u{slurm_user}",
+         f"-u {slurm_user}",
          "-o '%.10i %.9p %40j %.8u %.10T %.10M %.6D %R'", "-a"]).decode("utf-8")
     user_home = path.expanduser('~')
     output_dir = rf"{user_home}/Scripts/MyScripts/Output/MSM_Pipeline"
@@ -951,10 +951,14 @@ def run_msm_bl_to_all(dataset: str, output: str, starting_time: str, slurm_accou
 
         for time_point in time_points:
             if time_point != starting_time:
-                run_msm(dataset, output, subject, starting_time, time_point, "forward", younger_uses_mcribs, older_uses_mcribs, 
-                        False, levels, config, max_anat, max_cp, slurm_email, slurm_account, slurm_user, slurm_job_limit)
-                run_msm(dataset, output, subject, starting_time, time_point, "reverse", younger_uses_mcribs, older_uses_mcribs, False,
-                        levels, config, max_anat, max_cp, slurm_email, slurm_account, slurm_user, slurm_job_limit)
+                run_msm(dataset=dataset, output=output, subject=subject, younger_timepoint=starting_time, older_timepoint=time_point,
+                        mode="forward", younger_uses_mcribs=younger_uses_mcribs, older_uses_mcribs=older_uses_mcribs, levels=levels,
+                        config=config, max_anat=max_anat, max_cp=max_cp, slurm_email=slurm_email, slurm_account=slurm_account,
+                        slurm_user=slurm_user, slurm_job_limit=slurm_job_limit)
+                run_msm(dataset=dataset, output=output, subject=subject, younger_timepoint=starting_time, older_timepoint=time_point,
+                        mode="reverse", younger_uses_mcribs=younger_uses_mcribs, older_uses_mcribs=older_uses_mcribs, levels=levels,
+                        config=config, max_anat=max_anat, max_cp=max_cp, slurm_email=slurm_email, slurm_account=slurm_account,
+                        slurm_user=slurm_user, slurm_job_limit=slurm_job_limit)
 
 
 # Function to run MSM on shirt time windows
