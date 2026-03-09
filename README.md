@@ -23,10 +23,10 @@
 [![Stars][stars-shield]][stars-url]
 
 
-<h3 align="center">aMSM_AD</h3>
+<h3 align="center">aMSM_Pipeline</h3>
 
   <p align="center">
-    Processing scripts for aMSM analysis of Alzheimer's Disease data
+    Processing scripts for aMSM analysis.
     <br />
     <a href="https://github.com/KEGarciaLab/aMSM_AD"><strong>Explore the docs »</strong></a>
     <br />
@@ -72,6 +72,7 @@
     <li><a href="#generate-avg-maps-all">generate_avg_maps_all</a></li>
     <li><a href="#convert-curvature">convert_curvature</a></li>
     <li><a href="#convert-curvature-all">convert_curvature_all</a></li>
+    <li><a href="#concatenate_registrations">concatenate_registrations</a></li>
 </ul>
     <li><a href="#roadmap">Roadmap</a></li>
     <li><a href="#contributing">Contributing</a></li>
@@ -213,7 +214,7 @@ Generates images for qc before running MSM. Must be in the same output format th
 * `--output` The folder to place the QC images in
 
 #### Optional:
-*`--uses_mcribsl` Use if the dataset is from M-CRlB-S.
+*`--uses_mcribs` Use if the dataset is from M-CRlB-S.
 
 <a name="qc_all"></a>
 ### `qc_all`
@@ -338,8 +339,12 @@ Generates an average map for the specified subject and time points.
 * `-- subject` The subject ID that will be used to generate average maps.
 * `--younger_timepoint` The younger timepoint of the registration.
 * `--older_timepoint` The older timepoint of the registration.
-* `--max_cp` Path to the MaxCP reference sphere (typically ico5sphere)
-* `--max_anat` Path to the MaxANAT reference sphere (typically ico6sphere).
+
+#### Optional:
+* `--max_cp` Path to the MaxCP reference sphere (typically ico5sphere) if not using provided icosphere files.
+* `--max_anat` Path to the MaxANAT reference sphere (typically ico6sphere) if not using provided icosphere files.
+* `--younger_uses_mcribs` Used to indicate that the younger time point uses M-CRIB-S data
+* `--older_uses_mcribs` Used to indicate that the older time point uses M-CRIB-S data
 
 <a name="generate-avg-maps-all"></a>
 ### `generate_avg_maps_all`
@@ -349,9 +354,12 @@ Generates average maps for all registrations in the specified directory.
 ##### Required:
 * `--ciftify_dataset` Path to the folder containing ciftify outputs.
 * `--msm_dataset` Path to MSM registration.
-* `--max_cp` Path to the MaxCP reference sphere (typically ico5sphere).
-* `--max_anat` Path to the MaxANAT reference sphere (typically ico6sphere)
+
+#### Optional:
+* `--max_cp` Path to the MaxCP reference sphere (typically ico5sphere) if not using provided icosphere files.
+* `--max_anat` Path to the MaxANAT reference sphere (typically ico6sphere) if not using provided icosphere files.
 * `--starting_time` The baseline time of registrations. This is used to determine which average maps are needed.
+* `--uses_mcribs` Used to indicate that the dataset as a whole uses M-CRIB-S. Note that this is only avaliable for datasets which wholly use M-CRIB-S. M-CRIB-S to Freesurfer everage maps muct be generated using the singular function above.
 
 <a name="convert-curvature"></a>
 ### `convert_curvature`
@@ -370,6 +378,29 @@ Converts all curvature files in a given dataset into GIFTI format (`.func.gii`).
 #### Arguments
 ##### Required:
 * `--dataset` Path to directory containing all subject data
+
+<a name="concatenate-surfaces"></a>
+### `concatenate_registrations`
+---  
+Concatenates MSM registrations across multiple time points to reduce noise in longer registration chains.
+
+#### Arguments
+##### Required:
+* `--msm_dataset` Path to directory containing MSM registrations; folder should contain directories for each time point needed.
+* `--pre_msm_dataset` Path to either the ciftify output or M-CRIB-S data.
+* `--subject` Subject ID to concatenate registrations for.
+* `--concat_start_time` Starting time point for the concatenation (typically the first registration in the chain).
+* `--concat_end_time` Ending time point for the concatenation (typically the last registration in the chain).
+* `--resolution` Resolution of registration for concatenation. Choices: `CPgrid` or `ANATgrid`.
+* `--output` Path for output of concatenated registrations. A folder for each concatenation will be created here.
+
+##### Optional:
+* `--max_anat` Path to MaxAnat reference sphere (typically ico6sphere). Only needed if not using default.
+* `--max_cp` Path to MaxCP reference sphere (typically ico5sphere). Only needed if not using default.
+* `--alphanumeric_timepoints` Use if the time points are alphanumeric. Time points will be sorted based on the numeric portion of the name (ensure consistency).
+* `--time_point_number_start_character` The character index (0-based) where numbers begin in the time point name. Required if using `--alphanumeric_timepoints`.
+* `--starting_time` Used if the starting time point uses a different naming convention.
+
 
 
 **DEPRECATED**

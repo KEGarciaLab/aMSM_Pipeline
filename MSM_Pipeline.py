@@ -986,9 +986,8 @@ def run_msm_short_time_windows(dataset: str, output: str, slurm_account: str, sl
 
 
 # Function to generate average maps
-def generate_avg_maps(ciftify_dataset: str, msm_dataset: str, subject: str, younger_timepoint: str, older_timepoint: str, max_cp: str | None=None, max_anat: str | None=None):
+def generate_avg_maps(pre_msm_data: str, msm_data: str, subject: str, younger_timepoint: str, older_timepoint: str, max_cp: str | None=None, max_anat: str | None=None, younger_uses_mcribs: bool=False, older_uses_mcbribs: bool=False):
     # create output for average maps
-    
     if max_cp == None:
         script_dir = path.dirname(path.realpath(__file__))
         max_cp = path.join(script_dir, "NeededFiles", "ico5sphere.LR.reg.surf.gii")
@@ -997,12 +996,20 @@ def generate_avg_maps(ciftify_dataset: str, msm_dataset: str, subject: str, youn
         max_anat = path.join(script_dir, "NeededFiles", "ico6sphere.LR.reg.surf.gii")
         
     msm_avg_output = path.join(
-        msm_dataset, f"{subject}_{younger_timepoint}_to_{older_timepoint}_avg")
+        msm_data, f"{subject}_{younger_timepoint}_to_{older_timepoint}_avg")
     makedirs(msm_avg_output, exist_ok=True)
 
     # create variables for file locations from pre-msm
-    younger_files = get_files(ciftify_dataset, subject, younger_timepoint)
-    older_files = get_files(ciftify_dataset, subject, older_timepoint)
+    if younger_uses_mcribs:
+        younger_files = get_files_mcribs(pre_msm_data, subject, younger_timepoint)
+    else:
+        younger_files = get_files(pre_msm_data, subject, younger_timepoint)
+    
+    if older_uses_mcbribs:
+        older_files = get_files_mcribs(pre_msm_data, subject, older_timepoint)
+    else:
+        older_files = get_files(pre_msm_data, subject, older_timepoint)
+        
     left_younger_spherical_surface = younger_files[2]
     left_older_spherical_surface = older_files[2]
     right_younger_spherical_surface = younger_files[3]
@@ -1010,7 +1017,7 @@ def generate_avg_maps(ciftify_dataset: str, msm_dataset: str, subject: str, youn
 
     # files for msm resverse registration
     msm_reverse_folder = path.join(
-        msm_dataset, f"{subject}_{older_timepoint}_to_{younger_timepoint}")
+        msm_data, f"{subject}_{older_timepoint}_to_{younger_timepoint}")
     left_older_anatomical_surface_cpgrid = path.join(
         msm_reverse_folder, f"{subject}_L_{older_timepoint}-{younger_timepoint}.LOAS.CPgrid.surf.gii")
     left_older_anatomical_surface_anatgrid = path.join(
@@ -1042,7 +1049,7 @@ def generate_avg_maps(ciftify_dataset: str, msm_dataset: str, subject: str, youn
 
     # files for msm forward registration
     msm_forward_folder = path.join(
-        msm_dataset, f"{subject}_{younger_timepoint}_to_{older_timepoint}")
+        msm_data, f"{subject}_{younger_timepoint}_to_{older_timepoint}")
     left_base_sphere_forward = path.join(
         msm_forward_folder, f"{subject}_L_{younger_timepoint}-{older_timepoint}.sphere.reg.surf.gii")
     left_cpgrid_sphere_forward = path.join(
@@ -1102,10 +1109,8 @@ def generate_avg_maps(ciftify_dataset: str, msm_dataset: str, subject: str, youn
     print("Begin generating revfor spheres")
     run(f"wb_command -surface-sphere-project-unproject {left_older_spherical_surface} {left_base_sphere_reverse} {left_younger_spherical_surface} {left_revfor_base_sphere}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
     run(f"wb_command -surface-sphere-project-unproject {right_older_spherical_surface} {right_base_sphere_reverse} {right_younger_spherical_surface} {right_revfor_base_sphere}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    run(
-        f"wb_command -surface-sphere-project-unproject {max_cp} {left_cpgrid_sphere_reverse} {max_cp} {left_revfor_cpgrid_sphere}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    run(
-        f"wb_command -surface-sphere-project-unproject {max_cp} {right_cpgrid_sphere_reverse} {max_cp} {right_revfor_cpgrid_sphere}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
+    run(f"wb_command -surface-sphere-project-unproject {max_cp} {left_cpgrid_sphere_reverse} {max_cp} {left_revfor_cpgrid_sphere}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
+    run(f"wb_command -surface-sphere-project-unproject {max_cp} {right_cpgrid_sphere_reverse} {max_cp} {right_revfor_cpgrid_sphere}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
     run(f"wb_command -surface-sphere-project-unproject {max_anat} {left_anatgrid_sphere_reverse} {max_anat} {left_revfor_anatgrid_sphere}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
     run(f"wb_command -surface-sphere-project-unproject {max_anat} {right_anatgrid_sphere_reverse} {max_anat} {right_revfor_anatgrid_sphere}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
 
@@ -1118,18 +1123,12 @@ def generate_avg_maps(ciftify_dataset: str, msm_dataset: str, subject: str, youn
 
     # Generate AvgFor Shpheres
     print("Begin generating avgfor spheres")
-    run(
-        f"wb_command -surface-modify-sphere -recenter {left_avgfor_base_sphere} 100 {left_avgfor_base_sphere}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    run(
-        f"wb_command -surface-modify-sphere -recenter {right_avgfor_base_sphere} 100 {right_avgfor_base_sphere}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    run(
-        f"wb_command -surface-modify-sphere -recenter {left_avgfor_cpgrid_sphere} 100 {left_avgfor_cpgrid_sphere}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    run(
-        f"wb_command -surface-modify-sphere -recenter {right_avgfor_cpgrid_sphere} 100 {right_avgfor_cpgrid_sphere}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    run(
-        f"wb_command -surface-modify-sphere -recenter {left_avgfor_anatgrid_sphere} 100 {left_avgfor_anatgrid_sphere}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    run(
-        f"wb_command -surface-modify-sphere -recenter {right_avgfor_anatgrid_sphere} 100 {right_avgfor_anatgrid_sphere}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
+    run(f"wb_command -surface-modify-sphere -recenter {left_avgfor_base_sphere} 100 {left_avgfor_base_sphere}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
+    run(f"wb_command -surface-modify-sphere -recenter {right_avgfor_base_sphere} 100 {right_avgfor_base_sphere}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
+    run(f"wb_command -surface-modify-sphere -recenter {left_avgfor_cpgrid_sphere} 100 {left_avgfor_cpgrid_sphere}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
+    run(f"wb_command -surface-modify-sphere -recenter {right_avgfor_cpgrid_sphere} 100 {right_avgfor_cpgrid_sphere}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
+    run(f"wb_command -surface-modify-sphere -recenter {left_avgfor_anatgrid_sphere} 100 {left_avgfor_anatgrid_sphere}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
+    run(f"wb_command -surface-modify-sphere -recenter {right_avgfor_anatgrid_sphere} 100 {right_avgfor_anatgrid_sphere}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
 
     # Generate RevFor Anatomical Surfaces
     print("Begin generating revfor surfaces")
@@ -1165,7 +1164,7 @@ def generate_avg_maps(ciftify_dataset: str, msm_dataset: str, subject: str, youn
 
 
 # Function to run all average maps
-def generate_avg_maps_all(ciftify_dataset: str, msm_dataset: str, max_cp: str | None=None, max_anat: str | None=None, starting_time: str | None=None):
+def generate_avg_maps_all(ciftify_dataset: str, msm_dataset: str, max_cp: str | None=None, max_anat: str | None=None, starting_time: str | None=None, uses_mcribs: bool=False):
     print("\nBEGIN FUNCTION FOR AVG MAPS")
     print('*' * 50)
     
@@ -1196,16 +1195,21 @@ def generate_avg_maps_all(ciftify_dataset: str, msm_dataset: str, max_cp: str | 
         if first_time == starting_time:
             continue
         elif second_time == starting_time:
-            print(
-                f"Beginning average maps for {subject} for times {second_month} to {first_month}")
-            generate_avg_maps(ciftify_dataset, msm_dataset, subject, second_time, first_time, max_cp, max_anat)
+            if uses_mcribs:
+                print(f"Beginning average maps for {subject} for times {second_month} to {first_month} using mcribs")
+                generate_avg_maps(ciftify_dataset, msm_dataset, subject, second_time, first_time, max_cp, max_anat, True, True)
+            else:
+                print(f"Beginning average maps for {subject} for times {second_month} to {first_month}")
+                generate_avg_maps(ciftify_dataset, msm_dataset, subject, second_time, first_time, max_cp, max_anat)
         elif first_month < second_month:
             continue
         elif second_month < first_month:
-            print(
-                f"Beginning average maps for {subject} for times {second_month} to {first_month}")
-            generate_avg_maps(ciftify_dataset, msm_dataset,
-                              subject, second_time, first_time, max_cp, max_anat)
+            if uses_mcribs:
+                print(f"Beginning average maps for {subject} for times {second_month} to {first_month} using mcribs")
+                generate_avg_maps(ciftify_dataset, msm_dataset, subject, second_time, first_time, max_cp, max_anat, True, True)
+            else:
+                print(f"Beginning average maps for {subject} for times {second_month} to {first_month}")
+                generate_avg_maps(ciftify_dataset, msm_dataset, subject, second_time, first_time, max_cp, max_anat)
 
 
 # Rescale mcribs surface
@@ -1345,6 +1349,194 @@ def convert_curvature_all(dataset: str):
             convert_curvature(dataset, subject, time_point)
     print("Curvature conversion complete\n")    
 
+
+# Function for concatenating registrations
+def concatenate_registrations(msm_dataset: str, pre_msm_dataset: str, subject: str, concat_start_time: str, concat_end_time: str, resolution: str,
+                             output: str, max_anat: str | None = None, max_cp: str | None = None, alphanumeric_timepoints: bool=False,
+                             time_point_number_start_character: int | None=None, starting_time=None):
+    print(f"Beginning concatenation for subject {subject} from {concat_start_time} to {concat_end_time}")
+    # Gather default files
+    script_dir = path.dirname(path.realpath(__file__))
+    if max_anat == None:
+        print("No max_anat provided, using default")
+        max_anat = path.join(script_dir, "NeededFiles", "ico6sphere.LR.reg.surf.gii")
+    if max_cp == None:
+        print("No max_cp provided, using default")
+        max_cp = path.join(script_dir, "NeededFiles", "ico5sphere.LR.reg.surf.gii")
+    
+    # Get all intermediate timepoints
+    print(f"Finding intermediate time points")
+    all_subject_timepoints = get_subject_time_points(pre_msm_dataset, subject, alphanumeric_timepoints, time_point_number_start_character, starting_time)
+    starting_time_index = all_subject_timepoints.index(concat_start_time)
+    if len(all_subject_timepoints) <= 2:
+        print(f"Time points for subject only include start and end times, cannot concatenate")
+        return
+    intermediate_timepoints = all_subject_timepoints[starting_time_index + 1:]
+    print(f"Found intermediate time points: {intermediate_timepoints}")
+    
+    # first concat run
+    # Define directories
+    forward_start_to_intermediate = path.join(msm_dataset, f"Subject_{subject}_{concat_start_time}_to_{intermediate_timepoints[0]}")
+    avg_start_to_intermediate = path.join(msm_dataset, f"Subject_{subject}_{concat_start_time}_to_{intermediate_timepoints[0]}_avg")
+    
+    if len(intermediate_timepoints) > 1:
+        print("Found multiple intermediate time points. Chain concatenation required.")
+        # Used if there are multiple intermediate time points
+        forward_intermediate_to_end = path.join(msm_dataset, f"Subject_{subject}_{intermediate_timepoints[0]}_to_{intermediate_timepoints[1]}")
+        avg_intermediate_to_end = path.join(msm_dataset, f"Subject_{subject}_{intermediate_timepoints[0]}_to_{intermediate_timepoints[1]}_avg")
+        concat_output_dir = path.join(output, f"Subject_{subject}_{concat_start_time}_to_{intermediate_timepoints[1]}_concat")
+        left_concat_output = path.join(concat_output_dir, f"{subject}_L_{concat_start_time}-{intermediate_timepoints[1]}.concat.sphere.{resolution}.reg.surf.gii")
+        right_concat_output = path.join(concat_output_dir, f"{subject}_R_{concat_start_time}-{intermediate_timepoints[1]}.concat.sphere.{resolution}.reg.surf.gii")
+        left_as_time_end = path.join(forward_intermediate_to_end, f"{subject}_L_{intermediate_timepoints[0]}-{intermediate_timepoints[1]}.LOAS.{resolution}.surf.gii")
+        right_as_time_end = path.join(forward_intermediate_to_end, f"{subject}_R_{intermediate_timepoints[0]}-{intermediate_timepoints[1]}.LOAS.{resolution}.surf.gii")
+        left_anat_output = path.join(concat_output_dir, f"{subject}_L_{concat_start_time}-{intermediate_timepoints[1]}.concat.anat.{resolution}.reg.surf.gii")
+        right_anat_output = path.join(concat_output_dir, f"{subject}_R_{concat_start_time}-{intermediate_timepoints[1]}.concat.anat.{resolution}.reg.surf.gii")
+        left_surfdist_output = path.join(concat_output_dir, f"{subject}_L_{concat_start_time}-{intermediate_timepoints[1]}.concat.surfdist.{resolution}.func.gii")
+        right_surfdist_output = path.join(concat_output_dir, f"{subject}_R_{concat_start_time}-{intermediate_timepoints[1]}.concat.surfdist.{resolution}.func.gii")
+        left_sphere_unproject_from = path.join(avg_intermediate_to_end, f"{subject}_L_{intermediate_timepoints[0]}_{intermediate_timepoints[1]}.avgfor.sphere.{resolution}.reg.surf.gii")
+        right_sphere_unproject_from = path.join(avg_intermediate_to_end, f"{subject}_R_{intermediate_timepoints[0]}_{intermediate_timepoints[1]}.avgfor.sphere.{resolution}.reg.surf.gii")
+    else:
+        print("Only one intermediate time point found. Single concatenation run.")
+        # used if there is only one intermediate time point
+        forward_intermediate_to_end = path.join(msm_dataset, f"Subject_{subject}_{intermediate_timepoints[0]}_to_{concat_end_time}")
+        avg_intermediate_to_end = path.join(msm_dataset, f"Subject_{subject}_{intermediate_timepoints[0]}_to_{concat_end_time}_avg")
+        concat_output_dir = path.join(output, f"Subject_{subject}_{concat_start_time}_to_{concat_end_time}_concat")
+        left_concat_output = path.join(concat_output_dir, f"{subject}_L_{concat_start_time}-{concat_end_time}.concat.sphere.{resolution}.reg.surf.gii")
+        right_concat_output = path.join(concat_output_dir, f"{subject}_R_{concat_start_time}-{concat_end_time}.concat.sphere.{resolution}.reg.surf.gii")
+        left_as_time_end = path.join(forward_intermediate_to_end, f"{subject}_L_{intermediate_timepoints[0]}-{concat_end_time}.LOAS.{resolution}.surf.gii")
+        right_as_time_end = path.join(forward_intermediate_to_end, f"{subject}_R_{intermediate_timepoints[0]}-{concat_end_time}.LOAS.{resolution}.surf.gii")
+        left_anat_output = path.join(concat_output_dir, f"{subject}_L_{concat_start_time}-{concat_end_time}.concat.anat.{resolution}.reg.surf.gii")
+        right_anat_output = path.join(concat_output_dir, f"{subject}_R_{concat_start_time}-{concat_end_time}.concat.anat.{resolution}.reg.surf.gii")
+        left_surfdist_output = path.join(concat_output_dir, f"{subject}_L_{concat_start_time}-{concat_end_time}.concat.surfdist.{resolution}.func.gii")
+        right_surfdist_output = path.join(concat_output_dir, f"{subject}_R_{concat_start_time}-{concat_end_time}.concat.surfdist.{resolution}.func.gii")
+        left_sphere_unproject_from = path.join(avg_intermediate_to_end, f"{subject}_L_{intermediate_timepoints[0]}_{concat_end_time}.avgfor.sphere.{resolution}.reg.surf.gii")
+        right_sphere_unproject_from = path.join(avg_intermediate_to_end, f"{subject}_R_{intermediate_timepoints[0]}_{concat_end_time}.avgfor.sphere.{resolution}.reg.surf.gii")
+    
+    left_sphere_in = path.join(avg_start_to_intermediate, f"{subject}_L_{concat_start_time}_{intermediate_timepoints[0]}.avgfor.sphere.{resolution}.reg.surf.gii")
+    right_sphere_in = path.join(avg_start_to_intermediate, f"{subject}_R_{concat_start_time}_{intermediate_timepoints[0]}.avgfor.sphere.{resolution}.reg.surf.gii")
+    left_surface_reference = path.join(forward_start_to_intermediate, f"{subject}_L_{concat_start_time}_{intermediate_timepoints[0]}.LYAS.{resolution}.surf.gii")
+    right_surface_reference = path.join(forward_start_to_intermediate, f"{subject}_R_{concat_start_time}_{intermediate_timepoints[0]}.RYAS.{resolution}.surf.gii")
+    
+    if resolution == "CPgrid":
+        sphere_project_to = max_cp
+        spherical_surface = max_cp
+    if resolution == "ANATgrid":
+        sphere_project_to = max_anat
+        spherical_surface = max_anat
+    
+    print(
+        "Directories defined as\n"
+        f"\tforward_start_to_intermediate: {forward_start_to_intermediate}\n"
+        f"\tavg_start_to_intermediate: {avg_start_to_intermediate}\n"
+        f"\tforward_intermediate_to_end: {forward_intermediate_to_end}\n"
+        f"\tavg_intermediate_to_end: {avg_intermediate_to_end}\n"
+        "\n"
+        "Inputs\n"
+        f"\tleft_sphere_in: {left_sphere_in}\n"
+        f"\tright_sphere_in: {right_sphere_in}\n"
+        f"\tsphere_project_to: {sphere_project_to}\n"
+        f"\tleft_sphere_unproject_from: {left_sphere_unproject_from}\n"
+        f"\tright_sphere_unproject_from: {right_sphere_unproject_from}\n"
+        f"\tleft_as_time_end: {left_as_time_end}\n"
+        f"\tright_as_time_end: {right_as_time_end}\n"
+        f"\tspherical_surface: {spherical_surface}\n"
+        f"\tleft_surface_reference: {left_surface_reference}\n"
+        f"\tright_surface_reference: {right_surface_reference}\n"
+        "\n"
+        "Outputs\n"
+        f"\tleft_concat_output: {left_concat_output}\n"
+        f"\tright_concat_output: {right_concat_output}\n"
+        f"\tleft_anat_output: {left_anat_output}\n"
+        f"\tright_anat_output: {right_anat_output}\n"
+        f"\tleft_surfdist_output: {left_surfdist_output}\n"
+        f"\tright_surfdist_output: {right_surfdist_output}"
+    )  
+        
+    # Run first set of commands
+    print("Running commands")
+    run(f"wb_command -surface-sphere-project-unproject {left_sphere_in} {sphere_project_to} {left_sphere_unproject_from} {left_concat_output}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
+    run(f"wb_command -surface-sphere-project-unproject {right_sphere_in} {sphere_project_to} {right_sphere_unproject_from} {right_concat_output}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
+    
+    run(f"wb_command -surface-resample {left_as_time_end} {spherical_surface} {left_concat_output} 'BARYCENTRIC' {left_anat_output}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
+    run(f"wb_command -surface-resample {right_as_time_end} {spherical_surface} {right_concat_output} 'BARYCENTRIC' {right_anat_output}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
+    
+    run(f"wb_command -surface-distortion {left_surface_reference} {left_anat_output} {left_surfdist_output}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
+    run(f"wb_command -surface-distortion {right_surface_reference} {right_anat_output} {right_surfdist_output}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
+    print("Finished inital concatenation")
+    
+    if len(intermediate_timepoints) > 1:
+        print("Chain concatenation starting")
+        total_loops = len(intermediate_timepoints) - 2
+        print(f"Total chains needed: {total_loops}")
+        for i in range(1, len(intermediate_timepoints) - 1):
+            print(f"Beginning chain concatenation {i}/{total_loops}")
+            start_time = concat_start_time
+            intermediate_time = intermediate_timepoints[i]
+            end_time = intermediate_timepoints[i + 1]
+            
+            forward_start_to_intermediate = path.join(msm_dataset, f"Subject_{subject}_{start_time}_to_{intermediate_time}_concat")
+            avg_start_to_intermediate = path.join(msm_dataset, f"Subject_{subject}_{start_time}_to_{intermediate_timepoints[0]}_avg")
+            forward_intermediate_to_end = path.join(msm_dataset, f"Subject_{subject}_{intermediate_time}_to_{end_time}")
+            avg_intermediate_to_end = path.join(msm_dataset, f"Subject_{subject}_{intermediate_time}_to_{end_time}_avg")
+            
+            concat_output_dir = path.join(output, f"Subject_{subject}_{start_time}_to_{end_time}_concat")
+            left_concat_output = path.join(concat_output_dir, f"{subject}_L_{start_time}-{end_time}.concat.sphere.{resolution}.reg.surf.gii")
+            right_concat_output = path.join(concat_output_dir, f"{subject}_R_{start_time}-{end_time}.concat.sphere.{resolution}.reg.surf.gii")
+            left_anat_output = path.join(concat_output_dir, f"{subject}_L_{start_time}-{end_time}.concat.anat.{resolution}.reg.surf.gii")
+            right_anat_output = path.join(concat_output_dir, f"{subject}_R_{start_time}-{end_time}.concat.anat.{resolution}.reg.surf.gii")
+            left_surfdist_output = path.join(concat_output_dir, f"{subject}_L_{start_time}-{end_time}.concat.surfdist.{resolution}.func.gii")
+            right_surfdist_output = path.join(concat_output_dir, f"{subject}_R_{start_time}-{end_time}.concat.surfdist.{resolution}.func.gii")
+            
+            left_sphere_in = path.join(concat_output_dir, f"{subject}_L_{start_time}-{intermediate_time}.concat.sphere.{resolution}.reg.surf.gii")
+            right_sphere_in = path.join(concat_output_dir, f"{subject}_R_{start_time}-{intermediate_time}.concat.sphere.{resolution}.reg.surf.gii")
+            left_surface_reference = path.join(concat_output_dir, f"{subject}_L_{start_time}-{intermediate_time}.concat.anat.{resolution}.reg.surf.gii")
+            right_surface_reference = path.join(concat_output_dir, f"{subject}_R_{start_time}-{intermediate_time}.concat.anat.{resolution}.reg.surf.gii")
+            
+            left_as_time_end = path.join(forward_intermediate_to_end, f"{subject}_L_{intermediate_time}-{end_time}.LOAS.{resolution}.surf.gii")
+            right_as_time_end = path.join(forward_intermediate_to_end, f"{subject}_R_{intermediate_time}-{end_time}.LOAS.{resolution}.surf.gii")
+            left_sphere_unproject_from = path.join(avg_intermediate_to_end, f"{subject}_L_{intermediate_time}_{end_time}.avgfor.sphere.{resolution}.reg.surf.gii")
+            right_sphere_unproject_from = path.join(avg_intermediate_to_end, f"{subject}_R_{intermediate_time}_{end_time}.avgfor.sphere.{resolution}.reg.surf.gii")
+
+            print(
+                "Directories defined as\n"
+                f"\tforward_start_to_intermediate: {forward_start_to_intermediate}\n"
+                f"\tavg_start_to_intermediate: {avg_start_to_intermediate}\n"
+                f"\tforward_intermediate_to_end: {forward_intermediate_to_end}\n"
+                f"\tavg_intermediate_to_end: {avg_intermediate_to_end}\n"
+                "\n"
+                "Inputs\n"
+                f"\tleft_sphere_in: {left_sphere_in}\n"
+                f"\tright_sphere_in: {right_sphere_in}\n"
+                f"\tsphere_project_to: {sphere_project_to}\n"
+                f"\tleft_sphere_unproject_from: {left_sphere_unproject_from}\n"
+                f"\tright_sphere_unproject_from: {right_sphere_unproject_from}\n"
+                f"\tleft_as_time_end: {left_as_time_end}\n"
+                f"\tright_as_time_end: {right_as_time_end}\n"
+                f"\tspherical_surface: {spherical_surface}\n"
+                f"\tleft_surface_reference: {left_surface_reference}\n"
+                f"\tright_surface_reference: {right_surface_reference}\n"
+                "\n"
+                "Outputs\n"
+                f"\tleft_concat_output: {left_concat_output}\n"
+                f"\tright_concat_output: {right_concat_output}\n"
+                f"\tleft_anat_output: {left_anat_output}\n"
+                f"\tright_anat_output: {right_anat_output}\n"
+                f"\tleft_surfdist_output: {left_surfdist_output}\n"
+                f"\tright_surfdist_output: {right_surfdist_output}"
+            )
+            
+            print("Running commands")
+            run(f"wb_command -surface-sphere-project-unproject {left_sphere_in} {sphere_project_to} {left_sphere_unproject_from} {left_concat_output}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
+            run(f"wb_command -surface-sphere-project-unproject {right_sphere_in} {sphere_project_to} {right_sphere_unproject_from} {right_concat_output}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
+            
+            run(f"wb_command -surface-resample {left_as_time_end} {spherical_surface} {left_concat_output} 'BARYCENTRIC' {left_anat_output}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
+            run(f"wb_command -surface-resample {right_as_time_end} {spherical_surface} {right_concat_output} 'BARYCENTRIC' {right_anat_output}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
+            
+            run(f"wb_command -surface-distortion {left_surface_reference} {left_anat_output} {left_surfdist_output}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
+            run(f"wb_command -surface-distortion {right_surface_reference} {right_anat_output} {right_surfdist_output}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
+            print(f"Finished chain concatenation {i}/{total_loops}")
+    
+    print(f"Finished concatenation of subject {subject} form {concat_start_time} to {concat_end_time}")
 
 # Command line interface
 if __name__ == "__main__":
@@ -1487,6 +1679,8 @@ if __name__ == "__main__":
     gam.add_argument("--older_timepoint", required=True, help="The older time point of the registration")
     gam.add_argument("--max_cp", required=False, help="Path to MaxCP reference sphere, typically ico5sphere")
     gam.add_argument("--max_anat", required=False, help="Path to MaxANAT reference sphere, typically ico6sphere")
+    gam.add_argument("--younger_uses_mcribs", action="store_true", help="Use if the younger time point is from an mcribs dataset")
+    gam.add_argument("--older_uses_mcribs", action="store_true", help="Use if the older time point is from an mcribs dataset")
         
     # Generate All Avg Maps
     raa = subparser.add_parser("generate_avg_maps_all", help="Run average map generation on all subjects")
@@ -1495,6 +1689,7 @@ if __name__ == "__main__":
     raa.add_argument("--max_cp", required=False, help="Path to MaxCP reference sphere, typically ico5sphere")
     raa.add_argument("--max_anat", required=False, help="Path to MaxANAT reference sphere, typically ico6sphere")
     raa.add_argument("--starting_time", required=False, help="Basleine of registrations, used to determine which avg maps are needed")
+    raa.add_argument("--uses_mcribs", action="store_true", help="Use if the dataset is from mcribs. Note that both time points are assumed to use mcribs when this flag is used. Mcribs to freesurfer average maps can not be batch generated.")
 
     # Convert curvature
     cc = subparser.add_parser("convert_curvature", help="Convert .curv files to .gii files for one subject and time point from a mcribs dataset")
@@ -1505,6 +1700,21 @@ if __name__ == "__main__":
     # Convert curvature all
     cca = subparser.add_parser("convert_curvature_all", help="Convert .curv files to .gii files for all subjects and time points in a mcribs dataset")
     cca.add_argument("--dataset", required=True, help="Path to directory containing all subject data")
+    
+    # Concat Registrations
+    cr = subparser.add_parser("concatenate_registrations", help="Concatenate MSM registrations together, used to help eliminate noise in registrations across longer time points")
+    cr.add_argument("--msm_dataset", required=True, help="Path to directory containing MSM registrations; folder should contain directories for each each time point needed")
+    cr.add_argument("--pre_msm_dataset", required=True, help="Path to to either the ciftify output or M-CRIB-S data")
+    cr.add_argument("--subject", required=True, help="Subject ID to concatenate registrations for")
+    cr.add_argument("--concat_start_time", required=True, help="The starting time point for the concatenation, most likely the same as the starting time point of the first registration in the chain")
+    cr.add_argument("--concat_end_time", required=True, help="The ending time point for the concatenation, most likely the same as the ending time point of the last registration in the chain")
+    cr.add_argument("--resolution", choices=["CPgrid", "ANATgrid"], required=True, help="Resolution of registration for concatenation, either CPgrid or ANATgrid")
+    cr.add_argument("--output", required=True, help="Path for output of concatenated registrations, a folder for each concatenation will be created here")
+    cr.add_argument("--max_anat", required=False, help="Path to MaxAnat reference sphere, typically ico6sphere. Only needed if not using default sphere")
+    cr.add_argument("--max_cp", required=False, help="Path to MaxCP reference sphere, typically ico5sphere. Only needed if not using default sphere")
+    cr.add_argument("--alphanumeric_timepoints", action="store_true", help="Use if the time points are alphanumeric, will sort time points based on the numbers in the time point name, so make sure those are consistent across time points")
+    cr.add_argument("--time_point_number_start_character", required=False, type=int, help="The character where numbers begin in the timepoint 0 indexed, only required if using --alphanumeric_timepoints")
+    cr.add_argument("--starting_time", required=False, help="Used if the starting time point uses a different naming convnetion")
     
     args = parser.parse_args()
     
@@ -1572,3 +1782,7 @@ if __name__ == "__main__":
         args_dict = vars(args)
         args_dict.pop("command", None)
         convert_curvature_all(**args_dict)
+    elif args.command == "concatenate_registrations":
+        args_dict = vars(args)
+        args_dict.pop("command", None)
+        concatenate_registrations(**args_dict)
