@@ -844,6 +844,8 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
                 config=config, yss=left_younger_spherical_surface, oss=left_older_spherical_surface, yc=left_younger_curvature,
                 oc=left_older_curvature, yas=left_younger_anatomical_surface, oas=left_older_anatomical_surface,
                 r_out=left_file_prefix, maxanat=max_anat, maxcp=max_cp)
+            with open(fr"{temp_output}/Subject_{subject}_L_{older_timepoint}-{younger_timepoint}_MSM.sh", "w+") as f:
+                    f.write(to_write_l)
             
             #right hemisphere
             template_path_r = path.join(script_dir, "Templates", "MSM_template_reverse_R.txt")
@@ -856,6 +858,8 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
                 config=config, yss=right_younger_spherical_surface, oss=right_older_spherical_surface, yc=right_younger_curvature,
                 oc=right_older_curvature, yas=right_younger_anatomical_surface, oas=right_older_anatomical_surface,
                 r_out=right_file_prefix, maxanat=max_anat, maxcp=max_cp)
+            with open(fr"{temp_output}/Subject_{subject}_R_{older_timepoint}-{younger_timepoint}_MSM.sh", "w+") as f:
+                    f.write(to_write_r)
             
         # Templates for local jobs
         elif is_local:
