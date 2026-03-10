@@ -1222,12 +1222,15 @@ def generate_avg_maps_all(ciftify_dataset: str, msm_dataset: str, max_cp: str | 
 
 
 # Rescale mcribs surface
-def rescale_surfaces(dataset: str,  subject: str, time_point: str):
+def rescale_surfaces(dataset: str,  subject: str, time_point: str, uses_mcribs: bool=True):
     print(f"\nBEGIN RESCALING SURFACES FOR SUBJECT {subject} AT TIMEPOINT {time_point}")
     print('*' * 50)
     # Retrieve all necessay files
     print("Retriving subject files")
-    subject_files = get_files_mcribs(dataset, subject, time_point)
+    if uses_mcribs:
+        subject_files = get_files_mcribs(dataset, subject, time_point)
+    else:
+        subject_files = get_files(dataset, subject, time_point)
     left_midthickness_file = subject_files[0]
     right_midthickness_file = subject_files[1]
     subject_dir = subject_files[6]
@@ -1254,11 +1257,11 @@ def rescale_surfaces(dataset: str,  subject: str, time_point: str):
     
     #subject cortex shape
     print("Calculating surface areas")
-    run(f"wb_command -metric-stats {left_shape_file} -reduce SUM", shell=True, stdout=sys.stdout, stderr=sys.stderr) #-roi {left_cortex}", shell=True, stdout=sys.stdout, stderr=sys.stderr, capture_output=True, text=True, check=True)
+    run(f"wb_command -metric-stats {left_shape_file} -reduce SUM", shell=True, stdout=sys.stdout, stderr=sys.stderr)
     command_output = run(f"wb_command -metric-stats {left_shape_file} -reduce SUM", shell=True, capture_output=True, text=True, check=True)
     left_surface_area = float(command_output.stdout.strip())
     
-    run(f"wb_command -metric-stats {right_shape_file} -reduce SUM", shell=True, stdout=sys.stdout, stderr=sys.stderr) #-roi {right_cortex}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
+    run(f"wb_command -metric-stats {right_shape_file} -reduce SUM", shell=True, stdout=sys.stdout, stderr=sys.stderr)
     command_output = run(f"wb_command -metric-stats {right_shape_file} -reduce SUM", shell=True, capture_output=True, text=True, check=True)
     right_surface_area = float(command_output.stdout.strip())
     print(f"Left Surface Area: {left_surface_area}")
@@ -1293,14 +1296,14 @@ def rescale_surfaces(dataset: str,  subject: str, time_point: str):
 
 
 # Rescale surfaces for all subjects
-def rescale_surfaces_all(dataset: str):
+def rescale_surfaces_all(dataset: str, uses_mcribs: bool=True):
     for subject_folder in listdir(dataset):
         subject_path = path.join(dataset, subject_folder)
         if path.isdir(subject_path):
             fields = subject_folder.split("_")
             subject = fields[1]
             time_point = fields[2]
-            rescale_surfaces(dataset, subject, time_point)
+            rescale_surfaces(dataset, subject, time_point, uses_mcribs)
             
             
 # function to retrieve files for mcribs subject
@@ -1589,6 +1592,7 @@ if __name__ == "__main__":
     rs.add_argument("--dataset", required=True, help="Path to directory containing subject data")
     rs.add_argument("--subject", required=True, help="The subject ID for rescale")
     rs.add_argument("--time_point", required=True, help="The time point to be rescaled")
+    rs.add_argument("--uses_mcribs")
     
     # Generate qc imagee
     gqi = subparser.add_parser("generate_qc_image", help="Generate qc scene and image for one subject")
