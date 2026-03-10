@@ -279,6 +279,7 @@ Runs forward and reverse registrations of the indicated subject and timepoint.
 * `--slurm_job_limit` The user's slurm job limit. Only used for remote runs when slurm job limit is not 500.
 * `--younger_uses_mcribs` Use this flag to indicate that M-CRIB-S files need to be used for the younger timepoint
 * `--older_uses_mcribs` USe this flag to indicate that M-CRIB-S files need to be used for the older timepoint
+* `--uses_rescaled` Include this flag if you wish to use rescaled surfaces for freesurfer subjects. M-CRIB-S subjects always use rescaled surfaces.
 
 <a name="run-msm-bl-to-all"></a>
 ### `run_msm_bl_to_all`
@@ -303,6 +304,7 @@ Runs MSM registrations, starting at the baseline timepoint, for each other timep
 * `--max_cp` Path the the MaxCP reference sphere (typically ico5sphere). Only needed if not using default.
 * `--younger_uses_mcribs` Use this flag to indicate that M-CRIB-S files need to be used for the younger timepoint
 * `--older_uses_mcribs` Use this flag to indicate that M-CRIB-S files need to be used for the older timepoint
+* `--uses_rescaled` Include this flag if you wish to use rescaled surfaces for freesurfer subjects. M-CRIB-S subjects always use rescaled surfaces.
 
 <a name="run-msm-short-time-windows"></a>
 ### `run_msm_short_time_windows`
@@ -327,6 +329,7 @@ Runs MSM on all subjects in a folder using sequential timepoints.
 * `--starting_time` The starting time point. This is only necessary if baseline registrations should be skipped.
 * `--younger_uses_mcribs` Use this flag to indicate that M-CRIB-S files need to be used for the younger timepoint
 * `--older_uses_mcribs` Use this flag to indicate that M-CRIB-S files need to be used for the older timepoint
+* `--uses_rescaled` Include this flag if you wish to use rescaled surfaces for freesurfer subjects. M-CRIB-S subjects always use rescaled surfaces.
 
 <a name="generate-avg-maps"></a>
 ### `generate_avg_maps`
