@@ -1658,6 +1658,7 @@ if __name__ == "__main__":
     rm.add_argument("--slurm_account", required=False, help="Slurm account ID for submission. Only needed for remote jobs")
     rm.add_argument("--slurm_user", required=False, help="Slurm username for checking queue. Only needed for remote jobs")
     rm.add_argument("--slurm_job_limit", required=False, help="The users Slurm job limit. Only needed for remote jobs, and if the slurm job limit is not 500")
+    rm.add_argument("--uses_rescaled", action="stores_true", help="Include this flag if you wish to use rescaled surfaces for freesurfer subjects. M-CRIB-S subjects always use rescaled surfaces.")
 
     # Run MSM BL to All
     rmba = subparser.add_parser("run_msm_bl_to_all", help="Run MSM from baseline to all time points, both forward and reverse")
@@ -1676,6 +1677,7 @@ if __name__ == "__main__":
     rmba.add_argument("--config", required=False, help="Path to MSM config file to use, see MSM documentation for more information. Only needed if not using default config")
     rmba.add_argument("--max_anat", required=False, help="Path to MaxAnat reference sphere, typically ico6sphere. Only needed if not using default sphere")
     rmba.add_argument("--max_cp", required=False, help="Path to MaxCP reference sphere, typically ico5sphere. Only needed if not using default sphere")
+    rmba.add_argument("--uses_rescaled", action="stores_true", help="Include this flag if you wish to use rescaled surfaces for freesurfer subjects. M-CRIB-S subjects always use rescaled surfaces.")
 
     # Run MSM Short Time Windows
     rmst = subparser.add_parser("run_msm_short_time_windows", help="Run MSM on sequential time points, both forward and reverse")
@@ -1694,6 +1696,7 @@ if __name__ == "__main__":
     rmst.add_argument("--max_anat", required=False, help="Path to MaxAnat reference sphere, typically ico6sphere. Only needed if not using default sphere")
     rmst.add_argument("--max_cp", required=False, help="Path to MaxCP reference sphere, typically ico5sphere. Only needed if not using default sphere")
     rmst.add_argument("--starting_time", required=False, help="The starting time point. Only used if you want to skip baseline registrations")
+    rmst.add_argument("--uses_rescaled", action="stores_true", help="Include this flag if you wish to use rescaled surfaces for freesurfer subjects. M-CRIB-S subjects always use rescaled surfaces.")
     
     # Generate Avg Maps
     gam = subparser.add_parser("generate_avg_maps", help="Generate average maps for one subject")
