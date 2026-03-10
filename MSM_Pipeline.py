@@ -577,7 +577,7 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
             older_timepoint: str, mode: Mode, younger_uses_mcribs: bool=False, older_uses_mcribs: bool=False,
             is_local: bool=False, hemisphere: Hemisphere | None=None, levels: int=6, config: str | None=None, 
             max_anat: str | None=None, max_cp: str | None=None, slurm_email: str | None=None, slurm_account: str | None=None,
-            slurm_user: str | None=None, slurm_job_limit: int | None=None):
+            slurm_user: str | None=None, slurm_job_limit: int | None=None, use_rescaled: bool=False):
     print(f"\nStarting MSM run for subject {subject} from time point {younger_timepoint} to {older_timepoint} in {mode} mode")
     print('*' * 50)
     
@@ -651,8 +651,14 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
     else:
         print("Using standard naming conventions for younger timepoint")
         younger_files = get_files(dataset, subject, younger_timepoint)
-        left_younger_anatomical_surface = younger_files[0]
-        right_younger_anatomical_surface = younger_files[1]
+        if use_rescaled:
+            print("Using rescaled surfaces for younger timepoint")
+            left_younger_anatomical_surface = younger_files[10]
+            right_younger_anatomical_surface = younger_files[11]
+        else:
+            print("Using base surfacecs for younger timepoint")
+            left_younger_anatomical_surface = younger_files[0]
+            right_younger_anatomical_surface = younger_files[1]
         left_younger_spherical_surface = younger_files[2]
         right_younger_spherical_surface = younger_files[3]
         
@@ -697,8 +703,14 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
     else:
         print("Using standard naming conventions for older timepoint")
         older_files = get_files(dataset, subject, older_timepoint)
-        left_older_anatomical_surface = older_files[0]
-        right_older_anatomical_surface = older_files[1]
+        if use_rescaled:
+            print("Using rescaled surfaces for older timepoint")
+            left_older_anatomical_surface = older_files[10]
+            right_older_anatomical_surface = older_files[11]
+        else:
+            print("Using base surfaces for older timepoint")
+            left_older_anatomical_surface = older_files[0]
+            right_older_anatomical_surface = older_files[1]
         left_older_spherical_surface = older_files[2]
         right_older_spherical_surface = older_files[3]
 
@@ -945,7 +957,7 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
 def run_msm_bl_to_all(dataset: str, output: str, starting_time: str, slurm_account: str, slurm_user: str,
                       slurm_email: str, alphanumeric_timepoints: bool=False, time_point_number_start_character: int | None=None,
                       younger_uses_mcribs: bool=False, older_uses_mcribs: bool=False, slurm_job_limit: int | None=None, levels: int=6, config: str | None=None,
-                      max_anat: str | None=None, max_cp: str | None=None):
+                      max_anat: str | None=None, max_cp: str | None=None, use_rescaled: bool=False):
 
     subjects = get_subjects(dataset)
     print("\nAll subjects found. Beginning MSM")
@@ -963,11 +975,11 @@ def run_msm_bl_to_all(dataset: str, output: str, starting_time: str, slurm_accou
                 run_msm(dataset=dataset, output=output, subject=subject, younger_timepoint=starting_time, older_timepoint=time_point,
                         mode="forward", younger_uses_mcribs=younger_uses_mcribs, older_uses_mcribs=older_uses_mcribs, levels=levels,
                         config=config, max_anat=max_anat, max_cp=max_cp, slurm_email=slurm_email, slurm_account=slurm_account,
-                        slurm_user=slurm_user, slurm_job_limit=slurm_job_limit)
+                        slurm_user=slurm_user, slurm_job_limit=slurm_job_limit, use_rescaled=use_rescaled)
                 run_msm(dataset=dataset, output=output, subject=subject, younger_timepoint=starting_time, older_timepoint=time_point,
                         mode="reverse", younger_uses_mcribs=younger_uses_mcribs, older_uses_mcribs=older_uses_mcribs, levels=levels,
                         config=config, max_anat=max_anat, max_cp=max_cp, slurm_email=slurm_email, slurm_account=slurm_account,
-                        slurm_user=slurm_user, slurm_job_limit=slurm_job_limit)
+                        slurm_user=slurm_user, slurm_job_limit=slurm_job_limit, use_rescaled=use_rescaled)
 
 
 # Function to run MSM on shirt time windows
@@ -975,7 +987,7 @@ def run_msm_short_time_windows(dataset: str, output: str, slurm_account: str, sl
                                alphanumeric_timepoints: bool = False, time_point_number_start_character: int | None=None,
                                younger_uses_mcribs: bool=False, older_uses_mcribs: bool=False, slurm_job_limit: int | None=None, levels: int=6,
                                config: str | None=None, max_anat: str | None=None, max_cp: str | None=None,
-                               starting_time: str | None=None):
+                               starting_time: str | None=None, use_rescaled: bool=False):
     subjects = get_subjects(dataset)
     print("\nAll subjects found. Beginning MSM")
     print('*' * 50)
@@ -989,9 +1001,9 @@ def run_msm_short_time_windows(dataset: str, output: str, slurm_account: str, sl
             older_time = time_points[i + 1]
             if younger_time != starting_time and older_time != starting_time:
                 run_msm(dataset, output, subject, younger_time, older_time, "forward", younger_uses_mcribs, older_uses_mcribs, False, None,
-                        levels, config, max_anat, max_cp, slurm_email, slurm_account, slurm_user, slurm_job_limit)
+                        levels, config, max_anat, max_cp, slurm_email, slurm_account, slurm_user, slurm_job_limit, False)
                 run_msm(dataset, output, subject, younger_time, older_time, "reverse", younger_uses_mcribs, older_uses_mcribs, False, None,
-                        levels, config, max_anat, max_cp, slurm_email, slurm_account, slurm_user, slurm_job_limit)
+                        levels, config, max_anat, max_cp, slurm_email, slurm_account, slurm_user, slurm_job_limit, False)
 
 
 # Function to generate average maps
