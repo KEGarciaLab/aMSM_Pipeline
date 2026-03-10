@@ -1222,7 +1222,7 @@ def generate_avg_maps_all(ciftify_dataset: str, msm_dataset: str, max_cp: str | 
 
 
 # Rescale mcribs surface
-def rescale_surfaces(dataset: str,  subject: str, time_point: str, uses_mcribs: bool=True):
+def rescale_surfaces(dataset: str,  subject: str, time_point: str, uses_mcribs: bool=False):
     print(f"\nBEGIN RESCALING SURFACES FOR SUBJECT {subject} AT TIMEPOINT {time_point}")
     print('*' * 50)
     # Retrieve all necessay files
@@ -1592,7 +1592,7 @@ if __name__ == "__main__":
     rs.add_argument("--dataset", required=True, help="Path to directory containing subject data")
     rs.add_argument("--subject", required=True, help="The subject ID for rescale")
     rs.add_argument("--time_point", required=True, help="The time point to be rescaled")
-    rs.add_argument("--uses_mcribs")
+    rs.add_argument("--uses_mcribs", action="stores_true", help="Use if a dataset uses M-CRIB-S")
     
     # Generate qc imagee
     gqi = subparser.add_parser("generate_qc_image", help="Generate qc scene and image for one subject")
