@@ -61,6 +61,7 @@
     <li><a href="#run-cifitify">run_cifitify</a></li>
     <li><a href="#get-subject-time-points">get_subject_time_points</a></li>
     <li><a href="#rescale-surfaces">rescale_surfaces</a></li>
+    <li><a href="#rescale-surfaces-all">rescale_surfaces_all</a></li>
     <li><a href="#generate_qc_image">generate_qc_image</a></li>
     <li><a href="#qc_all">qc_all</a></li>
     <li><a href="#generate-post-processing-image">generate_post_processing_image</a></li>
@@ -200,6 +201,20 @@ Generates recaled anatomical surfaces for the indicated subject and time point. 
 * `--dataset` The path to the directory containing subject data
 * `--subject` The subject to be rescaled
 * `--time_point` The time_point to be rescaled
+
+#### Optional
+* `--uses_mcribs` Include this flag if the subject uses M_CRIB_S
+
+<a name="rescale-surfaces-all"></a>
+### `rescale_surfaces`
+---
+Runs the `rescale_surfaces` command on all subjects in a givven directory.
+#### Arguments
+##### Required:
+* `--dataset` The path to the directory of all subjects to be rescaled
+
+#### Optional
+* `--uses_mcribs` Include this flag if the entire dataset uses M_CRIB_S
 
 <a name="generate_qc_image"></a>
 ### `generate_qc_image`
