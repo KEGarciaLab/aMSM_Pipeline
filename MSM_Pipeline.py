@@ -1562,6 +1562,7 @@ def concatenate_registrations(msm_dataset: str, pre_msm_dataset: str, subject: s
     
     print(f"Finished concatenation of subject {subject} form {concat_start_time} to {concat_end_time}")
 
+
 # Command line interface
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run MSM Pipeline Functions", usage="MSM_Pipeline.py [-h] <command> [<args>]")
@@ -1605,6 +1606,11 @@ if __name__ == "__main__":
     rs.add_argument("--subject", required=True, help="The subject ID for rescale")
     rs.add_argument("--time_point", required=True, help="The time point to be rescaled")
     rs.add_argument("--uses_mcribs", action="stores_true", help="Use if a dataset uses M-CRIB-S")
+    
+    # Rescale Surfaces All
+    rsa = subparser.add_parser("rescale_surfaces_all", help="Rescale all subejcts in a given directory")
+    rsa.add_argument("--dataset", required=True, help="Path to subjects to be rescaled")
+    rsa.add_argument("--uses_mcribs", action="stores_true", help="Include this flag if the full dataset uses M-CRIB-S")
     
     # Generate qc imagee
     gqi = subparser.add_parser("generate_qc_image", help="Generate qc scene and image for one subject")
@@ -1766,6 +1772,9 @@ if __name__ == "__main__":
         args_dict = vars(args)
         args_dict.pop("command", None)
         rescale_surfaces(**args_dict)
+    elif args.command == "rescale_surfaces_all":
+        args_dict = vars(args)
+        args_dict.pop("command", None)
     elif args.command == "generate_qc_image":
         args_dict = vars(args)
         args_dict.pop("command", None)
