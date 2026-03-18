@@ -76,10 +76,7 @@ def get_ciftify_subject_list(dataset: str, subjects: list, pattern: str):
 # Function to check number of slurm jobs remaining
 def is_slurm_queue_open(slurm_user: str, slurm_job_limit: int=500):
     print(f"\nChecking slurm queue for {slurm_user}")
-    jobs = check_output(
-        ["squeue",
-         f"-u {slurm_user}",
-         "-o '%.10i %.9p %40j %.8u %.10T %.10M %.6D %R'", "-a"]).decode("utf-8")
+    jobs = check_output([f"squeue -u{slurm_user} -o '%.10i %.9p %40j %.8u %.10T %.10M %.6D %R'", "-a"]).decode("utf-8")
     user_home = path.expanduser('~')
     output_dir = rf"{user_home}/Scripts/MyScripts/Output/MSM_Pipeline"
 
