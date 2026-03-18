@@ -250,10 +250,10 @@ def get_files(dataset: str, subject: str, time_point: str):
 
 
 # Generate pre-MSM qc image
-def generate_qc_image(dataset: str, subject: str, younger_timepoint: str, older_timepoint: str, output: str, is_developmnental: bool=False):
+def generate_qc_image(dataset: str, subject: str, younger_timepoint: str, older_timepoint: str, output: str, uses_mcribs: bool=False):
     # Get files for qc image
     print("Locating Surfaces")
-    if is_developmnental:
+    if uses_mcribs:
         younger_files = get_files_mcribs(dataset, subject, younger_timepoint)
         older_files = get_files_mcribs(dataset, subject, older_timepoint)
     else:
@@ -323,7 +323,7 @@ def qc_all(dataset: str, output: str,  alphanumeric_timepoints: bool=False, time
             older_time = time_points[i+1]
             print(f"\nGenerating QC image for subject {subject} from time point {younger_time} to {older_time}")
             if uses_mcribs:
-                generate_qc_image(dataset, subject, younger_time, older_time, output, is_developmnental=True)
+                generate_qc_image(dataset, subject, younger_time, older_time, output, uses_mcribs=True)
             else:
                 generate_qc_image(dataset, subject, younger_time, older_time, output)
         
