@@ -229,7 +229,8 @@ Generates images for qc before running MSM. Must be in the same output format th
 * `--output` The folder to place the QC images in
 
 #### Optional:
-*`--uses_mcribs` Use if the dataset is from M-CRlB-S.
+*`--younger_uses_mcribs` Use if the younger time point uses M-CRIB-S.
+*`--older_uses_mcribs` Use if the younger time point uses M-CRIB-S.
 
 <a name="qc_all"></a>
 ### `qc_all`

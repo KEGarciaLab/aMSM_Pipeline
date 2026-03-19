@@ -250,14 +250,17 @@ def get_files(dataset: str, subject: str, time_point: str):
 
 
 # Generate pre-MSM qc image
-def generate_qc_image(dataset: str, subject: str, younger_timepoint: str, older_timepoint: str, output: str, uses_mcribs: bool=False):
+def generate_qc_image(dataset: str, subject: str, younger_timepoint: str, older_timepoint: str, output: str, younger_uses_mcribs: bool=False, older_uses_mcribs: bool=False):
     # Get files for qc image
     print("Locating Surfaces")
-    if uses_mcribs:
+    if younger_uses_mcribs:
         younger_files = get_files_mcribs(dataset, subject, younger_timepoint)
-        older_files = get_files_mcribs(dataset, subject, older_timepoint)
     else:
         younger_files = get_files(dataset, subject, younger_timepoint)
+        
+    if older_uses_mcribs:
+        older_files = get_files_mcribs(dataset, subject, older_timepoint)
+    else:
         older_files = get_files(dataset, subject, older_timepoint)
     
     left_younger_surface = younger_files[0]
@@ -1619,7 +1622,8 @@ if __name__ == "__main__":
     gqi.add_argument("--younger_timepoint", required=True, help="The younger time point for registration")
     gqi.add_argument("--older_timepoint", required=True, help="The older time point for registration")
     gqi.add_argument("--output", required=True, help="Location to place generated images")
-    gqi.add_argument("--uses_mcribs", action="store_true", help="Use if the dataset is mcribs")
+    gqi.add_argument("--younger_uses_mcribs", action="store_true", help="Use if the younger time point uses M-CRIB-S")
+    gqi.add_argument("--older_uses_mcribs", action="store_true", help="Use if the older time point uses M-CRIB-S")
     
     #qc all
     qa = subparser.add_parser("qc_all", help="Generate qc scene and image for all subjects in the indicated dataset")
