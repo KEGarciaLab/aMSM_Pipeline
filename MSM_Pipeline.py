@@ -1779,6 +1779,7 @@ if __name__ == "__main__":
     elif args.command == "rescale_surfaces_all":
         args_dict = vars(args)
         args_dict.pop("command", None)
+        rescale_surfaces_all(**args_dict)
     elif args.command == "generate_qc_image":
         args_dict = vars(args)
         args_dict.pop("command", None)
