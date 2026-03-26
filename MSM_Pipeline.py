@@ -1338,8 +1338,8 @@ def get_files_mcribs(dataset: str, subject: str, time_point: str):
     left_spherical_surface = path.join(subject_dir, "lh.sphere.reg2.surf.gii")
     right_spherical_surface = path.join(subject_dir, "rh.sphere.reg2.surf.gii")
     
-    left_curvature = path.join(subject_dir, "lh.curv.gii")
-    right_curvature = path.join(subject_dir, "rh.curv.gii")
+    left_curvature = path.join(subject_dir, "lh.curv.shape.gii")
+    right_curvature = path.join(subject_dir, "rh.curv.shape.gii")
     
     left_cortex = path.join(subject_dir, "lh.mean.thickness") # TODO Ffigure out what this should be
     right_cortex = path.join(subject_dir, "rh.mean.thickness") # TODO Ffigure out what this should be
