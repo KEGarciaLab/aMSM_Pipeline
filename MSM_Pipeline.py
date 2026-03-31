@@ -702,9 +702,9 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
             print("Using base surfacecs for younger timepoint")
             left_younger_anatomical_surface = younger_files[0]
             right_younger_anatomical_surface = younger_files[1]
+            left_younger_spherical_surface = younger_files[2]
+            right_younger_spherical_surface = younger_files[3]
         
-        left_younger_spherical_surface = younger_files[2]
-        right_younger_spherical_surface = younger_files[3]
         
     if older_uses_mcribs:
         print("Using mcribs naming conventions for older timepoint")
@@ -787,8 +787,8 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
             print("Using base surfaces for older timepoint")
             left_older_anatomical_surface = older_files[0]
             right_older_anatomical_surface = older_files[1]
-        left_older_spherical_surface = older_files[2]
-        right_older_spherical_surface = older_files[3]
+            left_older_spherical_surface = older_files[2]
+            right_older_spherical_surface = older_files[3]
 
     left_younger_curvature = younger_files[4]
     right_younger_curvature = younger_files[5]
