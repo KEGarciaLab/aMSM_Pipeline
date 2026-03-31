@@ -199,6 +199,7 @@ def get_subject_time_points(dataset: str, subject: str, alphanumeric_timepoints:
     return time_points
 
 
+# Helper function for searching files
 def find(pattern, search_path):
     for root, dirs, files in walk(search_path):
         for name in files:
@@ -243,8 +244,8 @@ def get_files(dataset: str, subject: str, time_point: str):
     right_cortex= path.join(subject_curvature_dir, f"{subject_full_name}.R.atlasroi.32k_fs_LR.shape.gii")
     
     # get resacled file names
-    left_rescaled_surface = path.join(subject_curvature_dir, f"{subject_full_name}.L.rescaled.surf.gii")
-    right_rescaled_surface = path.join(subject_curvature_dir, f"{subject_full_name}.R.rescaled.surf.gii")
+    left_rescaled_surface = path.join(subject_dir, f"{subject_full_name}.L.rescaled.surf.gii")
+    right_rescaled_surface = path.join(subject_dir, f"{subject_full_name}.R.rescaled.surf.gii")
 
     # return all files as list
     subject_files = [left_anatomical_surface, right_anatomical_surface,
