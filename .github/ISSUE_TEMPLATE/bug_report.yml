@@ -1,0 +1,73 @@
+name: Bug Report
+description: Report a bug in the MSM pipeline
+title: "[BUG] "
+labels: ["bug"]
+assignees: []
+
+body:
+  - type: checkboxes
+    id: existing-issues
+    attributes:
+      label: Existing Issues Check
+      description: Please confirm before submitting
+      options:
+        - label: I have searched open issues and did not find a duplicate
+          required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Pipeline Version
+      description: What version of the MSM pipeline are you using?
+      placeholder: e.g. v1.2.3 or commit hash
+    validations:
+      required: true
+
+  - type: input
+    id: module
+    attributes:
+      label: Affected Module
+      description: Which module produced the error?
+      placeholder: e.g. preprocessing, registration, ciftify, etc.
+    validations:
+      required: true
+
+  - type: textarea
+    id: command
+    attributes:
+      label: Command Used
+      description: Provide the exact command you ran
+      placeholder: Paste your full command here
+      render: shell
+    validations:
+      required: true
+
+  - type: input
+    id: logs
+    attributes:
+      label: Full Log Output
+      description: Provide a link to the full log (Pastebin, GitHub Gist, etc.)
+      placeholder: https://pastebin.com/...
+    validations:
+      required: true
+
+  - type: textarea
+    id: bug-description
+    attributes:
+      label: Bug Description
+      description: Clearly describe what went wrong
+      placeholder: Describe the issue in detail
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: How can we reproduce this issue?
+      placeholder: |
+        1. Run command ...
+        2. With input ...
+        3. Observe error ...
+    validations:
+      required: true
