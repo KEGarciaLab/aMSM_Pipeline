@@ -353,7 +353,7 @@ Runs MSM on all subjects in a folder using sequential timepoints.
 Generates an average map for the specified subject and time points.
 #### Arguments
 ##### Required:
-* `--ciftify_dataset` Path to the folder containing ciftify outputs.
+* `--pre_msm_dataset` Path to the folder containing ciftify outputs.
 * `--msm_dataset` Path to MSM registrations.
 * `-- subject` The subject ID that will be used to generate average maps.
 * `--younger_timepoint` The younger timepoint of the registration.
@@ -371,7 +371,7 @@ Generates an average map for the specified subject and time points.
 Generates average maps for all registrations in the specified directory.
 #### Arguments
 ##### Required:
-* `--ciftify_dataset` Path to the folder containing ciftify outputs.
+* `--pre_msm_dataset` Path to the folder containing ciftify outputs.
 * `--msm_dataset` Path to MSM registration.
 
 #### Optional:
