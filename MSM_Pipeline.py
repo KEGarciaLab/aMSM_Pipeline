@@ -47,9 +47,16 @@ Hemisphere = Literal["L", "R"]
 
 
 # helper function for running commands to be logged
-def run_logged(cmd):
-    print(f"\n===== Running: {cmd} =====\n")
-    run(f"{cmd} 2>&1 | tee -a {log_path}", shell=True)
+def run_logged(cmd, step=None):
+    header = f"[RUN]" if not step else f"[RUN:{step}]"
+    print(f"\n{header} {cmd}\n")
+    
+    result = run(f"{cmd} 2>&1 | tee -a {log_path}", shell=True)
+    
+    if result.returncode != 0:
+        print(f"[ERROR] Command failed with return code {result.returncode}")
+    
+    return result
     
 
 # Function for gathering subjects for ciftify
@@ -265,56 +272,83 @@ def get_files(dataset: str, subject: str, time_point: str):
 
 # Generate pre-MSM qc image
 def generate_qc_image(dataset: str, subject: str, younger_timepoint: str, older_timepoint: str, output: str, younger_uses_mcribs: bool=False, older_uses_mcribs: bool=False):
-    # Get files for qc image
-    print("Locating Surfaces")
+    
+    print(f"\n[QC] Generating QC image for subject={subject} ({younger_timepoint} → {older_timepoint})\n")
+    # -------------------------
+    # Locate surfaces
+    # -------------------------
+    print("[STEP] Locating surfaces")
+
     if younger_uses_mcribs:
+        print("[INFO] Younger timepoint uses MCRIBS pipeline")
         younger_files = get_files_mcribs(dataset, subject, younger_timepoint)
     else:
+        print("[INFO] Younger timepoint uses standard pipeline")
         younger_files = get_files(dataset, subject, younger_timepoint)
         
     if older_uses_mcribs:
+        print("[INFO] Older timepoint uses MCRIBS pipeline")
         older_files = get_files_mcribs(dataset, subject, older_timepoint)
     else:
+        print("[INFO] Older timepoint uses standard pipeline")
         older_files = get_files(dataset, subject, older_timepoint)
-    
-    left_younger_surface = younger_files[0]
-    right_younger_surface = younger_files[1]
-    left_older_surface = older_files[0]
-    right_older_surface = older_files[1]
-    
-    # create spec file
-    print("Creating Spec File")
-    spec_file = path.join(
-        output, f"{subject}_{younger_timepoint}_to_{older_timepoint}.spec")
-    run_logged(f"wb_command -add-to-spec-file {spec_file} CORTEX_LEFT {left_younger_surface}")
-    run_logged(f"wb_command -add-to-spec-file {spec_file} CORTEX_LEFT {left_older_surface}")
-    run_logged(f"wb_command -add-to-spec-file {spec_file} CORTEX_RIGHT {right_younger_surface}")
-    run_logged(f"wb_command -add-to-spec-file {spec_file} CORTEX_RIGHT {right_older_surface}")
-    
-    # create scene file
-    print("Creating Scene File")
+
+    left_younger_surface, right_younger_surface = younger_files
+    left_older_surface, right_older_surface = older_files
+
+    print("[FILES] Selected surfaces:")
+    print(f"  Younger L: {left_younger_surface}")
+    print(f"  Younger R: {right_younger_surface}")
+    print(f"  Older   L: {left_older_surface}")
+    print(f"  Older   R: {right_older_surface}")
+
+    # -------------------------
+    # Create spec file
+    # -------------------------
+    print("\n[STEP] Creating spec file")
+
+    spec_file = path.join(output, f"{subject}_{younger_timepoint}_to_{older_timepoint}.spec")
+    print(f"[INFO] Spec file: {spec_file}")
+
+    run_logged(f"wb_command -add-to-spec-file {spec_file} CORTEX_LEFT {left_younger_surface}", step="SPEC")
+    run_logged(f"wb_command -add-to-spec-file {spec_file} CORTEX_LEFT {left_older_surface}", step="SPEC")
+    run_logged(f"wb_command -add-to-spec-file {spec_file} CORTEX_RIGHT {right_younger_surface}", step="SPEC")
+    run_logged(f"wb_command -add-to-spec-file {spec_file} CORTEX_RIGHT {right_older_surface}", step="SPEC")
+
+    # -------------------------
+    # Create scene file
+    # -------------------------
+    print("\n[STEP] Creating scene file")
+
     script_dir = path.dirname(path.realpath(__file__))
     template_path = path.join(script_dir, "Templates", "pre_msm_qc_template.scene")
+
+    print(f"[INFO] Using template: {template_path}")
+
     with open(template_path, "r") as f:
-        template_read = f.read()
-    template = Template(template_read)
-    to_write = template.substitute(
-        left_younger_surface=left_younger_surface,
-        left_older_surface=left_older_surface,
-        right_younger_surface=right_younger_surface,
-        right_older_surface=right_older_surface
-    )
-    scene_file = path.join(
-        output, f"{subject}_{younger_timepoint}_to_{older_timepoint}.scene")
+        template = Template(f.read())
+
+    scene_file = path.join(output, f"{subject}_{younger_timepoint}_to_{older_timepoint}.scene")
+
+    print(f"[INFO] Writing scene file: {scene_file}")
+
     with open(scene_file, "w+") as f:
-        f.write(to_write)
-        
-    # generate image
-    print("Generating Image")
-    image_file = path.join(
-        output, f"{subject}_{younger_timepoint}_to_{older_timepoint}.png")
-    run_logged(f"wb_command -show-scene {scene_file} 1 {image_file} 1024 512")
-    print("QC image written to output directory")
+        f.write(template.substitute(
+            left_younger_surface=left_younger_surface,
+            left_older_surface=left_older_surface,
+            right_younger_surface=right_younger_surface,
+            right_older_surface=right_older_surface
+        ))
+
+    print("\n[STEP] Generating QC image")
+
+    image_file = path.join(output, f"{subject}_{younger_timepoint}_to_{older_timepoint}.png")
+    print(f"[INFO] Output image: {image_file}")
+
+    run_logged(
+        f"wb_command -show-scene {scene_file} 1 {image_file} 1024 512",
+        step="RENDER"
+    )
 
     
 # Generate all pre-MSM qc images
