@@ -293,8 +293,10 @@ def generate_qc_image(dataset: str, subject: str, younger_timepoint: str, older_
         print("[INFO] Older timepoint uses standard pipeline")
         older_files = get_files(dataset, subject, older_timepoint)
 
-    left_younger_surface, right_younger_surface = younger_files
-    left_older_surface, right_older_surface = older_files
+    left_younger_surface = younger_files[0]
+    right_younger_surface = younger_files[1]
+    left_older_surface = older_files[0]
+    right_older_surface = older_files[1]
 
     print("[FILES] Selected surfaces:")
     print(f"  Younger L: {left_younger_surface}")
