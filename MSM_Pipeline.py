@@ -46,6 +46,12 @@ Mode = Literal["forward", "reverse", "average"]
 Hemisphere = Literal["L", "R"]
 
 
+# helper function for running commands to be logged
+def run_logged(cmd):
+    print(f"\n===== Running: {cmd} =====\n")
+    run(f"{cmd} 2>&1 | tee -a {log_path}", shell=True)
+    
+
 # Function for gathering subjects for ciftify
 def get_ciftify_subject_list(dataset: str, subjects: list, pattern: str):
     print("\nBegin ciftify subject list generation")
@@ -141,7 +147,7 @@ def run_ciftify(dataset: str, delimiter: str, subject_index: int, time_index: in
         print(fr"Script wrote to {temp_output}/Subject_{subject}_{time_point}_recon_all.sh")
 
         if is_local:
-            run(fr"bash {temp_output}/Subject_{subject}_{time_point}_recon_all.sh", shell=True, stdout=sys.stdout, stderr=sys.stderr)
+            run_logged(fr"bash {temp_output}/Subject_{subject}_{time_point}_recon_all.sh")
         else:
             if slurm_job_limit != None:
                 jobs_open = is_slurm_queue_open(slurm_user, slurm_job_limit)
@@ -153,7 +159,7 @@ def run_ciftify(dataset: str, delimiter: str, subject_index: int, time_index: in
                     jobs_open = is_slurm_queue_open(slurm_user, slurm_job_limit)
                 else:
                     jobs_open = is_slurm_queue_open(slurm_user)
-            run(fr"sbatch {temp_output}/Subject_{subject}_{time_point}_recon_all.sh", shell=True, stdout=sys.stdout, stderr=sys.stderr)
+            run_logged(fr"sbatch {temp_output}/Subject_{subject}_{time_point}_recon_all.sh")
         
         remove(fr"{temp_output}/Subject_{subject}_{time_point}_recon_all.sh")
 
@@ -232,8 +238,8 @@ def get_files(dataset: str, subject: str, time_point: str):
         subject_thickness_dir, f"{subject_full_name}.R.sphere.32k_fs_LR.surf.gii")
 
     # run seperate commands for curvatures
-    run(fr"wb_command -cifti-separate {subject_curvature_dir}/{subject_full_name}.thickness.32k_fs_LR.dscalar.nii COLUMN -metric CORTEX_LEFT {subject_curvature_dir}/{subject_full_name}_Thickness.L.func.gii -metric CORTEX_RIGHT {subject_curvature_dir}/{subject_full_name}_Thickness.R.func.gii", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    run(fr"wb_command -cifti-separate {subject_curvature_dir}/{subject_full_name}.curvature.32k_fs_LR.dscalar.nii COLUMN -metric CORTEX_LEFT {subject_curvature_dir}/{subject_full_name}_Curvature.L.func.gii -metric CORTEX_RIGHT {subject_curvature_dir}/{subject_full_name}_Curvature.R.func.gii", shell=True, stdout=sys.stdout, stderr=sys.stderr)
+    run_logged(fr"wb_command -cifti-separate {subject_curvature_dir}/{subject_full_name}.thickness.32k_fs_LR.dscalar.nii COLUMN -metric CORTEX_LEFT {subject_curvature_dir}/{subject_full_name}_Thickness.L.func.gii -metric CORTEX_RIGHT {subject_curvature_dir}/{subject_full_name}_Thickness.R.func.gii")
+    run_logged(fr"wb_command -cifti-separate {subject_curvature_dir}/{subject_full_name}.curvature.32k_fs_LR.dscalar.nii COLUMN -metric CORTEX_LEFT {subject_curvature_dir}/{subject_full_name}_Curvature.L.func.gii -metric CORTEX_RIGHT {subject_curvature_dir}/{subject_full_name}_Curvature.R.func.gii")
 
     # get full path for curvature files
     left_curvature = fr"{subject_curvature_dir}/{subject_full_name}_Curvature.L.func.gii"
@@ -280,10 +286,10 @@ def generate_qc_image(dataset: str, subject: str, younger_timepoint: str, older_
     print("Creating Spec File")
     spec_file = path.join(
         output, f"{subject}_{younger_timepoint}_to_{older_timepoint}.spec")
-    run(f"wb_command -add-to-spec-file {spec_file} CORTEX_LEFT {left_younger_surface}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    run(f"wb_command -add-to-spec-file {spec_file} CORTEX_LEFT {left_older_surface}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    run(f"wb_command -add-to-spec-file {spec_file} CORTEX_RIGHT {right_younger_surface}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    run(f"wb_command -add-to-spec-file {spec_file} CORTEX_RIGHT {right_older_surface}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
+    run_logged(f"wb_command -add-to-spec-file {spec_file} CORTEX_LEFT {left_younger_surface}")
+    run_logged(f"wb_command -add-to-spec-file {spec_file} CORTEX_LEFT {left_older_surface}")
+    run_logged(f"wb_command -add-to-spec-file {spec_file} CORTEX_RIGHT {right_younger_surface}")
+    run_logged(f"wb_command -add-to-spec-file {spec_file} CORTEX_RIGHT {right_older_surface}")
     
     # create scene file
     print("Creating Scene File")
@@ -307,7 +313,7 @@ def generate_qc_image(dataset: str, subject: str, younger_timepoint: str, older_
     print("Generating Image")
     image_file = path.join(
         output, f"{subject}_{younger_timepoint}_to_{older_timepoint}.png")
-    run(f"wb_command -show-scene {scene_file} 1 {image_file} 1024 512", shell=True, stdout=sys.stdout, stderr=sys.stderr)
+    run_logged(f"wb_command -show-scene {scene_file} 1 {image_file} 1024 512")
     print("QC image written to output directory")
 
     
@@ -399,17 +405,17 @@ def generate_post_processing_image(subject_directory: str, resolution: str, mode
     
     # set palette
     print("Setting Palette")
-    run(f"wb_command -metric-palette {left_surface_map} MODE_AUTO_SCALE -palette-name raich6_clrmid", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    run(f"wb_command -metric-palette {right_surface_map} MODE_AUTO_SCALE -palette-name raich6_clrmid", shell=True, stdout=sys.stdout, stderr=sys.stderr)
+    run_logged(f"wb_command -metric-palette {left_surface_map} MODE_AUTO_SCALE -palette-name raich6_clrmid")
+    run_logged(f"wb_command -metric-palette {right_surface_map} MODE_AUTO_SCALE -palette-name raich6_clrmid")
 
     # add to spec file
     print("Adding to Spec File")
-    run(f"wb_command -add-to-spec-file {spec_file} CORTEX_LEFT {left_younger_surface}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    run(f"wb_command -add-to-spec-file {spec_file} CORTEX_LEFT {left_older_surface}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    run(f"wb_command -add-to-spec-file {spec_file} CORTEX_LEFT {left_surface_map}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    run(f"wb_command -add-to-spec-file {spec_file} CORTEX_RIGHT {right_younger_surface}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    run(f"wb_command -add-to-spec-file {spec_file} CORTEX_RIGHT {right_older_surface}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    run(f"wb_command -add-to-spec-file {spec_file} CORTEX_RIGHT {right_surface_map}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
+    run_logged(f"wb_command -add-to-spec-file {spec_file} CORTEX_LEFT {left_younger_surface}")
+    run_logged(f"wb_command -add-to-spec-file {spec_file} CORTEX_LEFT {left_older_surface}")
+    run_logged(f"wb_command -add-to-spec-file {spec_file} CORTEX_LEFT {left_surface_map}")
+    run_logged(f"wb_command -add-to-spec-file {spec_file} CORTEX_RIGHT {right_younger_surface}")
+    run_logged(f"wb_command -add-to-spec-file {spec_file} CORTEX_RIGHT {right_older_surface}")
+    run_logged(f"wb_command -add-to-spec-file {spec_file} CORTEX_RIGHT {right_surface_map}")
 
     # create scene file for auto scale
     print("Creating Auto Scale Scene")
@@ -493,8 +499,8 @@ def generate_post_processing_image(subject_directory: str, resolution: str, mode
         image_set_scale = path.join(
             post_processing_dir, f"{subject}_{starting_time}-{ending_time}_{resolution}SET-SCALE.png")
         
-    run(f"wb_command -show-scene {scene_auto_scale} 1 {image_auto_scale} 1024 512", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    run(f"wb_command -show-scene {scene_set_scale} 1 {image_set_scale} 1024 512", shell=True, stdout=sys.stdout, stderr=sys.stderr)
+    run_logged(f"wb_command -show-scene {scene_auto_scale} 1 {image_auto_scale} 1024 512")
+    run_logged(f"wb_command -show-scene {scene_set_scale} 1 {image_set_scale} 1024 512")
 
     # ensure output exists
     makedirs(output, exist_ok=True)
@@ -645,20 +651,20 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
         right_younger_spherical_surface = path.join(dataset, f"Subject_{subject}_{younger_timepoint}", "rh.sphere.surf.gii")
         
         print("Smoothing midthickness")
-        run(f'wb_command -surface-smoothing {left_younger_midthickness} 1 10000 {left_younger_smoothed}', shell=True, stdout=sys.stdout, stderr=sys.stderr)
-        run(f'wb_command -surface-smoothing {right_younger_midthickness} 1 10000 {right_younger_smoothed}', shell=True, stdout=sys.stdout, stderr=sys.stderr)
+        run_logged(f'wb_command -surface-smoothing {left_younger_midthickness} 1 10000 {left_younger_smoothed}')
+        run_logged(f'wb_command -surface-smoothing {right_younger_midthickness} 1 10000 {right_younger_smoothed}')
         
         print("Inflating smoothed surfaces")
-        run(f'wb_command -surface-inflation {left_younger_smoothed} {left_younger_smoothed} 10 1 100 2 {left_younger_inflated}', shell=True, stdout=sys.stdout, stderr=sys.stderr)
-        run(f'wb_command -surface-inflation {right_younger_smoothed} {right_younger_smoothed} 10 1 100 2 {right_younger_inflated}', shell=True, stdout=sys.stdout, stderr=sys.stderr)
+        run_logged(f'wb_command -surface-inflation {left_younger_smoothed} {left_younger_smoothed} 10 1 100 2 {left_younger_inflated}')
+        run_logged(f'wb_command -surface-inflation {right_younger_smoothed} {right_younger_smoothed} 10 1 100 2 {right_younger_inflated}')
         
         print("Matching inflated to icosphere")
-        run(f'wb_command -surface-match {max_anat} {left_younger_inflated} {left_younger_matched}', shell=True, stdout=sys.stdout, stderr=sys.stderr)
-        run(f'wb_command -surface-match {max_anat} {right_younger_inflated} {right_younger_matched}', shell=True, stdout=sys.stdout, stderr=sys.stderr)
+        run_logged(f'wb_command -surface-match {max_anat} {left_younger_inflated} {left_younger_matched}')
+        run_logged(f'wb_command -surface-match {max_anat} {right_younger_inflated} {right_younger_matched}')
         
         print("Centering matched sphere")
-        run(f'wb_command -surface-modify-sphere -recenter {left_younger_matched} 100 {left_younger_spherical_surface}', shell=True, stdout=sys.stdout, stderr=sys.stderr)
-        run(f'wb_command -surface-modify-sphere -recenter {right_younger_matched} 100 {right_younger_spherical_surface}', shell=True, stdout=sys.stdout, stderr=sys.stderr)   
+        run_logged(f'wb_command -surface-modify-sphere -recenter {left_younger_matched} 100 {left_younger_spherical_surface}')
+        run_logged(f'wb_command -surface-modify-sphere -recenter {right_younger_matched} 100 {right_younger_spherical_surface}')   
     else:
         print("Using standard naming conventions for younger timepoint")
         younger_files = get_files(dataset, subject, younger_timepoint)
@@ -684,20 +690,20 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
             right_younger_spherical_surface = path.join(dataset, f"Subject_{subject}_{younger_timepoint}", "rh.sphere.surf.gii")
             
             print("Smoothing midthickness")
-            run(f'wb_command -surface-smoothing {left_younger_midthickness} 1 10000 {left_younger_smoothed}', shell=True, stdout=sys.stdout, stderr=sys.stderr)
-            run(f'wb_command -surface-smoothing {right_younger_midthickness} 1 10000 {right_younger_smoothed}', shell=True, stdout=sys.stdout, stderr=sys.stderr)
+            run_logged(f'wb_command -surface-smoothing {left_younger_midthickness} 1 10000 {left_younger_smoothed}')
+            run_logged(f'wb_command -surface-smoothing {right_younger_midthickness} 1 10000 {right_younger_smoothed}')
             
             print("Inflating smoothed surfaces")
-            run(f'wb_command -surface-inflation {left_younger_smoothed} {left_younger_smoothed} 10 1 100 2 {left_younger_inflated}', shell=True, stdout=sys.stdout, stderr=sys.stderr)
-            run(f'wb_command -surface-inflation {right_younger_smoothed} {right_younger_smoothed} 10 1 100 2 {right_younger_inflated}', shell=True, stdout=sys.stdout, stderr=sys.stderr)
+            run_logged(f'wb_command -surface-inflation {left_younger_smoothed} {left_younger_smoothed} 10 1 100 2 {left_younger_inflated}')
+            run_logged(f'wb_command -surface-inflation {right_younger_smoothed} {right_younger_smoothed} 10 1 100 2 {right_younger_inflated}')
             
             print("Matching inflated to icosphere")
-            run(f'wb_command -surface-match {max_anat} {left_younger_inflated} {left_younger_matched}', shell=True, stdout=sys.stdout, stderr=sys.stderr)
-            run(f'wb_command -surface-match {max_anat} {right_younger_inflated} {right_younger_matched}', shell=True, stdout=sys.stdout, stderr=sys.stderr)
+            run_logged(f'wb_command -surface-match {max_anat} {left_younger_inflated} {left_younger_matched}')
+            run_logged(f'wb_command -surface-match {max_anat} {right_younger_inflated} {right_younger_matched}')
             
             print("Centering matched sphere")
-            run(f'wb_command -surface-modify-sphere -recenter {left_younger_matched} 100 {left_younger_spherical_surface}', shell=True, stdout=sys.stdout, stderr=sys.stderr)
-            run(f'wb_command -surface-modify-sphere -recenter {right_younger_matched} 100 {right_younger_spherical_surface}', shell=True, stdout=sys.stdout, stderr=sys.stderr)
+            run_logged(f'wb_command -surface-modify-sphere -recenter {left_younger_matched} 100 {left_younger_spherical_surface}')
+            run_logged(f'wb_command -surface-modify-sphere -recenter {right_younger_matched} 100 {right_younger_spherical_surface}')
         else:
             print("Using base surfacecs for younger timepoint")
             left_younger_anatomical_surface = younger_files[0]
@@ -730,20 +736,20 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
         right_older_spherical_surface = path.join(dataset, f"Subject_{subject}_{older_timepoint}", "rh.sphere.surf.gii")
         
         print("Smoothing midthickness")
-        run(f'wb_command -surface-smoothing {left_older_midthickness} 1 10000 {left_older_smoothed}', shell=True, stdout=sys.stdout, stderr=sys.stderr)
-        run(f'wb_command -surface-smoothing {right_older_midthickness} 1 10000 {right_older_smoothed}', shell=True, stdout=sys.stdout, stderr=sys.stderr)
+        run_logged(f'wb_command -surface-smoothing {left_older_midthickness} 1 10000 {left_older_smoothed}')
+        run_logged(f'wb_command -surface-smoothing {right_older_midthickness} 1 10000 {right_older_smoothed}')
         
         print("Inflating smoothed surfaces")
-        run(f'wb_command -surface-inflation {left_older_smoothed} {left_older_smoothed} 10 1 100 2 {left_older_inflated}', shell=True, stdout=sys.stdout, stderr=sys.stderr)
-        run(f'wb_command -surface-inflation {right_older_smoothed} {right_older_smoothed} 10 1 100 2 {right_older_inflated}', shell=True, stdout=sys.stdout, stderr=sys.stderr)
+        run_logged(f'wb_command -surface-inflation {left_older_smoothed} {left_older_smoothed} 10 1 100 2 {left_older_inflated}')
+        run_logged(f'wb_command -surface-inflation {right_older_smoothed} {right_older_smoothed} 10 1 100 2 {right_older_inflated}')
         
         print("Matching inflated to icosphere")
-        run(f'wb_command -surface-match {max_anat} {left_older_inflated} {left_older_matched}', shell=True, stdout=sys.stdout, stderr=sys.stderr)
-        run(f'wb_command -surface-match {max_anat} {right_older_inflated} {right_older_matched}', shell=True, stdout=sys.stdout, stderr=sys.stderr)
+        run_logged(f'wb_command -surface-match {max_anat} {left_older_inflated} {left_older_matched}')
+        run_logged(f'wb_command -surface-match {max_anat} {right_older_inflated} {right_older_matched}')
         
         print("Centering matched sphere")
-        run(f'wb_command -surface-modify-sphere -recenter {left_older_matched} 100 {left_older_spherical_surface}', shell=True, stdout=sys.stdout, stderr=sys.stderr)
-        run(f'wb_command -surface-modify-sphere -recenter {right_older_matched} 100 {right_older_spherical_surface}', shell=True, stdout=sys.stdout, stderr=sys.stderr)
+        run_logged(f'wb_command -surface-modify-sphere -recenter {left_older_matched} 100 {left_older_spherical_surface}')
+        run_logged(f'wb_command -surface-modify-sphere -recenter {right_older_matched} 100 {right_older_spherical_surface}')
     else:
         print("Using standard naming conventions for older timepoint")
         older_files = get_files(dataset, subject, older_timepoint)
@@ -769,20 +775,20 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
             right_older_spherical_surface = path.join(dataset, f"Subject_{subject}_{older_timepoint}", "rh.sphere.surf.gii")
             
             print("Smoothing midthickness")
-            run(f'wb_command -surface-smoothing {left_older_midthickness} 1 10000 {left_older_smoothed}', shell=True, stdout=sys.stdout, stderr=sys.stderr)
-            run(f'wb_command -surface-smoothing {right_older_midthickness} 1 10000 {right_older_smoothed}', shell=True, stdout=sys.stdout, stderr=sys.stderr)
+            run_logged(f'wb_command -surface-smoothing {left_older_midthickness} 1 10000 {left_older_smoothed}')
+            run_logged(f'wb_command -surface-smoothing {right_older_midthickness} 1 10000 {right_older_smoothed}')
             
             print("Inflating smoothed surfaces")
-            run(f'wb_command -surface-inflation {left_older_smoothed} {left_older_smoothed} 10 1 100 2 {left_older_inflated}', shell=True, stdout=sys.stdout, stderr=sys.stderr)
-            run(f'wb_command -surface-inflation {right_older_smoothed} {right_older_smoothed} 10 1 100 2 {right_older_inflated}', shell=True, stdout=sys.stdout, stderr=sys.stderr)
+            run_logged(f'wb_command -surface-inflation {left_older_smoothed} {left_older_smoothed} 10 1 100 2 {left_older_inflated}')
+            run_logged(f'wb_command -surface-inflation {right_older_smoothed} {right_older_smoothed} 10 1 100 2 {right_older_inflated}')
             
             print("Matching inflated to icosphere")
-            run(f'wb_command -surface-match {max_anat} {left_older_inflated} {left_older_matched}', shell=True, stdout=sys.stdout, stderr=sys.stderr)
-            run(f'wb_command -surface-match {max_anat} {right_older_inflated} {right_older_matched}', shell=True, stdout=sys.stdout, stderr=sys.stderr)
+            run_logged(f'wb_command -surface-match {max_anat} {left_older_inflated} {left_older_matched}')
+            run_logged(f'wb_command -surface-match {max_anat} {right_older_inflated} {right_older_matched}')
             
             print("Centering matched sphere")
-            run(f'wb_command -surface-modify-sphere -recenter {left_older_matched} 100 {left_older_spherical_surface}', shell=True, stdout=sys.stdout, stderr=sys.stderr)
-            run(f'wb_command -surface-modify-sphere -recenter {right_older_matched} 100 {right_older_spherical_surface}', shell=True, stdout=sys.stdout, stderr=sys.stderr)
+            run_logged(f'wb_command -surface-modify-sphere -recenter {left_older_matched} 100 {left_older_spherical_surface}')
+            run_logged(f'wb_command -surface-modify-sphere -recenter {right_older_matched} 100 {right_older_spherical_surface}')
         else:
             print("Using base surfaces for older timepoint")
             left_older_anatomical_surface = older_files[0]
@@ -886,7 +892,7 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
                 else:
                     jobs_open = is_slurm_queue_open(slurm_user, slurm_job_limit)
             print("Jobs open submitting script")
-            run(fr"sbatch {temp_output}/Subject_{subject}_L_{younger_timepoint}-{older_timepoint}_MSM.sh", shell=True, stdout=sys.stdout, stderr=sys.stderr)
+            run_logged(fr"sbatch {temp_output}/Subject_{subject}_L_{younger_timepoint}-{older_timepoint}_MSM.sh")
             remove(fr"{temp_output}/Subject_{subject}_L_{younger_timepoint}-{older_timepoint}_MSM.sh")
             
             #right hemisphere
@@ -903,16 +909,16 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
                 else:
                     jobs_open = is_slurm_queue_open(slurm_user, slurm_job_limit)
             print("Jobs open submitting script")
-            run(fr"sbatch {temp_output}/Subject_{subject}_R_{younger_timepoint}-{older_timepoint}_MSM.sh", shell=True, stdout=sys.stdout, stderr=sys.stderr)
+            run_logged(fr"sbatch {temp_output}/Subject_{subject}_R_{younger_timepoint}-{older_timepoint}_MSM.sh")
             remove(fr"{temp_output}/Subject_{subject}_R_{younger_timepoint}-{older_timepoint}_MSM.sh")
         
          # run lcoal job        
         elif is_local:
             if hemisphere == "L":
-                run(fr"bash {temp_output}/Subject_{subject}_L_{younger_timepoint}-{older_timepoint}_MSM.sh", shell=True, stdout=sys.stdout, stderr=sys.stderr)
+                run_logged(fr"bash {temp_output}/Subject_{subject}_L_{younger_timepoint}-{older_timepoint}_MSM.sh")
                 remove(fr"{temp_output}/Subject_{subject}_L_{younger_timepoint}-{older_timepoint}_MSM.sh")
             elif hemisphere == "R":
-                run(fr"bash {temp_output}/Subject_{subject}_R_{younger_timepoint}-{older_timepoint}_MSM.sh", shell=True, stdout=sys.stdout, stderr=sys.stderr)
+                run_logged(fr"bash {temp_output}/Subject_{subject}_R_{younger_timepoint}-{older_timepoint}_MSM.sh")
                 remove(fr"{temp_output}/Subject_{subject}_R_{younger_timepoint}-{older_timepoint}_MSM.sh")
 
     elif mode == "reverse":
@@ -998,7 +1004,7 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
                 else:
                     jobs_open = is_slurm_queue_open(slurm_user, slurm_job_limit)
             print("Jobs open submitting script")
-            run(fr"sbatch {temp_output}/Subject_{subject}_L_{older_timepoint}-{younger_timepoint}_MSM.sh", shell=True, stdout=sys.stdout, stderr=sys.stderr)
+            run_logged(fr"sbatch {temp_output}/Subject_{subject}_L_{older_timepoint}-{younger_timepoint}_MSM.sh")
             remove(fr"{temp_output}/Subject_{subject}_L_{older_timepoint}-{younger_timepoint}_MSM.sh")
             
             # Right hemisphere
@@ -1015,17 +1021,17 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
                 else:
                     jobs_open = is_slurm_queue_open(slurm_user, slurm_job_limit)
             print("Jobs open submitting script")
-            run(fr"sbatch {temp_output}/Subject_{subject}_R_{older_timepoint}-{younger_timepoint}_MSM.sh", shell=True, stdout=sys.stdout, stderr=sys.stderr)
+            run_logged(fr"sbatch {temp_output}/Subject_{subject}_R_{older_timepoint}-{younger_timepoint}_MSM.sh")
             remove(fr"{temp_output}/Subject_{subject}_R_{older_timepoint}-{younger_timepoint}_MSM.sh")
 
         # Run local jobs
         if is_local:
             if hemisphere == "L":
-                run(fr"bash {temp_output}/Subject_{subject}_L_{older_timepoint}-{younger_timepoint}_MSM.sh", shell=True, stdout=sys.stdout, stderr=sys.stderr)
+                run_logged(fr"bash {temp_output}/Subject_{subject}_L_{older_timepoint}-{younger_timepoint}_MSM.sh")
                 remove(fr"{temp_output}/Subject_{subject}_L_{older_timepoint}-{younger_timepoint}_MSM.sh")
             
             elif hemisphere == "R":
-                run(fr"bash {temp_output}/Subject_{subject}_R_{older_timepoint}-{younger_timepoint}_MSM.sh", shell=True, stdout=sys.stdout, stderr=sys.stderr)
+                run_logged(fr"bash {temp_output}/Subject_{subject}_R_{older_timepoint}-{younger_timepoint}_MSM.sh")
                 remove(fr"{temp_output}/Subject_{subject}_R_{older_timepoint}-{younger_timepoint}_MSM.sh")
             
 
@@ -1204,59 +1210,59 @@ def generate_avg_maps(pre_msm_data: str, msm_data: str, subject: str, younger_ti
 
     # Generate Revfor spheres
     print("Begin generating revfor spheres")
-    run(f"wb_command -surface-sphere-project-unproject {left_older_spherical_surface} {left_base_sphere_reverse} {left_younger_spherical_surface} {left_revfor_base_sphere}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    run(f"wb_command -surface-sphere-project-unproject {right_older_spherical_surface} {right_base_sphere_reverse} {right_younger_spherical_surface} {right_revfor_base_sphere}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    run(f"wb_command -surface-sphere-project-unproject {max_cp} {left_cpgrid_sphere_reverse} {max_cp} {left_revfor_cpgrid_sphere}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    run(f"wb_command -surface-sphere-project-unproject {max_cp} {right_cpgrid_sphere_reverse} {max_cp} {right_revfor_cpgrid_sphere}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    run(f"wb_command -surface-sphere-project-unproject {max_anat} {left_anatgrid_sphere_reverse} {max_anat} {left_revfor_anatgrid_sphere}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    run(f"wb_command -surface-sphere-project-unproject {max_anat} {right_anatgrid_sphere_reverse} {max_anat} {right_revfor_anatgrid_sphere}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
+    run_logged(f"wb_command -surface-sphere-project-unproject {left_older_spherical_surface} {left_base_sphere_reverse} {left_younger_spherical_surface} {left_revfor_base_sphere}")
+    run_logged(f"wb_command -surface-sphere-project-unproject {right_older_spherical_surface} {right_base_sphere_reverse} {right_younger_spherical_surface} {right_revfor_base_sphere}")
+    run_logged(f"wb_command -surface-sphere-project-unproject {max_cp} {left_cpgrid_sphere_reverse} {max_cp} {left_revfor_cpgrid_sphere}")
+    run_logged(f"wb_command -surface-sphere-project-unproject {max_cp} {right_cpgrid_sphere_reverse} {max_cp} {right_revfor_cpgrid_sphere}")
+    run_logged(f"wb_command -surface-sphere-project-unproject {max_anat} {left_anatgrid_sphere_reverse} {max_anat} {left_revfor_anatgrid_sphere}")
+    run_logged(f"wb_command -surface-sphere-project-unproject {max_anat} {right_anatgrid_sphere_reverse} {max_anat} {right_revfor_anatgrid_sphere}")
 
-    run(f"wb_command -surface-average {left_avgfor_base_sphere} -surf {left_base_sphere_forward} -surf {left_revfor_base_sphere}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    run(f"wb_command -surface-average {right_avgfor_base_sphere} -surf {right_base_sphere_forward} -surf {right_revfor_base_sphere}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    run(f"wb_command -surface-average {left_avgfor_cpgrid_sphere} -surf {left_cpgrid_sphere_forward} -surf {left_revfor_cpgrid_sphere}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    run(f"wb_command -surface-average {right_avgfor_cpgrid_sphere} -surf {right_cpgrid_sphere_forward} -surf {right_revfor_cpgrid_sphere}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    run(f"wb_command -surface-average {left_avgfor_anatgrid_sphere} -surf {left_anatgrid_sphere_forward} -surf {left_revfor_anatgrid_sphere}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    run(f"wb_command -surface-average {right_avgfor_anatgrid_sphere} -surf {right_anatgrid_sphere_forward} -surf {right_revfor_anatgrid_sphere}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
+    run_logged(f"wb_command -surface-average {left_avgfor_base_sphere} -surf {left_base_sphere_forward} -surf {left_revfor_base_sphere}")
+    run_logged(f"wb_command -surface-average {right_avgfor_base_sphere} -surf {right_base_sphere_forward} -surf {right_revfor_base_sphere}")
+    run_logged(f"wb_command -surface-average {left_avgfor_cpgrid_sphere} -surf {left_cpgrid_sphere_forward} -surf {left_revfor_cpgrid_sphere}")
+    run_logged(f"wb_command -surface-average {right_avgfor_cpgrid_sphere} -surf {right_cpgrid_sphere_forward} -surf {right_revfor_cpgrid_sphere}")
+    run_logged(f"wb_command -surface-average {left_avgfor_anatgrid_sphere} -surf {left_anatgrid_sphere_forward} -surf {left_revfor_anatgrid_sphere}")
+    run_logged(f"wb_command -surface-average {right_avgfor_anatgrid_sphere} -surf {right_anatgrid_sphere_forward} -surf {right_revfor_anatgrid_sphere}")
 
     # Generate AvgFor Shpheres
     print("Begin generating avgfor spheres")
-    run(f"wb_command -surface-modify-sphere -recenter {left_avgfor_base_sphere} 100 {left_avgfor_base_sphere}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    run(f"wb_command -surface-modify-sphere -recenter {right_avgfor_base_sphere} 100 {right_avgfor_base_sphere}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    run(f"wb_command -surface-modify-sphere -recenter {left_avgfor_cpgrid_sphere} 100 {left_avgfor_cpgrid_sphere}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    run(f"wb_command -surface-modify-sphere -recenter {right_avgfor_cpgrid_sphere} 100 {right_avgfor_cpgrid_sphere}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    run(f"wb_command -surface-modify-sphere -recenter {left_avgfor_anatgrid_sphere} 100 {left_avgfor_anatgrid_sphere}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    run(f"wb_command -surface-modify-sphere -recenter {right_avgfor_anatgrid_sphere} 100 {right_avgfor_anatgrid_sphere}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
+    run_logged(f"wb_command -surface-modify-sphere -recenter {left_avgfor_base_sphere} 100 {left_avgfor_base_sphere}")
+    run_logged(f"wb_command -surface-modify-sphere -recenter {right_avgfor_base_sphere} 100 {right_avgfor_base_sphere}")
+    run_logged(f"wb_command -surface-modify-sphere -recenter {left_avgfor_cpgrid_sphere} 100 {left_avgfor_cpgrid_sphere}")
+    run_logged(f"wb_command -surface-modify-sphere -recenter {right_avgfor_cpgrid_sphere} 100 {right_avgfor_cpgrid_sphere}")
+    run_logged(f"wb_command -surface-modify-sphere -recenter {left_avgfor_anatgrid_sphere} 100 {left_avgfor_anatgrid_sphere}")
+    run_logged(f"wb_command -surface-modify-sphere -recenter {right_avgfor_anatgrid_sphere} 100 {right_avgfor_anatgrid_sphere}")
 
     # Generate RevFor Anatomical Surfaces
     print("Begin generating revfor surfaces")
-    run(f"wb_command -surface-resample {left_older_anatomical_surface_cpgrid} {max_cp} {left_avgfor_cpgrid_sphere} \"BARYCENTRIC\" {left_avgfor_cpgrid_anat}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    run(f"wb_command -surface-resample {right_older_anatomical_surface_cpgrid} {max_cp} {right_avgfor_cpgrid_sphere} \"BARYCENTRIC\" {right_avgfor_cpgrid_anat}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    run(f"wb_command -surface-resample {left_older_anatomical_surface_anatgrid} {max_anat} {left_avgfor_anatgrid_sphere} \"BARYCENTRIC\" {left_avgfor_anatgrid_anat}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    run(f"wb_command -surface-resample {right_older_anatomical_surface_anatgrid} {max_anat} {right_avgfor_anatgrid_sphere} \"BARYCENTRIC\" {right_avgfor_anatgrid_anat}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
+    run_logged(f"wb_command -surface-resample {left_older_anatomical_surface_cpgrid} {max_cp} {left_avgfor_cpgrid_sphere} \"BARYCENTRIC\" {left_avgfor_cpgrid_anat}")
+    run_logged(f"wb_command -surface-resample {right_older_anatomical_surface_cpgrid} {max_cp} {right_avgfor_cpgrid_sphere} \"BARYCENTRIC\" {right_avgfor_cpgrid_anat}")
+    run_logged(f"wb_command -surface-resample {left_older_anatomical_surface_anatgrid} {max_anat} {left_avgfor_anatgrid_sphere} \"BARYCENTRIC\" {left_avgfor_anatgrid_anat}")
+    run_logged(f"wb_command -surface-resample {right_older_anatomical_surface_anatgrid} {max_anat} {right_avgfor_anatgrid_sphere} \"BARYCENTRIC\" {right_avgfor_anatgrid_anat}")
 
     # Generate revfor surfdist
     print("Begin generating revfor surfdist")
     # metric math *-1
-    run(f"wb_command -metric-math 'X*-1' {left_revfor_cpgrid_surfdist} -var X {left_cpgrid_surfdist_reverse}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    run(f"wb_command -metric-math 'X*-1' {left_revfor_anatgrid_surfdist} -var X {left_anatgrid_surfdist_reverse}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    run(f"wb_command -metric-math 'X*-1' {right_revfor_cpgrid_surfdist} -var X {right_cpgrid_surfdist_reverse}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    run(f"wb_command -metric-math 'X*-1' {right_revfor_anatgrid_surfdist} -var X {right_anatgrid_surfdist_reverse}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
+    run_logged(f"wb_command -metric-math 'X*-1' {left_revfor_cpgrid_surfdist} -var X {left_cpgrid_surfdist_reverse}")
+    run_logged(f"wb_command -metric-math 'X*-1' {left_revfor_anatgrid_surfdist} -var X {left_anatgrid_surfdist_reverse}")
+    run_logged(f"wb_command -metric-math 'X*-1' {right_revfor_cpgrid_surfdist} -var X {right_cpgrid_surfdist_reverse}")
+    run_logged(f"wb_command -metric-math 'X*-1' {right_revfor_anatgrid_surfdist} -var X {right_anatgrid_surfdist_reverse}")
     
-    """run(f"wb_command -metric-resample {left_cpgrid_surfdist_reverse} {left_cpgrid_sphere_reverse} {left_revfor_cpgrid_sphere} \"BARYCENTRIC\" {left_revfor_cpgrid_surfdist}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    run(f"wb_command -metric-resample {left_anatgrid_surfdist_reverse} {left_anatgrid_sphere_reverse} {left_revfor_anatgrid_sphere} \"BARYCENTRIC\" {left_revfor_anatgrid_surfdist}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    run(f"wb_command -metric-resample {right_cpgrid_surfdist_reverse} {right_cpgrid_sphere_reverse} {right_revfor_cpgrid_sphere} \"BARYCENTRIC\" {right_revfor_cpgrid_surfdist}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    run(f"wb_command -metric-resample {right_anatgrid_surfdist_reverse} {right_anatgrid_sphere_reverse} {right_revfor_anatgrid_sphere} \"BARYCENTRIC\" {right_revfor_anatgrid_surfdist}", shell=True, stdout=sys.stdout, stderr=sys.stderr)"""
+    """run_logged(f"wb_command -metric-resample {left_cpgrid_surfdist_reverse} {left_cpgrid_sphere_reverse} {left_revfor_cpgrid_sphere} \"BARYCENTRIC\" {left_revfor_cpgrid_surfdist}")
+    run_logged(f"wb_command -metric-resample {left_anatgrid_surfdist_reverse} {left_anatgrid_sphere_reverse} {left_revfor_anatgrid_sphere} \"BARYCENTRIC\" {left_revfor_anatgrid_surfdist}")
+    run_logged(f"wb_command -metric-resample {right_cpgrid_surfdist_reverse} {right_cpgrid_sphere_reverse} {right_revfor_cpgrid_sphere} \"BARYCENTRIC\" {right_revfor_cpgrid_surfdist}")
+    run_logged(f"wb_command -metric-resample {right_anatgrid_surfdist_reverse} {right_anatgrid_sphere_reverse} {right_revfor_anatgrid_sphere} \"BARYCENTRIC\" {right_revfor_anatgrid_surfdist}")"""
 
     # calculate average surfdist
     print("begin calculating avgfor surfdists")
-    run(f"wb_command -metric-math '(J1+J2)/2' {left_avgfor_cpgrid_surfdist} -var J1 {left_revfor_cpgrid_surfdist} -var J2 {left_cpgrid_surfdist_forward}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    run(f"wb_command -metric-math '(J1+J2)/2' {left_avgfor_anatgrid_surfdist} -var J1 {left_revfor_anatgrid_surfdist} -var J2 {left_anatgrid_surfdist_forward}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    run(f"wb_command -metric-math '(J1+J2)/2' {right_avgfor_cpgrid_surfdist} -var J1 {right_revfor_cpgrid_surfdist} -var J2 {right_cpgrid_surfdist_forward}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    run(f"wb_command -metric-math '(J1+J2)/2' {right_avgfor_anatgrid_surfdist} -var J1 {right_revfor_anatgrid_surfdist} -var J2 {right_anatgrid_surfdist_forward}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    run(f"wb_command -set-structure {left_avgfor_cpgrid_surfdist} CORTEX_LEFT", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    run(f"wb_command -set-structure {left_avgfor_anatgrid_surfdist} CORTEX_LEFT", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    run(f"wb_command -set-structure {right_avgfor_cpgrid_surfdist} CORTEX_RIGHT", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    run(f"wb_command -set-structure {right_avgfor_anatgrid_surfdist} CORTEX_RIGHT", shell=True, stdout=sys.stdout, stderr=sys.stderr)
+    run_logged(f"wb_command -metric-math '(J1+J2)/2' {left_avgfor_cpgrid_surfdist} -var J1 {left_revfor_cpgrid_surfdist} -var J2 {left_cpgrid_surfdist_forward}")
+    run_logged(f"wb_command -metric-math '(J1+J2)/2' {left_avgfor_anatgrid_surfdist} -var J1 {left_revfor_anatgrid_surfdist} -var J2 {left_anatgrid_surfdist_forward}")
+    run_logged(f"wb_command -metric-math '(J1+J2)/2' {right_avgfor_cpgrid_surfdist} -var J1 {right_revfor_cpgrid_surfdist} -var J2 {right_cpgrid_surfdist_forward}")
+    run_logged(f"wb_command -metric-math '(J1+J2)/2' {right_avgfor_anatgrid_surfdist} -var J1 {right_revfor_anatgrid_surfdist} -var J2 {right_anatgrid_surfdist_forward}")
+    run_logged(f"wb_command -set-structure {left_avgfor_cpgrid_surfdist} CORTEX_LEFT")
+    run_logged(f"wb_command -set-structure {left_avgfor_anatgrid_surfdist} CORTEX_LEFT")
+    run_logged(f"wb_command -set-structure {right_avgfor_cpgrid_surfdist} CORTEX_RIGHT")
+    run_logged(f"wb_command -set-structure {right_avgfor_anatgrid_surfdist} CORTEX_RIGHT")
     print("complete\n")
 
 
@@ -1340,17 +1346,17 @@ def rescale_surfaces(dataset: str,  subject: str, time_point: str, uses_mcribs: 
     
     # crete shape files
     print("Creating shape files")
-    run(f"wb_command -surface-vertex-areas {left_midthickness_file} {left_shape_file}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    run(f"wb_command -surface-vertex-areas {left_midthickness_file} {right_shape_file}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
+    run_logged(f"wb_command -surface-vertex-areas {left_midthickness_file} {left_shape_file}")
+    run_logged(f"wb_command -surface-vertex-areas {left_midthickness_file} {right_shape_file}")
     
     #subject cortex shape
     print("Calculating surface areas")
-    run(f"wb_command -metric-stats {left_shape_file} -reduce SUM", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    command_output = run(f"wb_command -metric-stats {left_shape_file} -reduce SUM", shell=True, capture_output=True, text=True, check=True)
+    run_logged(f"wb_command -metric-stats {left_shape_file} -reduce SUM")
+    command_output = run_logged(f"wb_command -metric-stats {left_shape_file} -reduce SUM", shell=True, capture_output=True, text=True, check=True)
     left_surface_area = float(command_output.stdout.strip())
     
-    run(f"wb_command -metric-stats {right_shape_file} -reduce SUM", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    command_output = run(f"wb_command -metric-stats {right_shape_file} -reduce SUM", shell=True, capture_output=True, text=True, check=True)
+    run_logged(f"wb_command -metric-stats {right_shape_file} -reduce SUM")
+    command_output = run_logged(f"wb_command -metric-stats {right_shape_file} -reduce SUM", shell=True, capture_output=True, text=True, check=True)
     right_surface_area = float(command_output.stdout.strip())
     print(f"Left Surface Area: {left_surface_area}")
     print(f"Right Surface Area: {right_surface_area}")
@@ -1378,8 +1384,8 @@ def rescale_surfaces(dataset: str,  subject: str, time_point: str, uses_mcribs: 
         
     # apply affine matrix
     print("Applying affine matrices to surfaces")
-    run(f"wb_command -surface-apply-affine {left_midthickness_file} {left_affine_matrix} {left_rescaled_surface}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    run(f"wb_command -surface-apply-affine {right_midthickness_file} {right_affine_matrix} {right_rescaled_surface}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
+    run_logged(f"wb_command -surface-apply-affine {left_midthickness_file} {left_affine_matrix} {left_rescaled_surface}")
+    run_logged(f"wb_command -surface-apply-affine {right_midthickness_file} {right_affine_matrix} {right_rescaled_surface}")
     print("Rescaling complete\n")
 
 
@@ -1433,8 +1439,8 @@ def convert_curvature(dataset: str, subject: str, time_point: str):
     left_white_matter = path.join(subject_dir, "lh.white")
     right_white_matter = path.join(subject_dir, "rh.white")
     
-    run(f"mris_convert -c {left_curv} {left_white_matter} {left_output}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    run(f"mris_convert -c {right_curv} {right_white_matter} {right_output}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
+    run_logged(f"mris_convert -c {left_curv} {left_white_matter} {left_output}")
+    run_logged(f"mris_convert -c {right_curv} {right_white_matter} {right_output}")
     
 
 # function for batch conversion of .curv files to .gii files
@@ -1554,14 +1560,14 @@ def concatenate_registrations(msm_dataset: str, pre_msm_dataset: str, subject: s
         
     # Run first set of commands
     print("Running commands")
-    run(f"wb_command -surface-sphere-project-unproject {left_sphere_in} {sphere_project_to} {left_sphere_unproject_from} {left_concat_output}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    run(f"wb_command -surface-sphere-project-unproject {right_sphere_in} {sphere_project_to} {right_sphere_unproject_from} {right_concat_output}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
+    run_logged(f"wb_command -surface-sphere-project-unproject {left_sphere_in} {sphere_project_to} {left_sphere_unproject_from} {left_concat_output}")
+    run_logged(f"wb_command -surface-sphere-project-unproject {right_sphere_in} {sphere_project_to} {right_sphere_unproject_from} {right_concat_output}")
     
-    run(f"wb_command -surface-resample {left_as_time_end} {spherical_surface} {left_concat_output} 'BARYCENTRIC' {left_anat_output}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    run(f"wb_command -surface-resample {right_as_time_end} {spherical_surface} {right_concat_output} 'BARYCENTRIC' {right_anat_output}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
+    run_logged(f"wb_command -surface-resample {left_as_time_end} {spherical_surface} {left_concat_output} 'BARYCENTRIC' {left_anat_output}")
+    run_logged(f"wb_command -surface-resample {right_as_time_end} {spherical_surface} {right_concat_output} 'BARYCENTRIC' {right_anat_output}")
     
-    run(f"wb_command -surface-distortion {left_surface_reference} {left_anat_output} {left_surfdist_output}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    run(f"wb_command -surface-distortion {right_surface_reference} {right_anat_output} {right_surfdist_output}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
+    run_logged(f"wb_command -surface-distortion {left_surface_reference} {left_anat_output} {left_surfdist_output}")
+    run_logged(f"wb_command -surface-distortion {right_surface_reference} {right_anat_output} {right_surfdist_output}")
     print("Finished inital concatenation")
     
     if len(intermediate_timepoints) > 1:
@@ -1626,14 +1632,14 @@ def concatenate_registrations(msm_dataset: str, pre_msm_dataset: str, subject: s
             )
             
             print("Running commands")
-            run(f"wb_command -surface-sphere-project-unproject {left_sphere_in} {sphere_project_to} {left_sphere_unproject_from} {left_concat_output}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-            run(f"wb_command -surface-sphere-project-unproject {right_sphere_in} {sphere_project_to} {right_sphere_unproject_from} {right_concat_output}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
+            run_logged(f"wb_command -surface-sphere-project-unproject {left_sphere_in} {sphere_project_to} {left_sphere_unproject_from} {left_concat_output}")
+            run_logged(f"wb_command -surface-sphere-project-unproject {right_sphere_in} {sphere_project_to} {right_sphere_unproject_from} {right_concat_output}")
             
-            run(f"wb_command -surface-resample {left_as_time_end} {spherical_surface} {left_concat_output} 'BARYCENTRIC' {left_anat_output}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-            run(f"wb_command -surface-resample {right_as_time_end} {spherical_surface} {right_concat_output} 'BARYCENTRIC' {right_anat_output}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
+            run_logged(f"wb_command -surface-resample {left_as_time_end} {spherical_surface} {left_concat_output} 'BARYCENTRIC' {left_anat_output}")
+            run_logged(f"wb_command -surface-resample {right_as_time_end} {spherical_surface} {right_concat_output} 'BARYCENTRIC' {right_anat_output}")
             
-            run(f"wb_command -surface-distortion {left_surface_reference} {left_anat_output} {left_surfdist_output}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
-            run(f"wb_command -surface-distortion {right_surface_reference} {right_anat_output} {right_surfdist_output}", shell=True, stdout=sys.stdout, stderr=sys.stderr)
+            run_logged(f"wb_command -surface-distortion {left_surface_reference} {left_anat_output} {left_surfdist_output}")
+            run_logged(f"wb_command -surface-distortion {right_surface_reference} {right_anat_output} {right_surfdist_output}")
             print(f"Finished chain concatenation {i}/{total_loops}")
     
     print(f"Finished concatenation of subject {subject} form {concat_start_time} to {concat_end_time}")
