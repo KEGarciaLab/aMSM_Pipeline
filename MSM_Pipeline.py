@@ -37,7 +37,7 @@ class Tee:
         return self.real_stream.fileno()
 
 
-log_path = path.expanduser(f'~/Scripts/MyScripts/Output/MSM_Pipeline/full_pipeline_log-{datetime.now()}.txt')
+log_path = path.expanduser(f'~/Scripts/MyScripts/Output/MSM_Pipeline/full_pipeline_log-{datetime.now().strftime("%Y-%m-%d_%H:%M:%S.f%z")}.txt')
 makedirs(path.dirname(log_path), exist_ok=True)
 log_file = open(log_path, 'w+')
 sys.stdout = Tee(sys.__stdout__, log_file)
