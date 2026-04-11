@@ -4,7 +4,7 @@ import argparse
 import sys
 from os import listdir, path, makedirs, remove, walk
 from re import compile, sub
-from subprocess import check_output, run
+from subprocess import check_output, run, Popen
 from time import sleep
 from string import Template
 from typing import Literal
@@ -47,16 +47,25 @@ Hemisphere = Literal["L", "R"]
 
 
 # helper function for running commands to be logged
+import subprocess
+
 def run_logged(cmd, step=None):
     header = f"[RUN]" if not step else f"[RUN:{step}]"
     print(f"\n{header} {cmd}\n")
-    
-    result = run(f"{cmd} 2>&1 | tee -a {log_path}", shell=True, capture_output=True, text=True)
-    
-    if result.returncode != 0:
-        print(f"[ERROR] Command failed with return code {result.returncode}")
-    
-    return result
+
+    with open(log_path, "a") as log_file:
+        process = Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1)
+
+        for line in process.stdout:
+            print(line, end="")          # live console output
+            log_file.write(line)         # append to log file
+            log_file.flush()             # ensure immediate write
+        process.wait()
+
+    if process.returncode != 0:
+        print(f"[ERROR] Command failed with return code {process.returncode}")
+
+    return process
     
 
 # Function for gathering subjects for ciftify
