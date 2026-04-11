@@ -281,16 +281,20 @@ def generate_qc_image(dataset: str, subject: str, younger_timepoint: str, older_
 
     if younger_uses_mcribs:
         print("[INFO] Younger timepoint uses MCRIBS pipeline")
+        print(f"[FUNCTION] Calling get_files_mcribs dataset={dataset} subject={subject}, timepoint={younger_timepoint}")
         younger_files = get_files_mcribs(dataset, subject, younger_timepoint)
     else:
         print("[INFO] Younger timepoint uses standard pipeline")
+        print(f"[FUNCTION] Calling get_files dataset={dataset} subject={subject}, timepoint={younger_timepoint}")
         younger_files = get_files(dataset, subject, younger_timepoint)
         
     if older_uses_mcribs:
         print("[INFO] Older timepoint uses MCRIBS pipeline")
+        print(f"[FUNCTION] Calling get_files_mcribs dataset={dataset} subject={subject}, timepoint={older_timepoint}")
         older_files = get_files_mcribs(dataset, subject, older_timepoint)
     else:
         print("[INFO] Older timepoint uses standard pipeline")
+        print(f"[FUNCTION] Calling get_files dataset={dataset} subject={subject}, timepoint={older_timepoint}")
         older_files = get_files(dataset, subject, older_timepoint)
 
     left_younger_surface = younger_files[0]
@@ -1126,7 +1130,12 @@ def run_msm_short_time_windows(dataset: str, output: str, slurm_account: str, sl
 
 # Function to generate average maps
 def generate_avg_maps(pre_msm_data: str, msm_data: str, subject: str, younger_timepoint: str, older_timepoint: str, max_cp: str | None=None, max_anat: str | None=None, younger_uses_mcribs: bool=False, older_uses_mcribs: bool=False):
-    # create output for average maps
+    print(f"\n[AVG MAPS] Generating average maps for subject={subject} ({younger_timepoint} → {older_timepoint})\n")
+    
+    # -------------------------
+    # Setup defaults
+    # -------------------------
+    print("[STEP] Setting up defaults and output directories")
     if max_cp == None:
         script_dir = path.dirname(path.realpath(__file__))
         max_cp = path.join(script_dir, "NeededFiles", "ico5sphere.LR.reg.surf.gii")
@@ -1137,169 +1146,250 @@ def generate_avg_maps(pre_msm_data: str, msm_data: str, subject: str, younger_ti
     msm_avg_output = path.join(
         msm_data, f"{subject}_{younger_timepoint}_to_{older_timepoint}_avg")
     makedirs(msm_avg_output, exist_ok=True)
+    
+    print(f"[INFO] Output directory: {msm_avg_output}")
+    print(f"[INFO] max_cp: {max_cp}")
+    print(f"[INFO] max_anat: {max_anat}")
 
-    # create variables for file locations from pre-msm
+    # -------------------------
+    # Locate input files
+    # -------------------------
+    print("\n[STEP] Locating input files")
     if younger_uses_mcribs:
+        print("[INFO] Younger timepoint uses MCRIBS pipeline")
+        print(f"[FUNCTION] Calling get_files_mcribs dataset={pre_msm_data} subject={subject}, timepoint={younger_timepoint}")
         younger_files = get_files_mcribs(pre_msm_data, subject, younger_timepoint)
     else:
+        print("[INFO] Younger timepoint uses standard pipeline")
+        print(f"[FUNCTION] Calling get_files dataset={pre_msm_data} subject={subject}, timepoint={younger_timepoint}")
         younger_files = get_files(pre_msm_data, subject, younger_timepoint)
     
     if older_uses_mcribs:
+        print("[INFO] Older timepoint uses MCRIBS pipeline")
+        print(f"[FUNCTION] Calling get_files_mcribs dataset={pre_msm_data} subject={subject}, timepoint={older_timepoint}")
         older_files = get_files_mcribs(pre_msm_data, subject, older_timepoint)
     else:
+        print("[INFO] Older timepoint uses standard pipeline")
+        print(f"[FUNCTION] Calling get_files dataset={pre_msm_data} subject={subject}, timepoint={older_timepoint}")
         older_files = get_files(pre_msm_data, subject, older_timepoint)
         
     left_younger_spherical_surface = younger_files[2]
     left_older_spherical_surface = older_files[2]
     right_younger_spherical_surface = younger_files[3]
     right_older_spherical_surface = older_files[3]
+    
+    print("[FILES] Selected spherical surfaces:")
+    print(f"  Younger L: {left_younger_spherical_surface}")
+    print(f"  Younger R: {right_younger_spherical_surface}")
+    print(f"  Older   L: {left_older_spherical_surface}")
+    print(f"  Older   R: {right_older_spherical_surface}")
 
-    # files for msm resverse registration
-    msm_reverse_folder = path.join(
-        msm_data, f"{subject}_{older_timepoint}_to_{younger_timepoint}")
-    left_older_anatomical_surface_cpgrid = path.join(
-        msm_reverse_folder, f"{subject}_L_{older_timepoint}-{younger_timepoint}.LOAS.CPgrid.surf.gii")
-    left_older_anatomical_surface_anatgrid = path.join(
-        msm_reverse_folder, f"{subject}_L_{older_timepoint}-{younger_timepoint}.LOAS.ANATgrid.surf.gii")
-    left_base_sphere_reverse = path.join(
-        msm_reverse_folder, f"{subject}_L_{older_timepoint}-{younger_timepoint}.sphere.reg.surf.gii")
-    left_cpgrid_sphere_reverse = path.join(
-        msm_reverse_folder, f"{subject}_L_{older_timepoint}-{younger_timepoint}.sphere.CPgrid.reg.surf.gii")
-    left_anatgrid_sphere_reverse = path.join(
-        msm_reverse_folder, f"{subject}_L_{older_timepoint}-{younger_timepoint}.sphere.ANATgrid.reg.surf.gii")
-    left_cpgrid_surfdist_reverse = path.join(
-        msm_reverse_folder, f"{subject}_L_{older_timepoint}-{younger_timepoint}.surfdist.CPgrid.func.gii")
-    left_anatgrid_surfdist_reverse = path.join(
-        msm_reverse_folder, f"{subject}_L_{older_timepoint}-{younger_timepoint}.surfdist.ANATgrid.func.gii")
-    right_older_anatomical_surface_cpgrid = path.join(
-        msm_reverse_folder, f"{subject}_R_{older_timepoint}-{younger_timepoint}.ROAS.CPgrid.surf.gii")
-    right_older_anatomical_surface_anatgrid = path.join(
-        msm_reverse_folder, f"{subject}_R_{older_timepoint}-{younger_timepoint}.ROAS.ANATgrid.surf.gii")
-    right_base_sphere_reverse = path.join(
-        msm_reverse_folder, f"{subject}_R_{older_timepoint}-{younger_timepoint}.sphere.reg.surf.gii")
-    right_cpgrid_sphere_reverse = path.join(
-        msm_reverse_folder, f"{subject}_R_{older_timepoint}-{younger_timepoint}.sphere.CPgrid.reg.surf.gii")
-    right_anatgrid_sphere_reverse = path.join(
-        msm_reverse_folder, f"{subject}_R_{older_timepoint}-{younger_timepoint}.sphere.ANATgrid.reg.surf.gii")
-    right_cpgrid_surfdist_reverse = path.join(
-        msm_reverse_folder, f"{subject}_R_{older_timepoint}-{younger_timepoint}.surfdist.CPgrid.func.gii")
-    right_anatgrid_surfdist_reverse = path.join(
-        msm_reverse_folder, f"{subject}_R_{older_timepoint}-{younger_timepoint}.surfdist.ANATgrid.func.gii")
-
-    # files for msm forward registration
-    msm_forward_folder = path.join(
-        msm_data, f"{subject}_{younger_timepoint}_to_{older_timepoint}")
-    left_base_sphere_forward = path.join(
-        msm_forward_folder, f"{subject}_L_{younger_timepoint}-{older_timepoint}.sphere.reg.surf.gii")
-    left_cpgrid_sphere_forward = path.join(
-        msm_forward_folder, f"{subject}_L_{younger_timepoint}-{older_timepoint}.sphere.CPgrid.reg.surf.gii")
-    left_anatgrid_sphere_forward = path.join(
-        msm_forward_folder, f"{subject}_L_{younger_timepoint}-{older_timepoint}.sphere.ANATgrid.reg.surf.gii")
-    left_cpgrid_surfdist_forward = path.join(
-        msm_forward_folder, f"{subject}_L_{younger_timepoint}-{older_timepoint}.surfdist.CPgrid.func.gii")
-    left_anatgrid_surfdist_forward = path.join(
-        msm_forward_folder, f"{subject}_L_{younger_timepoint}-{older_timepoint}.surfdist.ANATgrid.func.gii")
-    right_base_sphere_forward = path.join(
-        msm_forward_folder, f"{subject}_R_{younger_timepoint}-{older_timepoint}.sphere.reg.surf.gii")
-    right_cpgrid_sphere_forward = path.join(
-        msm_forward_folder, f"{subject}_R_{younger_timepoint}-{older_timepoint}.sphere.CPgrid.reg.surf.gii")
-    right_anatgrid_sphere_forward = path.join(
-        msm_forward_folder, f"{subject}_R_{younger_timepoint}-{older_timepoint}.sphere.ANATgrid.reg.surf.gii")
-    right_cpgrid_surfdist_forward = path.join(
-        msm_forward_folder, f"{subject}_R_{younger_timepoint}-{older_timepoint}.surfdist.CPgrid.func.gii")
-    right_anatgrid_surfdist_forward = path.join(
-        msm_forward_folder, f"{subject}_R_{younger_timepoint}-{older_timepoint}.surfdist.ANATgrid.func.gii")
-
-    # revfor sphere output names
+    # -------------------------
+    # MSM folders
+    # -------------------------
+    print("\n[STEP] Defining MSM forward and reverse folders")
+    msm_reverse_folder = path.join(msm_data, f"{subject}_{older_timepoint}_to_{younger_timepoint}")
+    msm_forward_folder = path.join(msm_data, f"{subject}_{younger_timepoint}_to_{older_timepoint}")
+    print(f"[INFO] Reverse folder: {msm_reverse_folder}")
+    print(f"[INFO] Forward folder: {msm_forward_folder}")
+    
+    # -------------------------
+    # Intermediary file definitions
+    # -------------------------
+    print("\n[STEP] Defining intermediary files")
+    left_base_sphere_reverse = path.join(msm_reverse_folder, f"{subject}_L_{older_timepoint}-{younger_timepoint}.sphere.reg.surf.gii")
+    right_base_sphere_reverse = path.join(msm_reverse_folder, f"{subject}_R_{older_timepoint}-{younger_timepoint}.sphere.reg.surf.gii")
+    left_cpgrid_sphere_reverse = path.join(msm_reverse_folder, f"{subject}_L_{older_timepoint}-{younger_timepoint}.sphere.CPgrid.reg.surf.gii")
+    right_cpgrid_sphere_reverse = path.join(msm_reverse_folder, f"{subject}_R_{older_timepoint}-{younger_timepoint}.sphere.CPgrid.reg.surf.gii")
+    left_anatgrid_sphere_reverse = path.join(msm_reverse_folder, f"{subject}_L_{older_timepoint}-{younger_timepoint}.sphere.ANATgrid.reg.surf.gii")
+    right_anatgrid_sphere_reverse = path.join(msm_reverse_folder, f"{subject}_R_{older_timepoint}-{younger_timepoint}.sphere.ANATgrid.reg.surf.gii")
+    left_cpgrid_surfdist_reverse = path.join(msm_reverse_folder, f"{subject}_L_{older_timepoint}-{younger_timepoint}.surfdist.CPgrid.func.gii")
+    left_older_anatomical_surface_cpgrid = path.join(msm_reverse_folder, f"{subject}_L_{older_timepoint}-{younger_timepoint}.LOAS.CPgrid.surf.gii")
+    left_older_anatomical_surface_anatgrid = path.join(msm_reverse_folder, f"{subject}_L_{older_timepoint}-{younger_timepoint}.LOAS.ANATgrid.surf.gii")
+    left_anatgrid_surfdist_reverse = path.join(msm_reverse_folder, f"{subject}_L_{older_timepoint}-{younger_timepoint}.surfdist.ANATgrid.func.gii")
+    right_older_anatomical_surface_cpgrid = path.join(msm_reverse_folder, f"{subject}_R_{older_timepoint}-{younger_timepoint}.ROAS.CPgrid.surf.gii")
+    right_older_anatomical_surface_anatgrid = path.join(msm_reverse_folder, f"{subject}_R_{older_timepoint}-{younger_timepoint}.ROAS.ANATgrid.surf.gii")
+    right_cpgrid_surfdist_reverse = path.join(msm_reverse_folder, f"{subject}_R_{older_timepoint}-{younger_timepoint}.surfdist.CPgrid.func.gii")
+    right_anatgrid_surfdist_reverse = path.join(msm_reverse_folder, f"{subject}_R_{older_timepoint}-{younger_timepoint}.surfdist.ANATgrid.func.gii")
+    
+    print("[FILES] Reverse registration inputs:")
+    print(f"  L sphere: {left_base_sphere_reverse}")
+    print(f"  R sphere: {right_base_sphere_reverse}")
+    print(f"  L CP sphere: {left_cpgrid_sphere_reverse}")
+    print(f"  R CP sphere: {right_cpgrid_sphere_reverse}")
+    print(f"  L ANAT sphere: {left_anatgrid_sphere_reverse}")
+    print(f"  R ANAT sphere: {right_anatgrid_sphere_reverse}")
+    print(f"  L CP surfdist:   {left_cpgrid_surfdist_reverse}")
+    print(f"  R CP surfdist:   {right_cpgrid_surfdist_reverse}")
+    print(f"  L ANAT surfdist: {left_anatgrid_surfdist_reverse}")
+    print(f"  R ANAT surfdist: {right_anatgrid_surfdist_reverse}")
+    print(f"  L CP anat surf:  {left_older_anatomical_surface_cpgrid}")
+    print(f"  R CP anat surf:  {right_older_anatomical_surface_cpgrid}")
+    print(f"  L ANAT surf:     {left_older_anatomical_surface_anatgrid}")
+    print(f"  R ANAT surf:     {right_older_anatomical_surface_anatgrid}")
+    
+    left_base_sphere_forward = path.join(msm_forward_folder, f"{subject}_L_{younger_timepoint}-{older_timepoint}.sphere.reg.surf.gii")
+    right_base_sphere_forward = path.join(msm_forward_folder, f"{subject}_R_{younger_timepoint}-{older_timepoint}.sphere.reg.surf.gii")
+    left_cpgrid_sphere_forward = path.join(msm_forward_folder, f"{subject}_L_{younger_timepoint}-{older_timepoint}.sphere.CPgrid.reg.surf.gii")
+    right_cpgrid_sphere_forward = path.join(msm_forward_folder, f"{subject}_R_{younger_timepoint}-{older_timepoint}.sphere.CPgrid.reg.surf.gii")
+    left_anatgrid_sphere_forward = path.join(msm_forward_folder, f"{subject}_L_{younger_timepoint}-{older_timepoint}.sphere.ANATgrid.reg.surf.gii")
+    right_anatgrid_sphere_forward = path.join(msm_forward_folder, f"{subject}_R_{younger_timepoint}-{older_timepoint}.sphere.ANATgrid.reg.surf.gii")
+    left_cpgrid_surfdist_forward = path.join(msm_forward_folder, f"{subject}_L_{younger_timepoint}-{older_timepoint}.surfdist.CPgrid.func.gii")
+    left_anatgrid_surfdist_forward = path.join(msm_forward_folder, f"{subject}_L_{younger_timepoint}-{older_timepoint}.surfdist.ANATgrid.func.gii")
+    right_cpgrid_surfdist_forward = path.join(msm_forward_folder, f"{subject}_R_{younger_timepoint}-{older_timepoint}.surfdist.CPgrid.func.gii")
+    right_anatgrid_surfdist_forward = path.join(msm_forward_folder, f"{subject}_R_{younger_timepoint}-{older_timepoint}.surfdist.ANATgrid.func.gii")
+    
+    print("[FILES] Forward registration inputs:")
+    print(f"  L sphere: {left_base_sphere_forward}")
+    print(f"  R sphere: {right_base_sphere_forward}")
+    print(f"  L CP sphere: {left_cpgrid_sphere_forward}")
+    print(f"  R CP sphere: {right_cpgrid_sphere_forward}")
+    print(f"  L ANAT sphere: {left_anatgrid_sphere_forward}")
+    print(f"  R ANAT sphere: {right_anatgrid_sphere_forward}")
+    print(f"  L CP surfdist:   {left_cpgrid_surfdist_forward}")
+    print(f"  R CP surfdist:   {right_cpgrid_surfdist_forward}")
+    print(f"  L ANAT surfdist: {left_anatgrid_surfdist_forward}")
+    print(f"  R ANAT surfdist: {right_anatgrid_surfdist_forward}")
+    
     left_revfor_base_sphere = f"{msm_avg_output}/{subject}_L_{older_timepoint}-{younger_timepoint}.revfor.sphere.reg.surf.gii"
     right_revfor_base_sphere = f"{msm_avg_output}/{subject}_R_{older_timepoint}-{younger_timepoint}.revfor.sphere.reg.surf.gii"
     left_revfor_cpgrid_sphere = f"{msm_avg_output}/{subject}_L_{older_timepoint}-{younger_timepoint}.revfor.sphere.CPgrid.reg.surf.gii"
     right_revfor_cpgrid_sphere = f"{msm_avg_output}/{subject}_R_{older_timepoint}-{younger_timepoint}.revfor.sphere.CPgrid.reg.surf.gii"
     left_revfor_anatgrid_sphere = f"{msm_avg_output}/{subject}_L_{older_timepoint}-{younger_timepoint}.revfor.sphere.ANATgrid.reg.surf.gii"
     right_revfor_anatgrid_sphere = f"{msm_avg_output}/{subject}_R_{older_timepoint}-{younger_timepoint}.revfor.sphere.ANATgrid.reg.surf.gii"
-
-    # avgfor sphere names
+    
+    print("[FILES] RevFor outputs (spheres):")
+    print(f"  L base: {left_revfor_base_sphere}")
+    print(f"  R base: {right_revfor_base_sphere}")
+    print(f"  L CP:   {left_revfor_cpgrid_sphere}")
+    print(f"  R CP:   {right_revfor_cpgrid_sphere}")
+    print(f"  L ANAT: {left_revfor_anatgrid_sphere}")
+    print(f"  R ANAT: {right_revfor_anatgrid_sphere}")
+    
     left_avgfor_base_sphere = f"{msm_avg_output}/{subject}_L_{younger_timepoint}-{older_timepoint}.avgfor.sphere.reg.surf.gii"
     right_avgfor_base_sphere = f"{msm_avg_output}/{subject}_R_{younger_timepoint}-{older_timepoint}.avgfor.sphere.reg.surf.gii"
     left_avgfor_cpgrid_sphere = f"{msm_avg_output}/{subject}_L_{younger_timepoint}-{older_timepoint}.avgfor.sphere.CPgrid.reg.surf.gii"
     right_avgfor_cpgrid_sphere = f"{msm_avg_output}/{subject}_R_{younger_timepoint}-{older_timepoint}.avgfor.sphere.CPgrid.reg.surf.gii"
     left_avgfor_anatgrid_sphere = f"{msm_avg_output}/{subject}_L_{younger_timepoint}-{older_timepoint}.avgfor.sphere.ANATgrid.reg.surf.gii"
     right_avgfor_anatgrid_sphere = f"{msm_avg_output}/{subject}_R_{younger_timepoint}-{older_timepoint}.avgfor.sphere.ANATgrid.reg.surf.gii"
-
-    # avgfor anat names
+    
+    print("[FILES] AvgFor outputs (spheres):")
+    print(f"  L base: {left_avgfor_base_sphere}")
+    print(f"  R base: {right_avgfor_base_sphere}")
+    print(f"  L CP:   {left_avgfor_cpgrid_sphere}")
+    print(f"  R CP:   {right_avgfor_cpgrid_sphere}")
+    print(f"  L ANAT: {left_avgfor_anatgrid_sphere}")
+    print(f"  R ANAT: {right_avgfor_anatgrid_sphere}")
+    
     left_avgfor_cpgrid_anat = f"{msm_avg_output}/{subject}_L_{younger_timepoint}-{older_timepoint}.avgfor.anat.CPgrid.reg.surf.gii"
     right_avgfor_cpgrid_anat = f"{msm_avg_output}/{subject}_R_{younger_timepoint}-{older_timepoint}.avgfor.anat.CPgrid.reg.surf.gii"
     left_avgfor_anatgrid_anat = f"{msm_avg_output}/{subject}_L_{younger_timepoint}-{older_timepoint}.avgfor.anat.ANATgrid.reg.surf.gii"
     right_avgfor_anatgrid_anat = f"{msm_avg_output}/{subject}_R_{younger_timepoint}-{older_timepoint}.avgfor.anat.ANATgrid.reg.surf.gii"
-
-    # revfor surfdist names
+    
+    print("[FILES] AvgFor anatomical outputs:")
+    print(f"  L CP:   {left_avgfor_cpgrid_anat}")
+    print(f"  R CP:   {right_avgfor_cpgrid_anat}")
+    print(f"  L ANAT: {left_avgfor_anatgrid_anat}")
+    print(f"  R ANAT: {right_avgfor_anatgrid_anat}")
+    
     left_revfor_cpgrid_surfdist = f"{msm_avg_output}/{subject}_L_{older_timepoint}-{younger_timepoint}.revfor.surfdist.CPgrid.reg.func.gii"
     left_revfor_anatgrid_surfdist = f"{msm_avg_output}/{subject}_L_{older_timepoint}-{younger_timepoint}.revfor.surfdist.ANATgrid.reg.func.gii"
     right_revfor_cpgrid_surfdist = f"{msm_avg_output}/{subject}_R_{older_timepoint}-{younger_timepoint}.revfor.surfdist.CPgrid.reg.func.gii"
     right_revfor_anatgrid_surfdist = f"{msm_avg_output}/{subject}_R_{older_timepoint}-{younger_timepoint}.revfor.surfdist.ANATgrid.reg.func.gii"
-
-    # angfor surfdist names
+    
+    print("[FILES] Surface distance (RevFor):")
+    print(f"  L CP:   {left_revfor_cpgrid_surfdist}")
+    print(f"  R CP:   {right_revfor_cpgrid_surfdist}")
+    print(f"  L ANAT: {left_revfor_anatgrid_surfdist}")
+    print(f"  R ANAT: {right_revfor_anatgrid_surfdist}")
+    
     left_avgfor_cpgrid_surfdist = f"{msm_avg_output}/{subject}_L_{younger_timepoint}-{older_timepoint}.avgfor.surfdist.CPgrid.reg.func.gii"
     left_avgfor_anatgrid_surfdist = f"{msm_avg_output}/{subject}_L_{younger_timepoint}-{older_timepoint}.avgfor.surfdist.ANATgrid.reg.func.gii"
     right_avgfor_cpgrid_surfdist = f"{msm_avg_output}/{subject}_R_{younger_timepoint}-{older_timepoint}.avgfor.surfdist.CPgrid.reg.func.gii"
     right_avgfor_anatgrid_surfdist = f"{msm_avg_output}/{subject}_R_{younger_timepoint}-{older_timepoint}.avgfor.surfdist.ANATgrid.reg.func.gii"
-
-    # Generate Revfor spheres
-    print("Begin generating revfor spheres")
-    run_logged(f"wb_command -surface-sphere-project-unproject {left_older_spherical_surface} {left_base_sphere_reverse} {left_younger_spherical_surface} {left_revfor_base_sphere}")
-    run_logged(f"wb_command -surface-sphere-project-unproject {right_older_spherical_surface} {right_base_sphere_reverse} {right_younger_spherical_surface} {right_revfor_base_sphere}")
-    run_logged(f"wb_command -surface-sphere-project-unproject {max_cp} {left_cpgrid_sphere_reverse} {max_cp} {left_revfor_cpgrid_sphere}")
-    run_logged(f"wb_command -surface-sphere-project-unproject {max_cp} {right_cpgrid_sphere_reverse} {max_cp} {right_revfor_cpgrid_sphere}")
-    run_logged(f"wb_command -surface-sphere-project-unproject {max_anat} {left_anatgrid_sphere_reverse} {max_anat} {left_revfor_anatgrid_sphere}")
-    run_logged(f"wb_command -surface-sphere-project-unproject {max_anat} {right_anatgrid_sphere_reverse} {max_anat} {right_revfor_anatgrid_sphere}")
-
-    run_logged(f"wb_command -surface-average {left_avgfor_base_sphere} -surf {left_base_sphere_forward} -surf {left_revfor_base_sphere}")
-    run_logged(f"wb_command -surface-average {right_avgfor_base_sphere} -surf {right_base_sphere_forward} -surf {right_revfor_base_sphere}")
-    run_logged(f"wb_command -surface-average {left_avgfor_cpgrid_sphere} -surf {left_cpgrid_sphere_forward} -surf {left_revfor_cpgrid_sphere}")
-    run_logged(f"wb_command -surface-average {right_avgfor_cpgrid_sphere} -surf {right_cpgrid_sphere_forward} -surf {right_revfor_cpgrid_sphere}")
-    run_logged(f"wb_command -surface-average {left_avgfor_anatgrid_sphere} -surf {left_anatgrid_sphere_forward} -surf {left_revfor_anatgrid_sphere}")
-    run_logged(f"wb_command -surface-average {right_avgfor_anatgrid_sphere} -surf {right_anatgrid_sphere_forward} -surf {right_revfor_anatgrid_sphere}")
-
-    # Generate AvgFor Shpheres
-    print("Begin generating avgfor spheres")
-    run_logged(f"wb_command -surface-modify-sphere -recenter {left_avgfor_base_sphere} 100 {left_avgfor_base_sphere}")
-    run_logged(f"wb_command -surface-modify-sphere -recenter {right_avgfor_base_sphere} 100 {right_avgfor_base_sphere}")
-    run_logged(f"wb_command -surface-modify-sphere -recenter {left_avgfor_cpgrid_sphere} 100 {left_avgfor_cpgrid_sphere}")
-    run_logged(f"wb_command -surface-modify-sphere -recenter {right_avgfor_cpgrid_sphere} 100 {right_avgfor_cpgrid_sphere}")
-    run_logged(f"wb_command -surface-modify-sphere -recenter {left_avgfor_anatgrid_sphere} 100 {left_avgfor_anatgrid_sphere}")
-    run_logged(f"wb_command -surface-modify-sphere -recenter {right_avgfor_anatgrid_sphere} 100 {right_avgfor_anatgrid_sphere}")
-
-    # Generate RevFor Anatomical Surfaces
-    print("Begin generating revfor surfaces")
-    run_logged(f"wb_command -surface-resample {left_older_anatomical_surface_cpgrid} {max_cp} {left_avgfor_cpgrid_sphere} \"BARYCENTRIC\" {left_avgfor_cpgrid_anat}")
-    run_logged(f"wb_command -surface-resample {right_older_anatomical_surface_cpgrid} {max_cp} {right_avgfor_cpgrid_sphere} \"BARYCENTRIC\" {right_avgfor_cpgrid_anat}")
-    run_logged(f"wb_command -surface-resample {left_older_anatomical_surface_anatgrid} {max_anat} {left_avgfor_anatgrid_sphere} \"BARYCENTRIC\" {left_avgfor_anatgrid_anat}")
-    run_logged(f"wb_command -surface-resample {right_older_anatomical_surface_anatgrid} {max_anat} {right_avgfor_anatgrid_sphere} \"BARYCENTRIC\" {right_avgfor_anatgrid_anat}")
-
-    # Generate revfor surfdist
-    print("Begin generating revfor surfdist")
-    # metric math *-1
-    run_logged(f"wb_command -metric-math 'X*-1' {left_revfor_cpgrid_surfdist} -var X {left_cpgrid_surfdist_reverse}")
-    run_logged(f"wb_command -metric-math 'X*-1' {left_revfor_anatgrid_surfdist} -var X {left_anatgrid_surfdist_reverse}")
-    run_logged(f"wb_command -metric-math 'X*-1' {right_revfor_cpgrid_surfdist} -var X {right_cpgrid_surfdist_reverse}")
-    run_logged(f"wb_command -metric-math 'X*-1' {right_revfor_anatgrid_surfdist} -var X {right_anatgrid_surfdist_reverse}")
     
-    """run_logged(f"wb_command -metric-resample {left_cpgrid_surfdist_reverse} {left_cpgrid_sphere_reverse} {left_revfor_cpgrid_sphere} \"BARYCENTRIC\" {left_revfor_cpgrid_surfdist}")
-    run_logged(f"wb_command -metric-resample {left_anatgrid_surfdist_reverse} {left_anatgrid_sphere_reverse} {left_revfor_anatgrid_sphere} \"BARYCENTRIC\" {left_revfor_anatgrid_surfdist}")
-    run_logged(f"wb_command -metric-resample {right_cpgrid_surfdist_reverse} {right_cpgrid_sphere_reverse} {right_revfor_cpgrid_sphere} \"BARYCENTRIC\" {right_revfor_cpgrid_surfdist}")
-    run_logged(f"wb_command -metric-resample {right_anatgrid_surfdist_reverse} {right_anatgrid_sphere_reverse} {right_revfor_anatgrid_sphere} \"BARYCENTRIC\" {right_revfor_anatgrid_surfdist}")"""
+    print("[FILES] Surface distance (AvgFor):")
+    print(f"  L CP:   {left_avgfor_cpgrid_surfdist}")
+    print(f"  R CP:   {right_avgfor_cpgrid_surfdist}")
+    print(f"  L ANAT: {left_avgfor_anatgrid_surfdist}")
+    print(f"  R ANAT: {right_avgfor_anatgrid_surfdist}")
 
-    # calculate average surfdist
-    print("begin calculating avgfor surfdists")
-    run_logged(f"wb_command -metric-math '(J1+J2)/2' {left_avgfor_cpgrid_surfdist} -var J1 {left_revfor_cpgrid_surfdist} -var J2 {left_cpgrid_surfdist_forward}")
-    run_logged(f"wb_command -metric-math '(J1+J2)/2' {left_avgfor_anatgrid_surfdist} -var J1 {left_revfor_anatgrid_surfdist} -var J2 {left_anatgrid_surfdist_forward}")
-    run_logged(f"wb_command -metric-math '(J1+J2)/2' {right_avgfor_cpgrid_surfdist} -var J1 {right_revfor_cpgrid_surfdist} -var J2 {right_cpgrid_surfdist_forward}")
-    run_logged(f"wb_command -metric-math '(J1+J2)/2' {right_avgfor_anatgrid_surfdist} -var J1 {right_revfor_anatgrid_surfdist} -var J2 {right_anatgrid_surfdist_forward}")
-    run_logged(f"wb_command -set-structure {left_avgfor_cpgrid_surfdist} CORTEX_LEFT")
-    run_logged(f"wb_command -set-structure {left_avgfor_anatgrid_surfdist} CORTEX_LEFT")
-    run_logged(f"wb_command -set-structure {right_avgfor_cpgrid_surfdist} CORTEX_RIGHT")
-    run_logged(f"wb_command -set-structure {right_avgfor_anatgrid_surfdist} CORTEX_RIGHT")
-    print("complete\n")
+    
+    # -------------------------
+    # Generate RevFor spheres
+    # -------------------------
+    print("\n[STEP] Generating revfor spheres")
+
+    run_logged(f"wb_command -surface-sphere-project-unproject {left_older_spherical_surface} {left_base_sphere_reverse} {left_younger_spherical_surface} {left_revfor_base_sphere}", step="REVFOR_SPHERE")
+    run_logged(f"wb_command -surface-sphere-project-unproject {right_older_spherical_surface} {right_base_sphere_reverse} {right_younger_spherical_surface} {right_revfor_base_sphere}", step="REVFOR_SPHERE")
+    run_logged(f"wb_command -surface-sphere-project-unproject {max_cp} {left_cpgrid_sphere_reverse} {max_cp} {left_revfor_cpgrid_sphere}", step="REVFOR_SPHERE")
+    run_logged(f"wb_command -surface-sphere-project-unproject {max_cp} {right_cpgrid_sphere_reverse} {max_cp} {right_revfor_cpgrid_sphere}", step="REVFOR_SPHERE")
+    run_logged(f"wb_command -surface-sphere-project-unproject {max_anat} {left_anatgrid_sphere_reverse} {max_anat} {left_revfor_anatgrid_sphere}", step="REVFOR_SPHERE")
+    run_logged(f"wb_command -surface-sphere-project-unproject {max_anat} {right_anatgrid_sphere_reverse} {max_anat} {right_revfor_anatgrid_sphere}", step="REVFOR_SPHERE")
+    
+    # -------------------------
+    # Generate AvgFor spheres
+    # -------------------------
+    print("\n[STEP] Generating avgfor spheres")
+    run_logged(f"wb_command -surface-average {left_avgfor_base_sphere} -surf {left_base_sphere_forward} -surf {left_revfor_base_sphere}", step="AVGFOR_SPHERE")
+    run_logged(f"wb_command -surface-average {right_avgfor_base_sphere} -surf {right_base_sphere_forward} -surf {right_revfor_base_sphere}", step="AVGFOR_SPHERE")
+    run_logged(f"wb_command -surface-average {left_avgfor_cpgrid_sphere} -surf {left_cpgrid_sphere_forward} -surf {left_revfor_cpgrid_sphere}", step="AVGFOR_SPHERE")
+    run_logged(f"wb_command -surface-average {right_avgfor_cpgrid_sphere} -surf {right_cpgrid_sphere_forward} -surf {right_revfor_cpgrid_sphere}", step="AVGFOR_SPHERE")
+    run_logged(f"wb_command -surface-average {left_avgfor_anatgrid_sphere} -surf {left_anatgrid_sphere_forward} -surf {left_revfor_anatgrid_sphere}", step="AVGFOR_SPHERE")
+    run_logged(f"wb_command -surface-average {right_avgfor_anatgrid_sphere} -surf {right_anatgrid_sphere_forward} -surf {right_revfor_anatgrid_sphere}", step="AVGFOR_SPHERE")
+
+    # -------------------------
+    # Recenter spheres
+    # -------------------------
+    print("\n[STEP] Recentering avgfor spheres")
+
+    run_logged(f"wb_command -surface-modify-sphere -recenter {left_avgfor_base_sphere} 100 {left_avgfor_base_sphere}", step="RECENTER_AVGFOR")
+    run_logged(f"wb_command -surface-modify-sphere -recenter {right_avgfor_base_sphere} 100 {right_avgfor_base_sphere}", step="RECENTER_AVGFOR")
+    run_logged(f"wb_command -surface-modify-sphere -recenter {left_avgfor_cpgrid_sphere} 100 {left_avgfor_cpgrid_sphere}", step="RECENTER_AVGFOR")
+    run_logged(f"wb_command -surface-modify-sphere -recenter {right_avgfor_cpgrid_sphere} 100 {right_avgfor_cpgrid_sphere}", step="RECENTER_AVGFOR")
+    run_logged(f"wb_command -surface-modify-sphere -recenter {left_avgfor_anatgrid_sphere} 100 {left_avgfor_anatgrid_sphere}", step="RECENTER_AVGFOR")
+    run_logged(f"wb_command -surface-modify-sphere -recenter {right_avgfor_anatgrid_sphere} 100 {right_avgfor_anatgrid_sphere}", step="RECENTER_AVGFOR")
+
+    # -------------------------
+    # Generate avgfor anatomical surfaces
+    # -------------------------
+    print("\n[STEP] Generating aavgfor anatomical surfaces")
+
+    run_logged(f"wb_command -surface-resample {left_older_anatomical_surface_cpgrid} {max_cp} {left_avgfor_cpgrid_sphere} \"BARYCENTRIC\" {left_avgfor_cpgrid_anat}", step="AVGFOR_AS")
+    run_logged(f"wb_command -surface-resample {right_older_anatomical_surface_cpgrid} {max_cp} {right_avgfor_cpgrid_sphere} \"BARYCENTRIC\" {right_avgfor_cpgrid_anat}", step="AVGFOR_AS")
+    run_logged(f"wb_command -surface-resample {left_older_anatomical_surface_anatgrid} {max_anat} {left_avgfor_anatgrid_sphere} \"BARYCENTRIC\" {left_avgfor_anatgrid_anat}", step="AVGFOR_AS")
+    run_logged(f"wb_command -surface-resample {right_older_anatomical_surface_anatgrid} {max_anat} {right_avgfor_anatgrid_sphere} \"BARYCENTRIC\" {right_avgfor_anatgrid_anat}", step="AVGFOR_AS")
+
+    # -------------------------
+    # Generate revfor surfdist
+    # -------------------------
+    print("\n[STEP] Generating revfor surface distorion maps")
+
+    run_logged(f"wb_command -metric-math 'X*-1' {left_revfor_cpgrid_surfdist} -var X {left_cpgrid_surfdist_reverse}", step="REVFOR_SURFDIST")
+    run_logged(f"wb_command -metric-math 'X*-1' {left_revfor_anatgrid_surfdist} -var X {left_anatgrid_surfdist_reverse}", step="REVFOR_SURFDIST")
+    run_logged(f"wb_command -metric-math 'X*-1' {right_revfor_cpgrid_surfdist} -var X {right_cpgrid_surfdist_reverse}", step="REVFOR_SURFDIST")
+    run_logged(f"wb_command -metric-math 'X*-1' {right_revfor_anatgrid_surfdist} -var X {right_anatgrid_surfdist_reverse}", step="REVFOR_SURFDIST")
+
+    # -------------------------
+    # Average surfdist
+    # -------------------------
+    print("\n[STEP] Computing average surface distorion maps")
+
+    run_logged(f"wb_command -metric-math '(J1+J2)/2' {left_avgfor_cpgrid_surfdist} -var J1 {left_revfor_cpgrid_surfdist} -var J2 {left_cpgrid_surfdist_forward}", step="AVGFOR_SURFDIST")
+    run_logged(f"wb_command -metric-math '(J1+J2)/2' {left_avgfor_anatgrid_surfdist} -var J1 {left_revfor_anatgrid_surfdist} -var J2 {left_anatgrid_surfdist_forward}", step="AVGFOR_SURFDIST")
+    run_logged(f"wb_command -metric-math '(J1+J2)/2' {right_avgfor_cpgrid_surfdist} -var J1 {right_revfor_cpgrid_surfdist} -var J2 {right_cpgrid_surfdist_forward}", step="AVGFOR_SURFDIST")
+    run_logged(f"wb_command -metric-math '(J1+J2)/2' {right_avgfor_anatgrid_surfdist} -var J1 {right_revfor_anatgrid_surfdist} -var J2 {right_anatgrid_surfdist_forward}", step="AVGFOR_SURFDIST")
+
+    # -------------------------
+    # Set Structue Average
+    # -------------------------
+    print("\n[STEP] Setting structure of avgfor surface distortion maps")
+    run_logged(f"wb_command -set-structure {left_avgfor_cpgrid_surfdist} CORTEX_LEFT", step="STRUCTURE")
+    run_logged(f"wb_command -set-structure {left_avgfor_anatgrid_surfdist} CORTEX_LEFT", step="STRUCTURE")
+    run_logged(f"wb_command -set-structure {right_avgfor_cpgrid_surfdist} CORTEX_RIGHT", step="STRUCTURE")
+    run_logged(f"wb_command -set-structure {right_avgfor_anatgrid_surfdist} CORTEX_RIGHT", step="STRUCTURE")
+
+    print("\n[COMPLETE] Average map generation finished\n")
 
 
 # Function to run all average maps
