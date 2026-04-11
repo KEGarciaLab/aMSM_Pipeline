@@ -50,14 +50,12 @@ Hemisphere = Literal["L", "R"]
 def run_logged(cmd, step=None):
     header = f"[RUN]" if not step else f"[RUN:{step}]"
     print(f"\n{header} {cmd}\n")
-
-    wrapped_cmd = f'script -q -c "{cmd}" /dev/null'
-
-    result = run(wrapped_cmd, shell=True, stdout=sys.stdout, stderr=sys.stderr, text=True)
-
+    
+    result = run(f"{cmd} 2>&1 | tee -a {log_path}", shell=True, capture_output=True, text=True)
+    
     if result.returncode != 0:
         print(f"[ERROR] Command failed with return code {result.returncode}")
-
+    
     return result
     
 
