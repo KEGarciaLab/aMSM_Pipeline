@@ -1915,7 +1915,7 @@ if __name__ == "__main__":
     
     # Generate Avg Maps
     gam = subparser.add_parser("generate_avg_maps", help="Generate average maps for one subject")
-    gam.add_argument("--pre_msm_dataset", required=True, help="Path to data from ciftify run")
+    gam.add_argument("--pre_msm_data", required=True, help="Path to data from ciftify run")
     gam.add_argument("--msm_data", required=True, help="Path to MSM registrations")
     gam.add_argument("--subject", required=True, help="Subject ID to generate average maps")
     gam.add_argument("--younger_timepoint", required=True, help="The younger time point of the registration")
@@ -1927,7 +1927,7 @@ if __name__ == "__main__":
         
     # Generate All Avg Maps
     raa = subparser.add_parser("generate_avg_maps_all", help="Run average map generation on all subjects")
-    raa.add_argument("--pre_msm_dataset", required=True, help="Path to data from ciftify run")
+    raa.add_argument("--pre_msm_data", required=True, help="Path to data from ciftify run")
     raa.add_argument("--msm_data", required=True, help="Path to MSM registrations")
     raa.add_argument("--max_cp", required=False, help="Path to MaxCP reference sphere, typically ico5sphere")
     raa.add_argument("--max_anat", required=False, help="Path to MaxANAT reference sphere, typically ico6sphere")
