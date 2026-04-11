@@ -51,7 +51,9 @@ def run_logged(cmd, step=None):
     header = f"[RUN]" if not step else f"[RUN:{step}]"
     print(f"\n{header} {cmd}\n")
 
-    result = run(cmd, shell=True, stdout=sys.stdout, stderr=sys.stderr, text=True)
+    wrapped_cmd = f'script -q -c "{cmd}" /dev/null'
+
+    result = run(wrapped_cmd, shell=True, stdout=sys.stdout, stderr=sys.stderr, text=True)
 
     if result.returncode != 0:
         print(f"[ERROR] Command failed with return code {result.returncode}")
