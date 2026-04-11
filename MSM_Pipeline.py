@@ -1403,51 +1403,92 @@ def generate_avg_maps(pre_msm_data: str, msm_data: str, subject: str, younger_ti
 
 # Function to run all average maps
 def generate_avg_maps_all(pre_msm_data: str, msm_data: str, max_cp: str | None=None, max_anat: str | None=None, starting_time: str | None=None, uses_mcribs: bool=False):
-    print("\nBEGIN FUNCTION FOR AVG MAPS")
-    print('*' * 50)
+    print(f"\n[AVG MAPS ALL] Scanning MSM directory: {msm_data}\n")
     
+    # -------------------------
+    # Setup defaults
+    # -------------------------
+    print("[STEP] Setting up defaults and templates")
+
     if max_cp == None:
         script_dir = path.dirname(path.realpath(__file__))
         max_cp = path.join(script_dir, "NeededFiles", "ico5sphere.LR.reg.surf.gii")
+        print(f"[INFO] max_cp not provided → using default: {max_cp}")
+
     if max_anat == None:
         script_dir = path.dirname(path.realpath(__file__))
         max_anat = path.join(script_dir, "NeededFiles", "ico6sphere.LR.reg.surf.gii")
-    
-    for directory in listdir(msm_data):
+        print(f"[INFO] max_anat not provided → using default: {max_anat}")
+
+    print(f"[INFO] max_cp: {max_cp}")
+    print(f"[INFO] max_anat: {max_anat}")
+
+    # -------------------------
+    # Scan directories
+    # -------------------------
+    print("\n[STEP] Scanning MSM output directories")
+
+    directories = listdir(msm_data)
+    print(f"[INFO] Found {len(directories)} entries")
+
+    for directory in directories:
+        print("\n----------------------------------------")
+        print(f"[INFO] Processing directory: {directory}")
+
         fields = directory.split("_")
         subject = fields[0]
         first_time = fields[1]
         second_time = fields[3]
+
         if first_time.isalpha():
             first_month = first_time
         else:
             first_month = int(sub("[^0-9]", "", first_time))
-        
+
         if second_time.isalpha():
             second_month = second_time
         else:
             second_month = int(sub("[^0-9]", "", second_time))
-        
-        print(f"\nSubject: {subject}", f"First time pont and month: {first_time}/{first_month}",
-              f"Second time point: {second_time}/{second_month}", sep="\n")
+
+        print("[INFO] Parsing metadata from directory")
+        print(f"  subject={subject}")
+        print(f"  first_time={first_time} first_month={first_month}")
+        print(f"  second_time={second_time} second_month={second_month}")
+
+        # -------------------------
+        # Filtering logic (unchanged)
+        # -------------------------
+        print("[INFO] Evaluating processing conditions")
+
         if first_time == starting_time:
+            print(f"[INFO] SKIP condition met: first_time={first_time} == starting_time={starting_time}")
             continue
+
         elif second_time == starting_time:
+            print(f"[INFO] MATCH condition met: second_time={second_time} == starting_time={starting_time}")
+
             if uses_mcribs:
-                print(f"Beginning average maps for {subject} for times {second_month} to {first_month} using mcribs")
+                print(f"[FUNCTION] generate_avg_maps(pre_msm_data={pre_msm_data}, msm_data={msm_data}, subject={subject}, younger_timepoint={second_time}, older_timepoint={first_time}, max_cp={max_cp}, max_anat={max_anat}, younger_uses_mcribs=True, older_uses_mcribs=True)")
                 generate_avg_maps(pre_msm_data, msm_data, subject, second_time, first_time, max_cp, max_anat, True, True)
             else:
-                print(f"Beginning average maps for {subject} for times {second_month} to {first_month}")
+                print(f"[FUNCTION] generate_avg_maps(pre_msm_data={pre_msm_data}, msm_data={msm_data}, subject={subject}, younger_timepoint={second_time}, older_timepoint={first_time}, max_cp={max_cp}, max_anat={max_anat})")
                 generate_avg_maps(pre_msm_data, msm_data, subject, second_time, first_time, max_cp, max_anat)
+
         elif first_month < second_month:
+            print(f"[INFO] SKIP condition met: first_month={first_month} < second_month={second_month} (already processed direction)")
             continue
+
         elif second_month < first_month:
+            print(f"[INFO] MATCH condition met: second_month={second_month} < first_month={first_month}")
+
             if uses_mcribs:
-                print(f"Beginning average maps for {subject} for times {second_month} to {first_month} using mcribs")
+                print(f"[FUNCTION] generate_avg_maps(pre_msm_data={pre_msm_data}, msm_data={msm_data}, subject={subject}, younger_timepoint={second_time}, older_timepoint={first_time}, max_cp={max_cp}, max_anat={max_anat}, younger_uses_mcribs=True, older_uses_mcribs=True)")
                 generate_avg_maps(pre_msm_data, msm_data, subject, second_time, first_time, max_cp, max_anat, True, True)
             else:
-                print(f"Beginning average maps for {subject} for times {second_month} to {first_month}")
+                print(f"[FUNCTION] generate_avg_maps(pre_msm_data={pre_msm_data}, msm_data={msm_data}, subject={subject}, younger_timepoint={second_time}, older_timepoint={first_time}, max_cp={max_cp}, max_anat={max_anat})")
                 generate_avg_maps(pre_msm_data, msm_data, subject, second_time, first_time, max_cp, max_anat)
+
+    print("\n[COMPLETE] Finished generating all average maps\n")
 
 
 # Rescale mcribs surface
