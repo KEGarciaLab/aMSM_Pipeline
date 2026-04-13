@@ -4,7 +4,7 @@ import argparse
 import sys
 from os import listdir, path, makedirs, remove, walk
 from re import compile, sub
-from subprocess import check_output, run, Popen
+from subprocess import check_output, Popen, PIPE, STDOUT
 from time import sleep
 from string import Template
 from typing import Literal
@@ -51,7 +51,7 @@ def run_logged(cmd, step=None):
     print(f"\n{header} {cmd}\n")
 
     with open(log_path, "a") as log_file:
-        process = Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1)
+        process = Popen(cmd, shell=True, stdout=PIPE, stderr=STDOUT, text=True, bufsize=1)
 
         for line in process.stdout:
             print(line, end="")          # live console output
