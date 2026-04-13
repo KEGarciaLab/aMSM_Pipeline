@@ -12,6 +12,7 @@ from shutil import copy2
 from datetime import datetime
 from math import sqrt
 from fnmatch import fnmatch
+from sys import exit
 
 
 
@@ -45,7 +46,7 @@ sys.stderr = Tee(sys.__stderr__, log_file)
 Mode = Literal["forward", "reverse", "average"]
 Hemisphere = Literal["L", "R"]
 
-
+# makes sure all commands log properly
 def run_logged(cmd, step=None):
     header = f"[RUN]" if not step else f"[RUN:{step}]"
     print(f"\n{header} {cmd}\n")
@@ -64,6 +65,12 @@ def run_logged(cmd, step=None):
 
     return process
     
+# prints error messages
+def fail(msg):
+    print(f"[ERROR] {msg}")
+    print(f"[ERROR] Exiting pipeline. If you feel this is a bug please report at https://github.com/KEGarciaLab/aMSM_Pipeline/issues")
+    print(f"[ERROR] Full log can be found at {log_path}")
+    exit(1)
 
 # Function for gathering subjects for ciftify
 def get_ciftify_subject_list(dataset: str, subjects: list, pattern: str):
@@ -220,10 +227,18 @@ def get_subject_time_points(dataset: str, subject: str, alphanumeric_timepoints:
 
 # Helper function for searching files
 def find(pattern, search_path):
+    print(f'\n[FIND] Finding file matching the pattern {pattern} starting at {search_path}')
     for root, dirs, files in walk(search_path):
+        print(f"[INFO] Searching in directory: {root}")
         for name in files:
             if fnmatch(name, pattern):
-                return path.join(root, name)
+                full_path = path.join(root, name)
+                print(f"[INFO] Found file matching pattern: {name}")
+                print(f"[INFO] Full path is: {full_path}")
+                print(f"[COMPLETE] found file and returning")
+                return full_path
+    
+    fail(f"No file found matching {pattern} in {search_path} or its subdirectories")
             
 
 # Helper function for retriving MSM files
@@ -304,7 +319,6 @@ def get_files(dataset: str, subject: str, time_point: str):
     print(f"[INFO] Curvature Directory: {subject_curvature_dir}")
     print(f"[INFO] Left Curvature Output: {left_curvature}")
     print(f"[INFO] Right Curvature Output: {right_curvature}")
-    
     run_logged(fr"wb_command -cifti-separate {base_curvature} -metric CORTEX_LEFT {left_curvature} -metric CORTEX_RIGHT {right_curvature}", step="SEP CURV")
 
     # -----------------------
