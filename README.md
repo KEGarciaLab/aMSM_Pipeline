@@ -458,7 +458,13 @@ Script Manager: [Sammy Rigdon IV](mailto:srigdon5@?subject=[GitHub]aMSM_AD)
 
 * <a href="https://github.com/othneildrew/Best-README-Template"> Read me tepmplate by othneildrew</a>
 
-* This Project is based on scripts and processes developed in the following publication: <a href="https://onlinelibrary.wiley.com/doi/full/10.1002/hbm.25455"> Iannopollo, E., Garcia, K., & Alzheimer's Disease Neuroimaging Initiative. (2021). Enhanced detection of cortical atrophy in Alzheimer's disease using structural MRI with anatomically constrained longitudinal registration. Human Brain Mapping, 42(11), 3576-3592.</a>
+* This Project is based on scripts and processes developed in the following publications:
+
+Garcia, K.E., Robinson, E.C., Alexopoulos, D., Dierker, D.L., Glasser, M.F., Coalson, T.S., Ortinau, C.M., Rueckert, D., Taber, L.A., Van Essen, D.C. and Rogers, C.E. (2018). Dynamic patterns of cortical expansion during folding of the preterm human brain. Proceedings of the National Academy of Sciences, 115(12), pp.3156-3161.
+
+<a href="https://onlinelibrary.wiley.com/doi/full/10.1002/hbm.25455">Iannopollo, E., Garcia, K., & Alzheimer's Disease Neuroimaging Initiative. (2021). Enhanced detection of cortical atrophy in Alzheimer's disease using structural MRI with anatomically constrained longitudinal registration. Human Brain Mapping, 42(11), 3576-3592.</a>
+
+Gorham, L.S., Latham, A.R., Alexopoulos, D., Kenley, J.K., Iannopollo, E., Lean, R.E., Loseille, D., Smyser, T.A., Neil, J.J., Rogers, C.E. and Smyser, C.D., Garcia, K.E. (2024). Children born very preterm experience altered cortical expansion over the first decade of life. Brain Communications, 6(5), p.fcae318.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
