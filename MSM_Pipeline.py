@@ -235,7 +235,7 @@ def find(pattern, search_path):
                 full_path = path.join(root, name)
                 print(f"[INFO] Found file matching pattern: {name}")
                 print(f"[INFO] Full path is: {full_path}")
-                print(f"[COMPLETE] found file and returning")
+                print(f"[COMPLETE] found file. Returning file path object.")
                 return full_path
     
     fail(f"No file found matching {pattern} in {search_path} or its subdirectories")
@@ -344,7 +344,7 @@ def get_files(dataset: str, subject: str, time_point: str):
     print(f"    RIGHT CORTEX: {right_cortex}")
     print(f"    LEFT RESCALE: {left_rescaled_surface}")
     print(f"    RIGHT RESCALE: {right_rescaled_surface}")
-    print(f"[COMPELTE] Finished finding files for Subject {subject} at time point {time_point} in dataset {dataset}")
+    print(f"[COMPELTE] Finished finding files for Subject {subject} at time point {time_point} in {dataset}. Returning lsit of files")
     return subject_files
 
 
@@ -1640,22 +1640,61 @@ def rescale_surfaces_all(dataset: str, uses_mcribs: bool=True):
             
 # function to retrieve files for mcribs subject
 def get_files_mcribs(dataset: str, subject: str, time_point: str):
+    print(f"\n[GET FILES] Getting files for Subject {subject} at time point {time_point} in {dataset}, using M-CRIB-S naming conventions")
+    
+    # -------------------------
+    # Set up variables
+    # -------------------------
     subject_dir = path.join(dataset, f"Subject_{subject}_{time_point}")
-    # get all necessary files
-    left_anatomical_surface = path.join(subject_dir, "lh.midthickness.surf.gii")
-    right_anatomical_surface = path.join(subject_dir, "rh.midthickness.surf.gii")
+    print(f"[STEP] Searching for files in {subject_dir}")
     
-    left_spherical_surface = path.join(subject_dir, "lh.sphere.reg2.surf.gii")
-    right_spherical_surface = path.join(subject_dir, "rh.sphere.reg2.surf.gii")
+    # --------------------------
+    # Search for files
+    # --------------------------
     
-    left_curvature = path.join(subject_dir, "lh.curv.shape.gii")
-    right_curvature = path.join(subject_dir, "rh.curv.shape.gii")
+    print('[FUNCTION] find(pattern="lh.midthickness.surf.gii", search_path=subject_dir)')
+    left_anatomical_surface = find(pattern="lh.midthickness.surf.gii", search_path=subject_dir)
     
-    left_cortex = path.join(subject_dir, "lh.mean.thickness") # TODO Ffigure out what this should be
-    right_cortex = path.join(subject_dir, "rh.mean.thickness") # TODO Ffigure out what this should be
+    print('[FUNCTION] find(pattern="rh.midthickness.surf.gii", search_path=subject_dir)')
+    right_anatomical_surface = find(pattern="rh.midthickness.surf.gii", search_path=subject_dir)
     
-    left_rescaled_surface = path.join(subject_dir, f"{subject}.L.rescaled.surf.gii")
-    right_rescaled_surface = path.join(subject_dir, f"{subject}.R.rescaled.surf.gii")
+    print('[FUNCTION] find(pattern="lh.sphere.reg2.surf.gii", search_path=subject_dir)')
+    left_spherical_surface = find(pattern="lh.sphere.reg2.surf.gii", search_path=subject_dir)
+    
+    print('[FUNCTION] find(pattern="rh.sphere.reg2.surf.gii", search_path=subject_dir)')
+    right_spherical_surface = find(pattern="rh.sphere.reg2.surf.gii", search_path=subject_dir)
+    
+    print('[FUNCTION] find(pattern="lh.curv.shape.gii", search_path=subject_dir)')
+    left_curvature = find(pattern="lh.curv.shape.gii", search_path=subject_dir)
+    
+    print('[FUNCTION] find(pattern="rh.curv.shape.gii", search_path=subject_dir)')
+    right_curvature = find(pattern="rh.curv.shape.gii", search_path=subject_dir)
+    
+    print('[FUNCTION] find(pattern="lh.mean.thickness", search_path=subject_dir)')
+    left_cortex = find(pattern="lh.mean.thickness", search_path=subject_dir) # TODO Figure out what this should be
+    
+    print('[FUNCTION] find(pattern="rh.mean.thickness", search_path=subject_dir)')
+    right_cortex = find(pattern="rh.mean.thickness", search_path=subject_dir) # TODO Figure out what this should be
+    
+    print('[FUNCTION] find(pattern=f"{subject}.L.rescaled.surf.gii", search_path=subject_dir)')
+    left_rescaled_surface = find(pattern=f"{subject}.L.rescaled.surf.gii", search_path=subject_dir)
+    
+    print('[FUNCTION] find(pattern=f"{subject}.R.rescaled.surf.gii", search_path=subject_dir)')
+    right_rescaled_surface = find(pattern=f"{subject}.R.rescaled.surf.gii", search_path=subject_dir)
+    
+    print("[INFO] Found these files:")
+    print(f"    LAS: {left_anatomical_surface}")
+    print(f"    RAS: {right_anatomical_surface}")
+    print(f"    LSS: {left_spherical_surface}")
+    print(f"    RSS: {right_spherical_surface}")
+    print(f"    Left Curvature: {left_curvature}")
+    print(f"    Right Curvature: {right_curvature}")
+    print(f"    Subject Directory: {subject_dir}")
+    print(f"    Subject: {subject}")
+    print(f"    Left Cortex: {left_cortex}")
+    print(f"    Right Cortex: {right_cortex}")
+    print(f"    Left Rescaled Surface: {left_rescaled_surface}")
+    print(f"    Right Rescaled Surface: {right_rescaled_surface}")
     
     # return all files as list
     subject_files = [left_anatomical_surface, right_anatomical_surface,
@@ -1664,6 +1703,7 @@ def get_files_mcribs(dataset: str, subject: str, time_point: str):
                      subject_dir, subject,
                      left_cortex, right_cortex,
                      left_rescaled_surface, right_rescaled_surface]
+    print(f"[COMPLETE] Found all files for subject {subject}, at time point {time_point}, in {dataset}. Returning lsit of files")
     return subject_files    
 
 
