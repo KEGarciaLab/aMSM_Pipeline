@@ -45,7 +45,10 @@ sys.stdout = Tee(sys.__stdout__, log_file)
 sys.stderr = Tee(sys.__stderr__, log_file)
 Mode = Literal["forward", "reverse", "average"]
 Hemisphere = Literal["L", "R"]
+PIPELINE_VERSION = '1.5.3-indev'
 
+print("[START] Begin pipeline execution")
+print(f"[INFO] Pipeline Version: {PIPELINE_VERSION}")
 # makes sure all commands log properly
 def run_logged(cmd, step=None):
     header = f"[RUN]" if not step else f"[RUN:{step}]"
