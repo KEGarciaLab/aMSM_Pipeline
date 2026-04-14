@@ -4,7 +4,7 @@ import argparse
 import sys
 from os import listdir, path, makedirs, remove, walk
 from re import compile, sub
-from subprocess import check_output, run, Popen
+from subprocess import check_output, run, Popen, PIPE, STDOUT
 from time import sleep
 from string import Template
 from typing import Literal
@@ -46,15 +46,12 @@ Mode = Literal["forward", "reverse", "average"]
 Hemisphere = Literal["L", "R"]
 
 
-# helper function for running commands to be logged
-import subprocess
-
 def run_logged(cmd, step=None):
     header = f"[RUN]" if not step else f"[RUN:{step}]"
     print(f"\n{header} {cmd}\n")
 
     with open(log_path, "a") as log_file:
-        process = Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1)
+        process = Popen(cmd, shell=True, stdout=PIPE, stderr=STDOUT, text=True, bufsize=1)
 
         for line in process.stdout:
             print(line, end="")          # live console output
@@ -182,42 +179,95 @@ def run_ciftify(dataset: str, delimiter: str, subject_index: int, time_index: in
 
 # Helper function for sorting time points
 def sort_time_points(time_points: list, number_start_character: int, starting_time=None):
+    print(f"\n[SORT TIME POINTS] Starting custom alphanumeric sort function")
+    print("[INFO] Time point list to sort:")
+    print("\n".join(f"    {time_point}" for time_point in time_points))
+    
+    # --------------------------------------------------
+    # Creating copy of list and removing starting time
+    # --------------------------------------------------
     copy = time_points.copy()
+    print("[INFO] Crated copy of orginal list")
     if starting_time is not None and starting_time in time_points:
+        print("[INFO] Starting time located in list removing from copy for sorting")
         copy.pop(time_points.index(starting_time))
 
+    # --------------------------------
+    # Sorting based on number start
+    # --------------------------------
+    print(f"[INFO] sorting by number which starts at character index {number_start_character}")
     copy.sort(key=lambda time_point: int(
         time_point[number_start_character:]))
 
+    # ---------------------
+    # Readd starting time
+    # ---------------------
     if starting_time is not None and starting_time in time_points:
+        print(f"[INFO] Insterting starting time {starting_time} to the beginning of list")
         copy.insert(0, starting_time)
-
+    print("[INFO] Sorted time points:")
+    print("\n".join(f"    {time_point}" for time_point in copy))
+    print("[COMPLETE] Finished sorting time points, returning sorted list")
     return copy
 
 
 # Function to get all time points for a subject
 def get_subject_time_points(dataset: str, subject: str, alphanumeric_timepoints: bool=False, time_point_number_start_character: int | None=None, starting_time=None):
-    print(f"\nSerching for time points for subject {subject}")
+    print(f"\n[GET TIME POINTS] Getting time points for subject {subject} with these options:")
+    print(f"    Dataset: {dataset}")
+    print(f"    Alphanumeric Timepoints: {alphanumeric_timepoints}")
+    print(f"    Time Point Number Start Character: {time_point_number_start_character}")
+    print(f"    Starting Time: {starting_time}")
+    # -----------------------------
+    # Searching for Subject Dirs
+    # -----------------------------
     subject_dirs = []
-    time_points = []
+    print("[STEP] Locating all subject directories")
     pattern = compile(fr"Subject_{subject}_.*")
+    print(f"[INFO] Searching for subject dirs matching Subject_{subject}_.*")
     for entry in listdir(dataset):
         full_path = path.join(dataset, entry)
         if path.isdir(full_path) and pattern.match(entry):
+            print(f"[INFO] Found Match: {entry}")
+            print(f"[INFO] Adding to subject_dirs list")
             subject_dirs.append(entry)
+    
+    print(f"[FLIES] Found the following directories:")
+    print("\n".join(f"    {dir}" for dir in subject_dirs))
 
+    # --------------------------
+    # Extracting Time Points
+    #---------------------------
+    print("[STEP] Extracting timepoints from directory names")
+    time_points = []
     for directory in subject_dirs:
+        print(f"[INFO] Current directory: {directory}")
         fields = directory.split("_")
         time_point = fields[2]
         if time_point not in time_points:
+            print(f"[INFO] Found time point: {time_point}")
+            print("[INFO] Adding to time points list")
             time_points.append(time_point)
+    print("[INFO] Found the following time points:")
+    print("\n".join(f"    {time_point}" for time_point in time_points))
 
+    # ----------------------
+    # Sorting Time Points
+    # ----------------------
     if alphanumeric_timepoints:
-        time_points = sort_time_points(
-            time_points, time_point_number_start_character, starting_time)
+        print("[INFO] Using alphanumeric time points, using custom sort")
+        print("[FUNCTION] sort_time_points(time_points=time_points, number_start_character=time_point_number_start_character, starting_time=starting_time)")
+        time_points = sort_time_points(time_points=time_points, number_start_character=time_point_number_start_character, starting_time=starting_time)
+    elif time_points[0].isdigit():
+        print("[INFO] Numeric time points detected, using interger sort")
+        time_points.sort(key=int)
     else:
+        print("[INFO] Using lexicograpic sort")
         time_points.sort()
-    print("The following time points have been located: ", *time_points, sep=' ')
+    
+    print("[INFO] Sorted time points:")
+    print("\n".join(f"    {time_point}" for time_point in time_points))
+    print(f"[COMPLETE] Retrieved all time points for subject {subject}")
     return time_points
 
 
