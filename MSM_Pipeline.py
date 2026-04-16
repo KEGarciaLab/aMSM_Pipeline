@@ -38,7 +38,7 @@ class Tee:
         return self.real_stream.fileno()
 
 
-log_path = path.expanduser(f'~/Scripts/MyScripts/Output/MSM_Pipeline/full_pipeline_log-{datetime.now().strftime("%Y-%m-%d_%H:%M:%S")}.txt')
+log_path = path.expanduser(f'~/Scripts/MyScripts/logs/MSM_Pipeline/full_pipeline_log-{datetime.now().strftime("%Y-%m-%d_%H:%M:%S")}.txt')
 makedirs(path.dirname(log_path), exist_ok=True)
 log_file = open(log_path, 'w+')
 sys.stdout = Tee(sys.__stdout__, log_file)
@@ -67,13 +67,15 @@ def run_logged(cmd, step=None):
         print(f"[ERROR] Command failed with return code {process.returncode}")
 
     return process
-    
+
+
 # prints error messages
 def fail(msg):
     print(f"[ERROR] {msg}")
     print(f"[ERROR] Exiting pipeline. If you feel this is a bug please report at https://github.com/KEGarciaLab/aMSM_Pipeline/issues")
     print(f"[ERROR] Full log can be found at {log_path}")
     exit(1)
+
 
 # Function for gathering subjects for ciftify
 def get_ciftify_subject_list(dataset: str, subjects: list, pattern: str):
@@ -767,42 +769,62 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
             is_local: bool=False, hemisphere: Hemisphere | None=None, levels: int=6, config: str | None=None, 
             max_anat: str | None=None, max_cp: str | None=None, slurm_email: str | None=None, slurm_account: str | None=None,
             slurm_user: str | None=None, slurm_job_limit: int | None=None, use_rescaled: bool=False):
-    print(f"\nStarting MSM run for subject {subject} from time point {younger_timepoint} to {older_timepoint} in {mode} mode")
-    print('*' * 50)
     
+    print(f"\n[MSM] Starting MSM run for subject {subject} from time point {younger_timepoint} to {older_timepoint} in {mode} mode")
+    
+    # -------------------------------------
+    # Setting up defaults and variables
+    # -------------------------------------
+    print("[STEP] Seting up options and variables")
     user_home = path.expanduser('~')
     script_dir = path.dirname(path.realpath(__file__))
     if config == None:
-        print("No config file provided, using default")
+        print("[INFO] No config file provided, using default")
         config = path.join(script_dir, "NeededFiles", "configAnatGrid6")
     if max_anat == None:
-        print("No max_anat provided, using default")
+        print("[INFO] max_anat not provided, using default")
         max_anat = path.join(script_dir, "NeededFiles", "ico6sphere.LR.reg.surf.gii")
     if max_cp == None:
-        print("No max_cp provided, using default")
+        print("[INFO] max_cp not provided, using default")
         max_cp = path.join(script_dir, "NeededFiles", "ico5sphere.LR.reg.surf.gii")
-        
-    print(f"Mode is set to {mode}, Subject is {subject}, Younger Timepoint is {younger_timepoint}, Older Timepoint is {older_timepoint}")
     if is_local and hemisphere is None:
-        print("Local mode selected but no hemisphere provided, exiting")
-        return
+        fail("local mode selected but no hemisphere seleceted")
+    if mode != "forward" and mode != "reverse":
+        fail("mode must be forward or reverse")
+        
     
+    print(f"[INFO] Mode is {mode}, setting script path to match")
     if mode == "forward":
         temp_output = path.join(user_home, "Scripts", "MyScripts", "Output", "MSM_Pipeline",
                                 "MSM_scripts", fr"{subject}_{younger_timepoint}_to_{older_timepoint}")
     elif mode == "reverse":
         temp_output = path.join(user_home, "Scripts", "MyScripts", "Output", "MSM_Pipeline",
                                 "MSM_scripts", fr"{subject}_{older_timepoint}_to_{younger_timepoint}")
-    print(f"Creating the following script directory: {temp_output}")
     makedirs(temp_output, exist_ok=True)
+    
+    print("[INFO] The following settings will be used:")
+    print(f"    Subject: {subject}")
+    print(f"    Younger Time Point: {younger_timepoint}")
+    print(f"    Older Time Point: {older_timepoint}")
+    print(f"    Mode: {mode}")
+    print(f"    Local: {is_local}")
+    print(f"    Hemisphere: {Hemisphere}")
+    print(f"    User Home: {user_home}")
+    print(f"    Config File: {config}")
+    print(f"    Max CP: {max_cp}")
+    print(f"    Max Anat: {max_anat}")
+    print(f"    Genreated Script Dir: {temp_output}")
 
-    print(
-        f"\nRetriving files for time points {younger_timepoint} and {older_timepoint}")
+    # -------------------
+    # Retrieve Files
+    # -------------------
+    print(f"[STEP] Retrieving files for younger subject")
     if younger_uses_mcribs:
-        print("Using mcribs naming conventions for younger timepoint")
-        younger_files = get_files_mcribs(dataset, subject, younger_timepoint)
+        print(f"[INFO] Younger time point uses M-CRIB-S naming conventions")
+        print(f"[FUNCTION] get_files_mcribs(dataset=dataset, subject=subject, time_point=younger_timepoint)")
+        younger_files = get_files_mcribs(dataset=dataset, subject=subject, time_point=younger_timepoint)
         
-        print("Using rescaled surfaces")
+        print(f"[INFO] M-CRIB-S Surfaces must be rescaled. Using rescaled surfaces")
         left_younger_anatomical_surface = younger_files[10]
         right_younger_anatomical_surface = younger_files[11]
         
