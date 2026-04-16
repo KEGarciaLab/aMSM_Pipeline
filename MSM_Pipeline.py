@@ -395,13 +395,6 @@ def get_files(dataset: str, subject: str, time_point: str):
         "RIGHT RESCALE": right_rescaled_surface
     }
     
-    subject_files = [left_anatomical_surface, right_anatomical_surface,
-                     left_spherical_surface, right_spherical_surface,
-                     left_curvature, right_curvature,
-                     subject_dir, subject_full_name,
-                     left_cortex, right_cortex,
-                     left_rescaled_surface, right_rescaled_surface]
-    
     print("[INFO] Returning the following:")
     print(f"    LAS: {left_anatomical_surface}")
     print(f"    RAS: {right_anatomical_surface}")
@@ -415,7 +408,7 @@ def get_files(dataset: str, subject: str, time_point: str):
     print(f"    RIGHT CORTEX: {right_cortex}")
     print(f"    LEFT RESCALE: {left_rescaled_surface}")
     print(f"    RIGHT RESCALE: {right_rescaled_surface}")
-    print(f"[COMPELTE] Finished finding files for Subject {subject} at time point {time_point} in {dataset}. Returning lsit of files")
+    print(f"[COMPELTE] Finished finding files for Subject {subject} at time point {time_point} in {dataset}. Returning dictonary of files")
     return subject_files
 
 
@@ -446,10 +439,10 @@ def generate_qc_image(dataset: str, subject: str, younger_timepoint: str, older_
         print(f"[FUNCTION] Calling get_files dataset={dataset} subject={subject}, timepoint={older_timepoint}")
         older_files = get_files(dataset, subject, older_timepoint)
 
-    left_younger_surface = younger_files[0]
-    right_younger_surface = younger_files[1]
-    left_older_surface = older_files[0]
-    right_older_surface = older_files[1]
+    left_younger_surface = younger_files["LAS"]
+    right_younger_surface = younger_files["RAS"]
+    left_older_surface = older_files["LAS"]
+    right_older_surface = older_files["RAS"]
 
     print("[FILES] Selected surfaces:")
     print(f"    Younger L: {left_younger_surface}")
@@ -818,12 +811,12 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
         younger_files = get_files_mcribs(dataset, subject, younger_timepoint)
         
         print("Using rescaled surfaces")
-        left_younger_anatomical_surface = younger_files[10]
-        right_younger_anatomical_surface = younger_files[11]
+        left_younger_anatomical_surface = younger_files["LEFT RESCALE"]
+        right_younger_anatomical_surface = younger_files["RIGHT RESCALE"]
         
         print("matching icosphere to mcribs data")
-        left_younger_midthickness = younger_files[0]
-        right_younger_midthickness = younger_files[1]
+        left_younger_midthickness = younger_files["LAS"]
+        right_younger_midthickness = younger_files["RAS"]
         
         left_younger_smoothed = path.join(dataset, f"Subject_{subject}_{younger_timepoint}", "lh.midthickness.smoothed.surf.gii")
         right_younger_smoothed = path.join(dataset, f"Subject_{subject}_{younger_timepoint}", "rh.midthickness.smoothed.surf.gii")
@@ -857,12 +850,12 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
         younger_files = get_files(dataset, subject, younger_timepoint)
         if use_rescaled:
             print("Using rescaled surfaces for younger timepoint")
-            left_younger_anatomical_surface = younger_files[10]
-            right_younger_anatomical_surface = younger_files[11]
+            left_younger_anatomical_surface = younger_files["LEFT RESCALE"]
+            right_younger_anatomical_surface = younger_files["RIGHT RESCALE"]
             
             print("matching icosphere to rescaled data")
-            left_younger_midthickness = younger_files[0]
-            right_younger_midthickness = younger_files[1]
+            left_younger_midthickness = younger_files["LAS"]
+            right_younger_midthickness = younger_files["RAS"]
             
             left_younger_smoothed = path.join(dataset, f"Subject_{subject}_{younger_timepoint}", "lh.midthickness.smoothed.surf.gii")
             right_younger_smoothed = path.join(dataset, f"Subject_{subject}_{younger_timepoint}", "rh.midthickness.smoothed.surf.gii")
@@ -893,22 +886,22 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
             run_logged(f'wb_command -surface-modify-sphere -recenter {right_younger_matched} 100 {right_younger_spherical_surface}')
         else:
             print("Using base surfacecs for younger timepoint")
-            left_younger_anatomical_surface = younger_files[0]
-            right_younger_anatomical_surface = younger_files[1]
-            left_younger_spherical_surface = younger_files[2]
-            right_younger_spherical_surface = younger_files[3]
+            left_younger_anatomical_surface = younger_files["LAS"]
+            right_younger_anatomical_surface = younger_files["RAS"]
+            left_younger_spherical_surface = younger_files["LSS"]
+            right_younger_spherical_surface = younger_files["RSS"]
         
         
     if older_uses_mcribs:
         print("Using mcribs naming conventions for older timepoint")
         older_files = get_files_mcribs(dataset, subject, older_timepoint)
         
-        left_older_anatomical_surface = older_files[10]
-        right_older_anatomical_surface = older_files[11]
+        left_older_anatomical_surface = older_files["LEFT RESCALE"]
+        right_older_anatomical_surface = older_files["RIGHT RESCALE"]
         
         print("Matching icosphere to mcribs data")
-        left_older_midthickness = older_files[0]
-        right_older_midthickness = older_files[1]
+        left_older_midthickness = older_files["LAS"]
+        right_older_midthickness = older_files["RAS"]
         
         left_older_smoothed = path.join(dataset, f"Subject_{subject}_{older_timepoint}", "lh.midthickness.smoothed.surf.gii")
         right_older_smoothed = path.join(dataset, f"Subject_{subject}_{older_timepoint}", "rh.midthickness.smoothed.surf.gii")
@@ -942,12 +935,12 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
         older_files = get_files(dataset, subject, older_timepoint)
         if use_rescaled:
             print("Using rescaled surfaces for older timepoint")
-            left_older_anatomical_surface = older_files[10]
-            right_older_anatomical_surface = older_files[11]
+            left_older_anatomical_surface = older_files["LEFT RESCALE"]
+            right_older_anatomical_surface = older_files["RIGHT RESCALE"]
             
             print("matching icosphere to rescaled data")
-            left_older_midthickness = older_files[0]
-            right_older_midthickness = older_files[1]
+            left_older_midthickness = older_files["LAS"]
+            right_older_midthickness = older_files["RAS"]
             
             left_older_smoothed = path.join(dataset, f"Subject_{subject}_{older_timepoint}", "lh.midthickness.smoothed.surf.gii")
             right_older_smoothed = path.join(dataset, f"Subject_{subject}_{older_timepoint}", "rh.midthickness.smoothed.surf.gii")
@@ -978,15 +971,15 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
             run_logged(f'wb_command -surface-modify-sphere -recenter {right_older_matched} 100 {right_older_spherical_surface}')
         else:
             print("Using base surfaces for older timepoint")
-            left_older_anatomical_surface = older_files[0]
-            right_older_anatomical_surface = older_files[1]
-            left_older_spherical_surface = older_files[2]
-            right_older_spherical_surface = older_files[3]
+            left_older_anatomical_surface = older_files["LAS"]
+            right_older_anatomical_surface = older_files["RAS"]
+            left_older_spherical_surface = older_files["LSS"]
+            right_older_spherical_surface = older_files["RSS"]
 
-    left_younger_curvature = younger_files[4]
-    right_younger_curvature = younger_files[5]
-    left_older_curvature = older_files[4]
-    right_older_curvature = older_files[5]
+    left_younger_curvature = younger_files["LEFT CURVATURE"]
+    right_younger_curvature = younger_files["RIGHT CURVATURE"]
+    left_older_curvature = older_files["LEFT CURVATURE"]
+    right_older_curvature = older_files["RIGHT CURVATURE"]
 
     if not younger_files or not older_files:
         print("no files found skipping this run")
@@ -1320,10 +1313,10 @@ def generate_avg_maps(pre_msm_data: str, msm_data: str, subject: str, younger_ti
         print(f"[FUNCTION] Calling get_files dataset={pre_msm_data} subject={subject}, timepoint={older_timepoint}")
         older_files = get_files(pre_msm_data, subject, older_timepoint)
         
-    left_younger_spherical_surface = younger_files[2]
-    left_older_spherical_surface = older_files[2]
-    right_younger_spherical_surface = younger_files[3]
-    right_older_spherical_surface = older_files[3]
+    left_younger_spherical_surface = younger_files["LSS"]
+    left_older_spherical_surface = older_files["LSS"]
+    right_younger_spherical_surface = younger_files["RSS"]
+    right_older_spherical_surface = older_files["RSS"]
     
     print("[FILES] Selected spherical surfaces:")
     print(f"    Younger L: {left_younger_spherical_surface}")
@@ -1634,16 +1627,16 @@ def rescale_surfaces(dataset: str,  subject: str, time_point: str, uses_mcribs: 
         subject_files = get_files_mcribs(dataset, subject, time_point)
     else:
         subject_files = get_files(dataset, subject, time_point)
-    left_midthickness_file = subject_files[0]
-    right_midthickness_file = subject_files[1]
-    subject_dir = subject_files[6]
-    subject_full_name = subject_files[7]
+    left_midthickness_file = subject_files["LAS"]
+    right_midthickness_file = subject_files["RAS"]
+    subject_dir = subject_files["SUBJECT DIR"]
+    subject_full_name = subject_files["SUBJECT PREFIX"]
     print(f"Subject directory: {subject_dir}")
     print(f"Subject full name: {subject_full_name}")
     print(f"Left midthickness file: {left_midthickness_file}")
     print(f"Right midthickness file: {right_midthickness_file}")
-    # left_cortex = subject_files[8]
-    # right_cortex = subject_files[9]
+    # left_cortex = subject_files["LEFT CORTEX"]
+    # right_cortex = subject_files["RIGHT CORTEX"]
     
     # output file names
     left_shape_file = path.join(subject_dir, f"{subject_full_name}.L.areas.shape.gii")
@@ -1778,19 +1771,13 @@ def get_files_mcribs(dataset: str, subject: str, time_point: str):
         "LEFT CURVATURE": left_curvature,
         "RIGHT CURVATURE": right_curvature,
         "SUBJECT DIR": subject_dir,
-        "SUBJECT": subject,
+        "SUBJECT PREFIX": subject,
         "LEFT CORTEX": left_cortex,
         "RIGHT CORTEX": right_cortex,
         "LEFT RESCALE": left_rescaled_surface,
         "RIGHT RESCALE": right_rescaled_surface
     }
-    subject_files = [left_anatomical_surface, right_anatomical_surface,
-                     left_spherical_surface, right_spherical_surface,
-                     left_curvature, right_curvature,
-                     subject_dir, subject,
-                     left_cortex, right_cortex,
-                     left_rescaled_surface, right_rescaled_surface]
-    print(f"[COMPLETE] Found all files for subject {subject}, at time point {time_point}, in {dataset}. Returning lsit of files")
+    print(f"[COMPLETE] Found all files for subject {subject}, at time point {time_point}, in {dataset}. Returning dictonary of files")
     return subject_files    
 
 
