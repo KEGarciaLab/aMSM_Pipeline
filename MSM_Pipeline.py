@@ -380,6 +380,21 @@ def get_files(dataset: str, subject: str, time_point: str):
     # -----------------------
     # Return Files
     # -----------------------
+    subject_files = {
+        "LAS": left_anatomical_surface,
+        "RAS": right_anatomical_surface,
+        "LSS": left_spherical_surface,
+        "RSS": right_spherical_surface,
+        "LEFT CURVATURE": left_curvature,
+        "RIGHT CURVATURE": right_curvature,
+        "SUBJECT DIR": subject_dir,
+        "SUBJECT PREFIX": subject_full_name,
+        "LEFT CORTEX": left_cortex,
+        "RIGHT CORTEX": right_cortex,
+        "LEFT RESCALE": left_rescaled_surface,
+        "RIGHT RESCALE": right_rescaled_surface
+    }
+    
     subject_files = [left_anatomical_surface, right_anatomical_surface,
                      left_spherical_surface, right_spherical_surface,
                      left_curvature, right_curvature,
@@ -1752,7 +1767,23 @@ def get_files_mcribs(dataset: str, subject: str, time_point: str):
     print(f"    Left Rescaled Surface: {left_rescaled_surface}")
     print(f"    Right Rescaled Surface: {right_rescaled_surface}")
     
-    # return all files as list
+    #-----------------
+    # Return Files
+    #-----------------
+    subject_files = {
+        "LAS": left_anatomical_surface,
+        "RAS": right_anatomical_surface,
+        "LSS": left_spherical_surface,
+        "RSS": right_spherical_surface,
+        "LEFT CURVATURE": left_curvature,
+        "RIGHT CURVATURE": right_curvature,
+        "SUBJECT DIR": subject_dir,
+        "SUBJECT": subject,
+        "LEFT CORTEX": left_cortex,
+        "RIGHT CORTEX": right_cortex,
+        "LEFT RESCALE": left_rescaled_surface,
+        "RIGHT RESCALE": right_rescaled_surface
+    }
     subject_files = [left_anatomical_surface, right_anatomical_surface,
                      left_spherical_surface, right_spherical_surface,
                      left_curvature, right_curvature,
