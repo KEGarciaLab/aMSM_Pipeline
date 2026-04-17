@@ -743,19 +743,35 @@ def post_process_all(dataset: str, starting_time: str, resolution: str, output: 
                                            "reverse",
                                            subject_output)
 
-        elif int(first_month) < int(second_month):
-            print("Mode: Forward")
-            generate_post_processing_image(full_path,
-                                           resolution,
-                                           "forward",
-                                           subject_output)
+        if first_month.isdigit() and second_month.isdigit():
+            if int(first_month) < int(second_month):
+                print("Mode: Forward")
+                generate_post_processing_image(full_path,
+                                            resolution,
+                                            "forward",
+                                            subject_output)
 
-        elif int(first_month) > int(second_month):
-            print("Mode: Reverse")
-            generate_post_processing_image(full_path,
-                                           resolution,
-                                           "reverse",
-                                           subject_output)
+            elif int(first_month) > int(second_month):
+                print("Mode: Reverse")
+                generate_post_processing_image(full_path,
+                                            resolution,
+                                            "reverse",
+                                            subject_output)
+        
+        else:
+            if first_month < second_month:
+                print("Mode: Forward")
+                generate_post_processing_image(full_path,
+                                            resolution,
+                                            "forward",
+                                            subject_output)
+
+            elif first_month > second_month:
+                print("Mode: Reverse")
+                generate_post_processing_image(full_path,
+                                            resolution,
+                                            "reverse",
+                                            subject_output)
 
 
 # helper function for retriving subjects
