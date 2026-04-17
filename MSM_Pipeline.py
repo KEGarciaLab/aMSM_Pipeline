@@ -527,12 +527,18 @@ def qc_all(dataset: str, output: str,  alphanumeric_timepoints: bool=False, time
     
 # Generate post processing images
 def generate_post_processing_image(subject_directory: str, resolution: str, mode: Mode, output: str):
-    # extreact info from path
+    print(f"\n[POST PROCESSING] Starting post processing")
+    
+    # ---------------------
+    # Extracting metadata
+    # ---------------------
+    print("[STEP] Gathering registration info")
     subject_basename = path.basename(subject_directory)
     subject_basename_list = subject_basename.split("_")
     subject = subject_basename_list[0]
     starting_time = subject_basename_list[1]
     ending_time = subject_basename_list[3]
+    print("")
     
     # get base subject dir for average mode
     if mode == "average":
