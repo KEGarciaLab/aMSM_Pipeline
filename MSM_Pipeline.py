@@ -793,6 +793,90 @@ def get_subjects(dataset: str):
     return subjects
 
 
+# Helper function for sphere generation
+def generate_sphere(subject_dir, left_midthickness, right_midthickness, max_anat):
+    # --------------------------------------------
+    # Generate sphere based on rescaled surfaces
+    # --------------------------------------------
+    print(f"\n[GENERATE SPHERE] Generating sphere for rescaled surface")
+    print("[INFO] USing the following settings:")
+    print(f"    LEFT MIDTHICKNESS: {left_midthickness}")
+    print(f"    RIGHT MIDTHICKNESS: {right_midthickness}")
+    print(f"    MAX ANAT: max_anat")
+    
+    # ---------------------
+    # Set up outputs
+    # ---------------------
+    print(f"[INFO] Defining output files")
+    left_smoothed = path.join(subject_dir, "lh.midthickness.smoothed.surf.gii")
+    right_smoothed = path.join(subject_dir, "rh.midthickness.smoothed.surf.gii")
+    
+    left_inflated = path.join(subject_dir, "lh.inflated.surf.gii")
+    right_inflated = path.join(subject_dir, "rh.inflated.surf.gii")
+    
+    left_matched = path.join(subject_dir, "lh.matched.surf.gii")
+    right_matched = path.join(subject_dir, "rh.matched.surf.gii")
+    
+    left_spherical_surface = path.join(subject_dir, "lh.sphere.surf.gii")
+    right_spherical_surface = path.join(subject_dir, "rh.sphere.surf.gii")
+    
+    print(f"[FILES] Files will be gnereaterd as follows:")
+    print(f"    LEFT SMOOTHED: {left_smoothed}")
+    print(f"    RIGHT SMOOTHED: {right_smoothed}")
+    print(f"    LEFT INFLATED: {left_inflated}")
+    print(f"    RIGHT INFLATED: {right_inflated}")
+    print(f"    LEFT MATCHED: {left_matched}")
+    print(f"    RIGHT MATCHED: {right_matched}")
+    
+    # ----------------------------
+    # SMOOTHING MIDTHICKNESS
+    # ----------------------------
+    print("[STEP] Smoothing midthickness")
+    run_logged(f'wb_command -surface-smoothing {left_midthickness} 1 10000 {left_smoothed}', step="SMOOTHING")
+    run_logged(f'wb_command -surface-smoothing {right_midthickness} 1 10000 {right_smoothed}', step="SMOOTHING")
+    
+    # ---------------------------
+    # INFLATE SMOOTHED SURFACE
+    # ---------------------------
+    print("[STEP] Inflating smoothed surfaces")
+    run_logged(f'wb_command -surface-inflation {left_smoothed} {left_smoothed} 10 1 100 2 {left_inflated}', step="INFLATE")
+    run_logged(f'wb_command -surface-inflation {right_smoothed} {right_smoothed} 10 1 100 2 {right_inflated}', step="INFLATE")
+    
+    # -------------------------------------
+    # MATCH INFLATED SURFACE TO ICOSPHERE
+    # -------------------------------------
+    print("[STEP] Matching inflated surface to icosphere")
+    run_logged(f'wb_command -surface-match {max_anat} {left_inflated} {left_matched}', step="MATCHING")
+    run_logged(f'wb_command -surface-match {max_anat} {right_inflated} {right_matched}', step="MATCHING")
+    
+    # ------------------
+    # CENTERING SPHERE
+    # ------------------
+    print("[INFO] Centering matched sphere")
+    run_logged(f'wb_command -surface-modify-sphere -recenter {left_matched} 100 {left_spherical_surface}', step="CENTERING")
+    run_logged(f'wb_command -surface-modify-sphere -recenter {right_matched} 100 {right_spherical_surface}', step="CENTERING")
+    
+    # ---------------
+    # RETURN FILES
+    # ---------------
+    print("[INFO] Returning path objects for left and right spherical surface")
+    print(f"[COMPLETE] Finished generating shperes in {subject_dir}\n")
+    return left_spherical_surface, right_spherical_surface
+
+
+# Helper Function for template replacement
+def generate_from_template(template_path, output_path, template_dict):
+    with open(template_path, "r") as f:
+        template_read = f.read()
+    template = Template(template_read)
+    try:
+        to_write = template.substitute(template_dict)
+    except:
+        fail("Unable to substitue template. Check log to ensure all files were gathered correctly")
+    with open(output_path, "w+") as f:
+        f.write(to_write)
+    pass
+
 # Function for running MSM commands
 def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
             older_timepoint: str, mode: Mode, younger_uses_mcribs: bool=False, older_uses_mcribs: bool=False,
@@ -825,8 +909,7 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
     
     print(f"[INFO] Mode is {mode}, setting script path to match")
     if mode == "forward":
-        temp_output = path.join(user_home, "Scripts", "MyScripts", "Output", "MSM_Pipeline",
-                                "MSM_scripts", fr"{subject}_{younger_timepoint}_to_{older_timepoint}")
+        pass
     elif mode == "reverse":
         temp_output = path.join(user_home, "Scripts", "MyScripts", "Output", "MSM_Pipeline",
                                 "MSM_scripts", fr"{subject}_{older_timepoint}_to_{younger_timepoint}")
@@ -845,10 +928,10 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
     print(f"    Max Anat: {max_anat}")
     print(f"    Genreated Script Dir: {temp_output}")
 
-    # -------------------
-    # Retrieve Files
-    # -------------------
-    print(f"[STEP] Retrieving files for younger subject")
+    # -------------------------
+    # Retrieve Younger Files
+    # -------------------------
+    print(f"[STEP] Retrieving files for younger timepoint")
     if younger_uses_mcribs:
         print(f"[INFO] Younger time point uses M-CRIB-S naming conventions")
         print(f"[FUNCTION] get_files_mcribs(dataset=dataset, subject=subject, time_point=younger_timepoint)")
@@ -858,207 +941,184 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
         left_younger_anatomical_surface = younger_files["LEFT RESCALE"]
         right_younger_anatomical_surface = younger_files["RIGHT RESCALE"]
         
-        print("matching icosphere to mcribs data")
+        print("[STEP] Generating new sphere matched to icosphere")
+        subject_dir = younger_files["SUBJECT DIR"]
         left_younger_midthickness = younger_files["LAS"]
         right_younger_midthickness = younger_files["RAS"]
         
-        left_younger_smoothed = path.join(dataset, f"Subject_{subject}_{younger_timepoint}", "lh.midthickness.smoothed.surf.gii")
-        right_younger_smoothed = path.join(dataset, f"Subject_{subject}_{younger_timepoint}", "rh.midthickness.smoothed.surf.gii")
-        
-        left_younger_inflated = path.join(dataset, f"Subject_{subject}_{younger_timepoint}", "lh.inflated.surf.gii")
-        right_younger_inflated = path.join(dataset, f"Subject_{subject}_{younger_timepoint}", "rh.inflated.surf.gii")
-        
-        left_younger_matched = path.join(dataset, f"Subject_{subject}_{younger_timepoint}", "lh.matched.surf.gii")
-        right_younger_matched = path.join(dataset, f"Subject_{subject}_{younger_timepoint}", "rh.matched.surf.gii")
-        
-        left_younger_spherical_surface = path.join(dataset, f"Subject_{subject}_{younger_timepoint}", "lh.sphere.surf.gii")
-        right_younger_spherical_surface = path.join(dataset, f"Subject_{subject}_{younger_timepoint}", "rh.sphere.surf.gii")
-        
-        print("Smoothing midthickness")
-        run_logged(f'wb_command -surface-smoothing {left_younger_midthickness} 1 10000 {left_younger_smoothed}')
-        run_logged(f'wb_command -surface-smoothing {right_younger_midthickness} 1 10000 {right_younger_smoothed}')
-        
-        print("Inflating smoothed surfaces")
-        run_logged(f'wb_command -surface-inflation {left_younger_smoothed} {left_younger_smoothed} 10 1 100 2 {left_younger_inflated}')
-        run_logged(f'wb_command -surface-inflation {right_younger_smoothed} {right_younger_smoothed} 10 1 100 2 {right_younger_inflated}')
-        
-        print("Matching inflated to icosphere")
-        run_logged(f'wb_command -surface-match {max_anat} {left_younger_inflated} {left_younger_matched}')
-        run_logged(f'wb_command -surface-match {max_anat} {right_younger_inflated} {right_younger_matched}')
-        
-        print("Centering matched sphere")
-        run_logged(f'wb_command -surface-modify-sphere -recenter {left_younger_matched} 100 {left_younger_spherical_surface}')
-        run_logged(f'wb_command -surface-modify-sphere -recenter {right_younger_matched} 100 {right_younger_spherical_surface}')   
+        print("[FILES] Input files:")
+        print(f"    SUBJECT DIR: {subject_dir}")
+        print(f"    LEFT MIDTHICKNESS: {left_younger_midthickness}")
+        print(f"    RIGHT MIDTHICKNESS: {right_younger_midthickness}")
+    
+        print("[FUNCTION] generate_sphere(subject_dir=subject_dir, left_midthickness=left_younger_midthickness, right_midthickness=right_younger_midthickness, max_anat=max_anat)")
+        left_younger_spherical_surface, right_younger_spherical_surface = generate_sphere(subject_dir=subject_dir, left_midthickness=left_younger_midthickness, right_midthickness=right_younger_midthickness, max_anat=max_anat)
     else:
-        print("Using standard naming conventions for younger timepoint")
-        younger_files = get_files(dataset, subject, younger_timepoint)
+        print("[INFO] Younger timepoint uses Ciftify/Freesurfer naming conventiions")
+        print("[FUNCTION] get_files(dataset=dataset, subject=subject, time_point=younger_timepoint)")
+        younger_files = get_files(dataset=dataset, subject=subject, time_point=younger_timepoint)
         if use_rescaled:
-            print("Using rescaled surfaces for younger timepoint")
+            print("[INFO] Rescale option is set to true for Freesurfer subejcts")
             left_younger_anatomical_surface = younger_files["LEFT RESCALE"]
             right_younger_anatomical_surface = younger_files["RIGHT RESCALE"]
             
-            print("matching icosphere to rescaled data")
+            print("[STEP] Generating new sphere matched to icosphere")
+            subject_dir = younger_files["SUBJECT DIR"]
             left_younger_midthickness = younger_files["LAS"]
             right_younger_midthickness = younger_files["RAS"]
             
-            left_younger_smoothed = path.join(dataset, f"Subject_{subject}_{younger_timepoint}", "lh.midthickness.smoothed.surf.gii")
-            right_younger_smoothed = path.join(dataset, f"Subject_{subject}_{younger_timepoint}", "rh.midthickness.smoothed.surf.gii")
+            print("[FILES] Input files:")
+            print(f"    SUBJECT DIR: {subject_dir}")
+            print(f"    LEFT MIDTHICKNESS: {left_younger_midthickness}")
+            print(f"    RIGHT MIDTHICKNESS: {right_younger_midthickness}")
             
-            left_younger_inflated = path.join(dataset, f"Subject_{subject}_{younger_timepoint}", "lh.inflated.surf.gii")
-            right_younger_inflated = path.join(dataset, f"Subject_{subject}_{younger_timepoint}", "rh.inflated.surf.gii")
+            print("[FUNCTION] generate_sphere(subject_dir=subject_dir, left_midthickness=left_younger_midthickness, right_midthickness=right_younger_midthickness, max_anat=max_anat)")
+            left_younger_spherical_surface, right_younger_spherical_surface = generate_sphere(subject_dir=subject_dir, left_midthickness=left_younger_midthickness, right_midthickness=right_younger_midthickness, max_anat=max_anat)
             
-            left_younger_matched = path.join(dataset, f"Subject_{subject}_{younger_timepoint}", "lh.matched.surf.gii")
-            right_younger_matched = path.join(dataset, f"Subject_{subject}_{younger_timepoint}", "rh.matched.surf.gii")
-            
-            left_younger_spherical_surface = path.join(dataset, f"Subject_{subject}_{younger_timepoint}", "lh.sphere.surf.gii")
-            right_younger_spherical_surface = path.join(dataset, f"Subject_{subject}_{younger_timepoint}", "rh.sphere.surf.gii")
-            
-            print("Smoothing midthickness")
-            run_logged(f'wb_command -surface-smoothing {left_younger_midthickness} 1 10000 {left_younger_smoothed}')
-            run_logged(f'wb_command -surface-smoothing {right_younger_midthickness} 1 10000 {right_younger_smoothed}')
-            
-            print("Inflating smoothed surfaces")
-            run_logged(f'wb_command -surface-inflation {left_younger_smoothed} {left_younger_smoothed} 10 1 100 2 {left_younger_inflated}')
-            run_logged(f'wb_command -surface-inflation {right_younger_smoothed} {right_younger_smoothed} 10 1 100 2 {right_younger_inflated}')
-            
-            print("Matching inflated to icosphere")
-            run_logged(f'wb_command -surface-match {max_anat} {left_younger_inflated} {left_younger_matched}')
-            run_logged(f'wb_command -surface-match {max_anat} {right_younger_inflated} {right_younger_matched}')
-            
-            print("Centering matched sphere")
-            run_logged(f'wb_command -surface-modify-sphere -recenter {left_younger_matched} 100 {left_younger_spherical_surface}')
-            run_logged(f'wb_command -surface-modify-sphere -recenter {right_younger_matched} 100 {right_younger_spherical_surface}')
         else:
-            print("Using base surfacecs for younger timepoint")
+            print("[INFO] Rescale option set to False for Freesurfer subjects")
             left_younger_anatomical_surface = younger_files["LAS"]
             right_younger_anatomical_surface = younger_files["RAS"]
             left_younger_spherical_surface = younger_files["LSS"]
             right_younger_spherical_surface = younger_files["RSS"]
-        
-        
+    
+    left_younger_curvature = younger_files["LEFT CURVATURE"]
+    right_younger_curvature = younger_files["RIGHT CURVATURE"]
+    print("[FILES] Younger files retrieved")
+    print(f"    LYAS: {left_younger_anatomical_surface}")
+    print(f"    RYAS: {right_younger_anatomical_surface}")
+    print(f"    LYSS: {left_younger_spherical_surface}")
+    print(f"    RYSS: {right_younger_spherical_surface}")
+    print(f"    LYC: {left_younger_curvature}")
+    print(f"    RYC: {right_younger_curvature}")
+    
+    # -------------------------
+    # Retrieve Older Files
+    # -------------------------    
+    print("[STEP] Retrieving files for older timepoint")    
     if older_uses_mcribs:
-        print("Using mcribs naming conventions for older timepoint")
-        older_files = get_files_mcribs(dataset, subject, older_timepoint)
+        print(f"[INFO] Older time point uses M-CRIB-S naming conventions")
+        print(f"[FUNCTION] get_files_mcribs(dataset=dataset, subject=subject, time_point=older_timepoint)")
+        older_files = get_files_mcribs(dataset=dataset, subject=subject, time_point=older_timepoint)
         
+        print(f"[INFO] M-CRIB-S Surfaces must be rescaled. Using rescaled surfaces")
         left_older_anatomical_surface = older_files["LEFT RESCALE"]
         right_older_anatomical_surface = older_files["RIGHT RESCALE"]
         
-        print("Matching icosphere to mcribs data")
-        left_older_midthickness = older_files["LAS"]
-        right_older_midthickness = older_files["RAS"]
+        print("[STEP] Generating new sphere matched to icosphere")
+        subject_dir = younger_files["SUBJECT DIR"]
+        left_older_midthickness = younger_files["LAS"]
+        right_older_midthickness = younger_files["RAS"]
         
-        left_older_smoothed = path.join(dataset, f"Subject_{subject}_{older_timepoint}", "lh.midthickness.smoothed.surf.gii")
-        right_older_smoothed = path.join(dataset, f"Subject_{subject}_{older_timepoint}", "rh.midthickness.smoothed.surf.gii")
-        
-        left_older_inflated = path.join(dataset, f"Subject_{subject}_{older_timepoint}", "lh.inflated.surf.gii")
-        right_older_inflated = path.join(dataset, f"Subject_{subject}_{older_timepoint}", "rh.inflated.surf.gii")
-        
-        left_older_matched = path.join(dataset, f"Subject_{subject}_{older_timepoint}", "lh.matched.surf.gii")
-        right_older_matched = path.join(dataset, f"Subject_{subject}_{older_timepoint}", "rh.matched.surf.gii")
-        
-        left_older_spherical_surface = path.join(dataset, f"Subject_{subject}_{older_timepoint}", "lh.sphere.surf.gii")
-        right_older_spherical_surface = path.join(dataset, f"Subject_{subject}_{older_timepoint}", "rh.sphere.surf.gii")
-        
-        print("Smoothing midthickness")
-        run_logged(f'wb_command -surface-smoothing {left_older_midthickness} 1 10000 {left_older_smoothed}')
-        run_logged(f'wb_command -surface-smoothing {right_older_midthickness} 1 10000 {right_older_smoothed}')
-        
-        print("Inflating smoothed surfaces")
-        run_logged(f'wb_command -surface-inflation {left_older_smoothed} {left_older_smoothed} 10 1 100 2 {left_older_inflated}')
-        run_logged(f'wb_command -surface-inflation {right_older_smoothed} {right_older_smoothed} 10 1 100 2 {right_older_inflated}')
-        
-        print("Matching inflated to icosphere")
-        run_logged(f'wb_command -surface-match {max_anat} {left_older_inflated} {left_older_matched}')
-        run_logged(f'wb_command -surface-match {max_anat} {right_older_inflated} {right_older_matched}')
-        
-        print("Centering matched sphere")
-        run_logged(f'wb_command -surface-modify-sphere -recenter {left_older_matched} 100 {left_older_spherical_surface}')
-        run_logged(f'wb_command -surface-modify-sphere -recenter {right_older_matched} 100 {right_older_spherical_surface}')
+        print("[FILES] Input files:")
+        print(f"    SUBJECT DIR: {subject_dir}")
+        print(f"    LEFT MIDTHICKNESS: {left_older_midthickness}")
+        print(f"    RIGHT MIDTHICKNESS: {right_older_midthickness}")
+    
+        print("[FUNCTION] generate_sphere(subject_dir=subject_dir, left_midthickness=left_older_midthickness, right_midthickness=right_older_midthickness, max_anat=max_anat)")
+        left_older_spherical_surface, right_older_spherical_surface = generate_sphere(subject_dir=subject_dir, left_midthickness=left_older_midthickness, right_midthickness=right_older_midthickness, max_anat=max_anat)    
     else:
-        print("Using standard naming conventions for older timepoint")
-        older_files = get_files(dataset, subject, older_timepoint)
+        print("[INFO] Older timepoint uses Ciftify/Freesurfer naming conventiions")
+        print("[FUNCTION] get_files(dataset=dataset, subject=subject, time_point=older_timepoint)")
+        older_files = get_files(dataset=dataset, subject=subject, time_point=older_timepoint)
         if use_rescaled:
-            print("Using rescaled surfaces for older timepoint")
+            print("[INFO] Rescale option is set to true for Freesurfer subjects")
             left_older_anatomical_surface = older_files["LEFT RESCALE"]
             right_older_anatomical_surface = older_files["RIGHT RESCALE"]
             
-            print("matching icosphere to rescaled data")
-            left_older_midthickness = older_files["LAS"]
-            right_older_midthickness = older_files["RAS"]
+            print("[STEP] Generating new sphere matched to icosphere")
+            subject_dir = younger_files["SUBJECT DIR"]
+            left_older_midthickness = younger_files["LAS"]
+            right_older_midthickness = younger_files["RAS"]
             
-            left_older_smoothed = path.join(dataset, f"Subject_{subject}_{older_timepoint}", "lh.midthickness.smoothed.surf.gii")
-            right_older_smoothed = path.join(dataset, f"Subject_{subject}_{older_timepoint}", "rh.midthickness.smoothed.surf.gii")
-            
-            left_older_inflated = path.join(dataset, f"Subject_{subject}_{older_timepoint}", "lh.inflated.surf.gii")
-            right_older_inflated = path.join(dataset, f"Subject_{subject}_{older_timepoint}", "rh.inflated.surf.gii")
-            
-            left_older_matched = path.join(dataset, f"Subject_{subject}_{older_timepoint}", "lh.matched.surf.gii")
-            right_older_matched = path.join(dataset, f"Subject_{subject}_{older_timepoint}", "rh.matched.surf.gii")
-            
-            left_older_spherical_surface = path.join(dataset, f"Subject_{subject}_{older_timepoint}", "lh.sphere.surf.gii")
-            right_older_spherical_surface = path.join(dataset, f"Subject_{subject}_{older_timepoint}", "rh.sphere.surf.gii")
-            
-            print("Smoothing midthickness")
-            run_logged(f'wb_command -surface-smoothing {left_older_midthickness} 1 10000 {left_older_smoothed}')
-            run_logged(f'wb_command -surface-smoothing {right_older_midthickness} 1 10000 {right_older_smoothed}')
-            
-            print("Inflating smoothed surfaces")
-            run_logged(f'wb_command -surface-inflation {left_older_smoothed} {left_older_smoothed} 10 1 100 2 {left_older_inflated}')
-            run_logged(f'wb_command -surface-inflation {right_older_smoothed} {right_older_smoothed} 10 1 100 2 {right_older_inflated}')
-            
-            print("Matching inflated to icosphere")
-            run_logged(f'wb_command -surface-match {max_anat} {left_older_inflated} {left_older_matched}')
-            run_logged(f'wb_command -surface-match {max_anat} {right_older_inflated} {right_older_matched}')
-            
-            print("Centering matched sphere")
-            run_logged(f'wb_command -surface-modify-sphere -recenter {left_older_matched} 100 {left_older_spherical_surface}')
-            run_logged(f'wb_command -surface-modify-sphere -recenter {right_older_matched} 100 {right_older_spherical_surface}')
+            print("[FILES] Input files:")
+            print(f"    SUBJECT DIR: {subject_dir}")
+            print(f"    LEFT MIDTHICKNESS: {left_older_midthickness}")
+            print(f"    RIGHT MIDTHICKNESS: {right_older_midthickness}")
+        
+            print("[FUNCTION] generate_sphere(subject_dir=subject_dir, left_midthickness=left_older_midthickness, right_midthickness=right_older_midthickness, max_anat=max_anat)")
+            left_older_spherical_surface, right_older_spherical_surface = generate_sphere(subject_dir=subject_dir, left_midthickness=left_older_midthickness, right_midthickness=right_older_midthickness, max_anat=max_anat)
         else:
-            print("Using base surfaces for older timepoint")
+            print("[INFO] Rescale option set to False for Freesurfer subjects")
             left_older_anatomical_surface = older_files["LAS"]
             right_older_anatomical_surface = older_files["RAS"]
             left_older_spherical_surface = older_files["LSS"]
             right_older_spherical_surface = older_files["RSS"]
 
-    left_younger_curvature = younger_files["LEFT CURVATURE"]
-    right_younger_curvature = younger_files["RIGHT CURVATURE"]
     left_older_curvature = older_files["LEFT CURVATURE"]
     right_older_curvature = older_files["RIGHT CURVATURE"]
+    print("[FILES] Older files retrieved")
+    print(f"    LOAS: {left_older_anatomical_surface}")
+    print(f"    ROAS: {right_older_anatomical_surface}")
+    print(f"    LOSS: {left_older_spherical_surface}")
+    print(f"    ROSS: {right_older_spherical_surface}")
+    print(f"    LOC: {left_older_curvature}")
+    print(f"    ROC: {right_older_curvature}")
 
-    if not younger_files or not older_files:
-        print("no files found skipping this run")
-        return
-
-    print("Younger time point files:", *younger_files, sep='\n')
-    print("Older time point files:", *older_files, sep="\n")
-
+    #--------------------
+    # Generate Scritps
+    #--------------------
+    print("[STEP] Generating scripts for MSM runs")
     if mode == "forward":
+        print("[INFO] Mode is set to forward, creating output directories and files")
         output = path.join(output, fr"{subject}_{younger_timepoint}_to_{older_timepoint}")
+        temp_output = path.join(user_home, "Scripts", "MyScripts", "Output", "MSM_Pipeline", "MSM_scripts", fr"{subject}_{younger_timepoint}_to_{older_timepoint}")
         makedirs(output, exist_ok=True)
+        makedirs(temp_output, exist_ok=True)
+        print(f"[INFO] Output directory created at {output}")
+        print(f"[INFO] Script directory created at {temp_output}")
+        
         left_file_prefix = fr"{output}/{subject}_L_{younger_timepoint}-{older_timepoint}."
         right_file_prefix = fr"{output}/{subject}_R_{younger_timepoint}-{older_timepoint}."
+        script_output_l = path.join(temp_output, f"Subject_{subject}_L_{younger_timepoint}-{older_timepoint}_MSM.sh")
+        script_output_r = path.join(temp_output, f"Subject_{subject}_r_{younger_timepoint}-{older_timepoint}_MSM.sh")
+        print(f"[INFO] left file prefix is: {left_file_prefix}")
+        print(f"[INFO] right file prefix is: {right_file_prefix}")
+        print(f"[INFO] Scripts will be generated at {script_output_l} and {script_output_r}")
 
-        print(" \n")
-        print(fr"Generating script file {temp_output}/Subject_{subject}_L_{younger_timepoint}-{older_timepoint}_MSM.sh")
         script_dir = path.dirname(path.realpath(__file__))
+        template_dir = path.join(script_dir, "Templates")
+        print(f"[INFO] Templates located in {template_dir}")
         
         # Templates for remote run (default)
         if not is_local:
-            # left hemisphere
-            template_path_l = path.join(script_dir, "Templates", "MSM_template_forward_L.txt")
-            with open(template_path_l, "r") as f:
-                template_read_l = f.read()
-            template_l = Template(template_read_l)
-            to_write_l = template_l.substitute(
-                subject=subject, starting_time=younger_timepoint, ending_time=older_timepoint,
-                user_home=user_home, email=slurm_email, account=slurm_account, levels=levels,
-                config=config, yss=left_younger_spherical_surface, oss=left_older_spherical_surface, yc=left_younger_curvature,
-                oc=left_older_curvature, yas=left_younger_anatomical_surface, oas=left_older_anatomical_surface,
-                f_out=left_file_prefix, maxanat=max_anat, maxcp=max_cp)
-            with open(fr"{temp_output}/Subject_{subject}_L_{younger_timepoint}-{older_timepoint}_MSM.sh", "w+") as f:
-                    f.write(to_write_l)
+            print("[INFO] Not running on local machine, using remote templates")
             
-            # right hemisphere
+            # ------------------------
+            # Left Hemisphere Remote
+            # ------------------------
+            print("[STEP] Generateing left hemisphere script")
+            template_path = path.join(template_dir, "MSM_template_forward_L.txt")
+            template_dict = {
+                "subject": subject,
+                "starting_time": younger_timepoint,
+                "ending_time": older_timepoint,
+                "user_home": user_home,
+                "email": slurm_email,
+                "account": slurm_account,
+                "levels": levels,
+                "config": config,
+                "yss": left_younger_spherical_surface,
+                "oss": left_older_spherical_surface,
+                "yc": left_younger_curvature,
+                "oc": left_older_curvature,
+                "yas": left_younger_anatomical_surface,
+                "oas": left_older_anatomical_surface,
+                "f_out": left_file_prefix,
+                "maxanat": max_anat,
+                "maxcp": max_cp
+            }
+            print("[INFO] Using the following info for template")
+            print(f"    Template: {template_path}")
+            for k,v in template_dict.items():
+                print(f"    {k}: {v}")
+            
+            print("[FUNCTION] replace_template(template_path=template_path, output_path=script_output, template_dict=template_dict)")
+            generate_from_template(template_path=template_path, output_path=script_output_l, template_dict=template_dict)
+            
+            # -------------------------
+            # Right Hemisphere Remote
+            # -------------------------
             template_path_r = path.join(script_dir, "Templates", "MSM_template_forward_R.txt")
             with open(template_path_r, "r") as f:
                 template_read_r = f.read()
