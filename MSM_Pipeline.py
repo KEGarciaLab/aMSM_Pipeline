@@ -270,6 +270,7 @@ def get_subject_time_points(dataset: str, subject: str, alphanumeric_timepoints:
         print("[INFO] Using alphanumeric time points, using custom sort")
         print("[FUNCTION] sort_time_points(time_points=time_points, number_start_character=time_point_number_start_character, starting_time=starting_time)")
         time_points = sort_time_points(time_points=time_points, number_start_character=time_point_number_start_character, starting_time=starting_time)
+        print()
     elif time_points[0].isdigit():
         print("[INFO] Numeric time points detected, using interger sort")
         time_points.sort(key=int)
@@ -323,27 +324,35 @@ def get_files(dataset: str, subject: str, time_point: str):
     print(f"[STEP] Locating Files")
     print(f'[FUNCTION] find(pattern="*.L.midthickness.32k_fs_LR.surf.gii", search_path=subject_dir)')
     left_anatomical_surface = find(pattern="*.L.midthickness.32k_fs_LR.surf.gii", search_path=subject_dir)
+    print()
     
     print(f'[FUNCTION] find(pattern="*.R.midthickness.32k_fs_LR.surf.gii", search_path=subject_dir)')
     right_anatomical_surface = find(pattern="*.R.midthickness.32k_fs_LR.surf.gii", search_path=subject_dir)
+    print()
     
     print(f'[FUNCTION] find(pattern="*.L.sphere.32k_fs_LR.surf.gii", search_path=subject_dir)')
     left_spherical_surface = find(pattern="*.L.sphere.32k_fs_LR.surf.gii", search_path=subject_dir)
+    print()
     
     print(f'[FUNCTION] find(pattern="*.R.sphere.32k_fs_LR.surf.gii", search_path=subject_dir)')
     right_spherical_surface = find(pattern="*.R.sphere.32k_fs_LR.surf.gii", search_path=subject_dir)
+    print()
     
     print(f'[FUNCTION] find(pattern="*.L.atlasroi.32k_fs_LR.shape.gii)", search_path=subject_dir)')
     left_cortex = find(pattern="*.L.atlasroi.32k_fs_LR.shape.gii)", search_path=subject_dir)
+    print()
     
     print(f'[FUNCTION] find(pattern="*.R.atlasroi.32k_fs_LR.shape.gii)", search_path=subject_dir)')
     right_cortex = find(pattern="*.R.atlasroi.32k_fs_LR.shape.gii)", search_path=subject_dir)
+    print()
     
     print(f'[FUNCTION] find(pattern="*.L.rescaled.surf.gii", search_path=subject_dir)')
     left_rescaled_surface = find(pattern="*.L.rescaled.surf.gii", search_path=subject_dir)
+    print()
     
     print(f'[FUNCTION] find(pattern="*.R.rescaled.surf.gii", search_path=subject_dir)')
     right_rescaled_surface = find(pattern="*.R.rescaled.surf.gii", search_path=subject_dir)
+    print()
     
     print("[FILES] Located the following files:")
     print(f"    LAS: {left_anatomical_surface}")
@@ -362,6 +371,7 @@ def get_files(dataset: str, subject: str, time_point: str):
     
     print(f'[FUNCTION] find(pattern="*.curvature.32k_fs_LR.dscaler.nii)", search_path=subject_dir)')
     base_curvature = find(pattern="*.curvature.32k_fs_LR.dscaler.nii)", search_path=subject_dir)
+    print()
     
     print("[FILES] Located the following files:")
     print(f"    BASE CURVATURE: {base_curvature}")
@@ -427,19 +437,23 @@ def generate_qc_image(dataset: str, subject: str, younger_timepoint: str, older_
         print("[INFO] Younger timepoint uses MCRIBS pipeline")
         print(f"[FUNCTION] Calling get_files_mcribs dataset={dataset} subject={subject}, timepoint={younger_timepoint}")
         younger_files = get_files_mcribs(dataset, subject, younger_timepoint)
+        print()
     else:
         print("[INFO] Younger timepoint uses standard pipeline")
         print(f"[FUNCTION] Calling get_files dataset={dataset} subject={subject}, timepoint={younger_timepoint}")
         younger_files = get_files(dataset, subject, younger_timepoint)
+        print()
         
     if older_uses_mcribs:
         print("[INFO] Older timepoint uses MCRIBS pipeline")
         print(f"[FUNCTION] Calling get_files_mcribs dataset={dataset} subject={subject}, timepoint={older_timepoint}")
         older_files = get_files_mcribs(dataset, subject, older_timepoint)
+        print()
     else:
         print("[INFO] Older timepoint uses standard pipeline")
         print(f"[FUNCTION] Calling get_files dataset={dataset} subject={subject}, timepoint={older_timepoint}")
         older_files = get_files(dataset, subject, older_timepoint)
+        print()
 
     left_younger_surface = younger_files["LAS"]
     right_younger_surface = younger_files["RAS"]
@@ -860,22 +874,30 @@ def generate_sphere(subject_dir, left_midthickness, right_midthickness, max_anat
     # RETURN FILES
     # ---------------
     print("[INFO] Returning path objects for left and right spherical surface")
-    print(f"[COMPLETE] Finished generating shperes in {subject_dir}\n")
+    print(f"[COMPLETE] Finished generating shperes in {subject_dir}")
     return left_spherical_surface, right_spherical_surface
 
 
 # Helper Function for template replacement
 def generate_from_template(template_path, output_path, template_dict):
+    print(f"\n[TEMPLATE] Generating script at {output_path} from template located at {template_path}")
+    print("[STEP] Reading template")
     with open(template_path, "r") as f:
         template_read = f.read()
     template = Template(template_read)
     try:
+        print("[INFO] Values to write:")
+        for k,v in template_dict.items():
+                print(f"    {k}: {v}")
+        print("[STEP] Attempting Substitution")
         to_write = template.substitute(template_dict)
     except:
         fail("Unable to substitue template. Check log to ensure all files were gathered correctly")
     with open(output_path, "w+") as f:
+        print(f"[INFO] Writng substituded template to {output_path}")
         f.write(to_write)
-    pass
+    print("[COMPLETE] Finished generating script from template")
+
 
 # Function for running MSM commands
 def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
@@ -936,6 +958,7 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
         print(f"[INFO] Younger time point uses M-CRIB-S naming conventions")
         print(f"[FUNCTION] get_files_mcribs(dataset=dataset, subject=subject, time_point=younger_timepoint)")
         younger_files = get_files_mcribs(dataset=dataset, subject=subject, time_point=younger_timepoint)
+        print()
         
         print(f"[INFO] M-CRIB-S Surfaces must be rescaled. Using rescaled surfaces")
         left_younger_anatomical_surface = younger_files["LEFT RESCALE"]
@@ -953,10 +976,12 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
     
         print("[FUNCTION] generate_sphere(subject_dir=subject_dir, left_midthickness=left_younger_midthickness, right_midthickness=right_younger_midthickness, max_anat=max_anat)")
         left_younger_spherical_surface, right_younger_spherical_surface = generate_sphere(subject_dir=subject_dir, left_midthickness=left_younger_midthickness, right_midthickness=right_younger_midthickness, max_anat=max_anat)
+        print()
     else:
         print("[INFO] Younger timepoint uses Ciftify/Freesurfer naming conventiions")
         print("[FUNCTION] get_files(dataset=dataset, subject=subject, time_point=younger_timepoint)")
         younger_files = get_files(dataset=dataset, subject=subject, time_point=younger_timepoint)
+        print()
         if use_rescaled:
             print("[INFO] Rescale option is set to true for Freesurfer subejcts")
             left_younger_anatomical_surface = younger_files["LEFT RESCALE"]
@@ -974,6 +999,7 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
             
             print("[FUNCTION] generate_sphere(subject_dir=subject_dir, left_midthickness=left_younger_midthickness, right_midthickness=right_younger_midthickness, max_anat=max_anat)")
             left_younger_spherical_surface, right_younger_spherical_surface = generate_sphere(subject_dir=subject_dir, left_midthickness=left_younger_midthickness, right_midthickness=right_younger_midthickness, max_anat=max_anat)
+            print()
             
         else:
             print("[INFO] Rescale option set to False for Freesurfer subjects")
@@ -1000,6 +1026,7 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
         print(f"[INFO] Older time point uses M-CRIB-S naming conventions")
         print(f"[FUNCTION] get_files_mcribs(dataset=dataset, subject=subject, time_point=older_timepoint)")
         older_files = get_files_mcribs(dataset=dataset, subject=subject, time_point=older_timepoint)
+        print()
         
         print(f"[INFO] M-CRIB-S Surfaces must be rescaled. Using rescaled surfaces")
         left_older_anatomical_surface = older_files["LEFT RESCALE"]
@@ -1016,11 +1043,13 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
         print(f"    RIGHT MIDTHICKNESS: {right_older_midthickness}")
     
         print("[FUNCTION] generate_sphere(subject_dir=subject_dir, left_midthickness=left_older_midthickness, right_midthickness=right_older_midthickness, max_anat=max_anat)")
-        left_older_spherical_surface, right_older_spherical_surface = generate_sphere(subject_dir=subject_dir, left_midthickness=left_older_midthickness, right_midthickness=right_older_midthickness, max_anat=max_anat)    
+        left_older_spherical_surface, right_older_spherical_surface = generate_sphere(subject_dir=subject_dir, left_midthickness=left_older_midthickness, right_midthickness=right_older_midthickness, max_anat=max_anat)
+        print()
     else:
         print("[INFO] Older timepoint uses Ciftify/Freesurfer naming conventiions")
         print("[FUNCTION] get_files(dataset=dataset, subject=subject, time_point=older_timepoint)")
         older_files = get_files(dataset=dataset, subject=subject, time_point=older_timepoint)
+        print()
         if use_rescaled:
             print("[INFO] Rescale option is set to true for Freesurfer subjects")
             left_older_anatomical_surface = older_files["LEFT RESCALE"]
@@ -1038,6 +1067,7 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
         
             print("[FUNCTION] generate_sphere(subject_dir=subject_dir, left_midthickness=left_older_midthickness, right_midthickness=right_older_midthickness, max_anat=max_anat)")
             left_older_spherical_surface, right_older_spherical_surface = generate_sphere(subject_dir=subject_dir, left_midthickness=left_older_midthickness, right_midthickness=right_older_midthickness, max_anat=max_anat)
+            print()
         else:
             print("[INFO] Rescale option set to False for Freesurfer subjects")
             left_older_anatomical_surface = older_files["LAS"]
@@ -1059,7 +1089,13 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
     # Generate Scritps
     #--------------------
     print("[STEP] Generating scripts for MSM runs")
+    script_dir = path.dirname(path.realpath(__file__))
+    template_dir = path.join(script_dir, "Templates")
+    print(f"[INFO] Templates located in {template_dir}")
     if mode == "forward":
+        # ---------------------
+        # Set up forward info
+        # ---------------------
         print("[INFO] Mode is set to forward, creating output directories and files")
         output = path.join(output, fr"{subject}_{younger_timepoint}_to_{older_timepoint}")
         temp_output = path.join(user_home, "Scripts", "MyScripts", "Output", "MSM_Pipeline", "MSM_scripts", fr"{subject}_{younger_timepoint}_to_{older_timepoint}")
@@ -1071,25 +1107,45 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
         left_file_prefix = fr"{output}/{subject}_L_{younger_timepoint}-{older_timepoint}."
         right_file_prefix = fr"{output}/{subject}_R_{younger_timepoint}-{older_timepoint}."
         script_output_l = path.join(temp_output, f"Subject_{subject}_L_{younger_timepoint}-{older_timepoint}_MSM.sh")
-        script_output_r = path.join(temp_output, f"Subject_{subject}_r_{younger_timepoint}-{older_timepoint}_MSM.sh")
-        print(f"[INFO] left file prefix is: {left_file_prefix}")
-        print(f"[INFO] right file prefix is: {right_file_prefix}")
-        print(f"[INFO] Scripts will be generated at {script_output_l} and {script_output_r}")
-
-        script_dir = path.dirname(path.realpath(__file__))
-        template_dir = path.join(script_dir, "Templates")
-        print(f"[INFO] Templates located in {template_dir}")
+        script_output_r = path.join(temp_output, f"Subject_{subject}_R_{younger_timepoint}-{older_timepoint}_MSM.sh")
         
-        # Templates for remote run (default)
-        if not is_local:
-            print("[INFO] Not running on local machine, using remote templates")
+        if is_local:
+            print("[INFO] Local flag used. Using local run templates")
+            template_path_l = path.join(template_dir, "MSM_template_forward_L_local.txt")
+            template_path_r = path.join(template_dir, "MSM_template_forward_R_local.txt")
+            template_dict_l = {
+                "levels": levels,
+                "config": config,
+                "yss": left_younger_spherical_surface,
+                "oss": left_older_spherical_surface,
+                "yc": left_younger_curvature,
+                "oc": left_older_curvature,
+                "yas": left_younger_anatomical_surface,
+                "oas": left_older_anatomical_surface,
+                "f_out": left_file_prefix,
+                "maxanat": max_anat,
+                "maxcp": max_cp
+            }
+            template_dict_r = {
+                "levels": levels,
+                "config": config,
+                "yss": right_younger_spherical_surface,
+                "oss": right_older_spherical_surface,
+                "yc": right_younger_curvature,
+                "oc": right_older_curvature,
+                "yas": right_younger_anatomical_surface,
+                "oas": right_older_anatomical_surface,
+                "f_out": right_file_prefix,
+                "maxanat": max_anat,
+                "maxcp": max_cp
+            }
             
-            # ------------------------
-            # Left Hemisphere Remote
-            # ------------------------
-            print("[STEP] Generateing left hemisphere script")
-            template_path = path.join(template_dir, "MSM_template_forward_L.txt")
-            template_dict = {
+            
+        else:
+            print("[INFO] Local flag not used, using remote templates")
+            template_path_l = path.join(template_dir, "MSM_template_forward_L.txt")
+            template_path_r = path.join(template_dir, "MSM_template_forward_R.txt")
+            template_dict_l = {
                 "subject": subject,
                 "starting_time": younger_timepoint,
                 "ending_time": older_timepoint,
@@ -1108,215 +1164,275 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
                 "maxanat": max_anat,
                 "maxcp": max_cp
             }
-            print("[INFO] Using the following info for template")
-            print(f"    Template: {template_path}")
-            for k,v in template_dict.items():
-                print(f"    {k}: {v}")
-            
-            print("[FUNCTION] replace_template(template_path=template_path, output_path=script_output, template_dict=template_dict)")
-            generate_from_template(template_path=template_path, output_path=script_output_l, template_dict=template_dict)
-            
-            # -------------------------
-            # Right Hemisphere Remote
-            # -------------------------
-            template_path_r = path.join(script_dir, "Templates", "MSM_template_forward_R.txt")
-            with open(template_path_r, "r") as f:
-                template_read_r = f.read()
-            template_r = Template(template_read_r)
-            to_write_r = template_r.substitute(
-                subject=subject, starting_time=younger_timepoint, ending_time=older_timepoint,
-                user_home=user_home, email=slurm_email, account=slurm_account, levels=levels,
-                config=config, yss=right_younger_spherical_surface, oss=right_older_spherical_surface, yc=right_younger_curvature,
-                oc=right_older_curvature, yas=right_younger_anatomical_surface, oas=right_older_anatomical_surface,
-                f_out=right_file_prefix, maxanat=max_anat, maxcp=max_cp)
-            with open(fr"{temp_output}/Subject_{subject}_R_{younger_timepoint}-{older_timepoint}_MSM.sh", "w+") as f:
-                    f.write(to_write_r)
-                    
-                    
-        # Templates for local run
-        elif is_local:
-            if hemisphere == "L":
-                # left hemisphere
-                template_path_l = path.join(script_dir, "Templates", "MSM_template_forward_L_local.txt")
-                with open(template_path_l, "r") as f:
-                    template_read_l = f.read()
-                template_l = Template(template_read_l)
-                to_write_l = template_l.substitute(
-                    levels=levels, config=config, yss=left_younger_spherical_surface, oss=left_older_spherical_surface, yc=left_younger_curvature,
-                    oc=left_older_curvature, yas=left_younger_anatomical_surface, oas=left_older_anatomical_surface,
-                    f_out=left_file_prefix, maxanat=max_anat, maxcp=max_cp)
-                with open(fr"{temp_output}/Subject_{subject}_L_{younger_timepoint}-{older_timepoint}_MSM.sh", "w+") as f:
-                    f.write(to_write_l)
-                    
-            elif hemisphere == "R":
-            # right hemisphere
-                template_path_r = path.join(script_dir, "Templates", "MSM_template_forward_R_local.txt")
-                with open(template_path_r, "r") as f:
-                    template_read_r = f.read()
-                template_r = Template(template_read_r)
-                to_write_r = template_r.substitute(
-                    levels=levels, config=config, yss=right_younger_spherical_surface, oss=right_older_spherical_surface, yc=right_younger_curvature,
-                    oc=right_older_curvature, yas=right_younger_anatomical_surface, oas=right_older_anatomical_surface,
-                    f_out=right_file_prefix, maxanat=max_anat, maxcp=max_cp)
-                with open(fr"{temp_output}/Subject_{subject}_R_{younger_timepoint}-{older_timepoint}_MSM.sh", "w+") as f:
-                    f.write(to_write_r)
-
-        # submit remote jobs
-        if not is_local:
-            #left hemisphere
-            if slurm_job_limit == None:
-                jobs_open = is_slurm_queue_open(slurm_user)
-            else:
-                jobs_open = is_slurm_queue_open(slurm_user, slurm_job_limit)
-            while jobs_open <= 0:
-                print("no jobs open waiting 2 hours")
-                sleep(2 * 3600)
-                if slurm_job_limit == None:
-                    jobs_open = is_slurm_queue_open(slurm_user)
-                else:
-                    jobs_open = is_slurm_queue_open(slurm_user, slurm_job_limit)
-            print("Jobs open submitting script")
-            run_logged(fr"sbatch {temp_output}/Subject_{subject}_L_{younger_timepoint}-{older_timepoint}_MSM.sh")
-            remove(fr"{temp_output}/Subject_{subject}_L_{younger_timepoint}-{older_timepoint}_MSM.sh")
-            
-            #right hemisphere
-            if slurm_job_limit == None:
-                jobs_open = is_slurm_queue_open(slurm_user)
-            else:
-                jobs_open = is_slurm_queue_open(slurm_user, slurm_job_limit)
-            
-            while jobs_open <= 0:
-                print("no jobs open waiting 2 hours")
-                sleep(2 * 3600)
-                if slurm_job_limit == None:
-                    jobs_open = is_slurm_queue_open(slurm_user)
-                else:
-                    jobs_open = is_slurm_queue_open(slurm_user, slurm_job_limit)
-            print("Jobs open submitting script")
-            run_logged(fr"sbatch {temp_output}/Subject_{subject}_R_{younger_timepoint}-{older_timepoint}_MSM.sh")
-            remove(fr"{temp_output}/Subject_{subject}_R_{younger_timepoint}-{older_timepoint}_MSM.sh")
-        
-         # run lcoal job        
-        elif is_local:
-            if hemisphere == "L":
-                run_logged(fr"bash {temp_output}/Subject_{subject}_L_{younger_timepoint}-{older_timepoint}_MSM.sh")
-                remove(fr"{temp_output}/Subject_{subject}_L_{younger_timepoint}-{older_timepoint}_MSM.sh")
-            elif hemisphere == "R":
-                run_logged(fr"bash {temp_output}/Subject_{subject}_R_{younger_timepoint}-{older_timepoint}_MSM.sh")
-                remove(fr"{temp_output}/Subject_{subject}_R_{younger_timepoint}-{older_timepoint}_MSM.sh")
-
+            template_dict_r = {
+                "subject": subject,
+                "starting_time": younger_timepoint,
+                "ending_time": older_timepoint,
+                "user_home": user_home,
+                "email": slurm_email,
+                "account": slurm_account,
+                "levels": levels,
+                "config": config,
+                "yss": right_younger_spherical_surface,
+                "oss": right_older_spherical_surface,
+                "yc": right_younger_curvature,
+                "oc": right_older_curvature,
+                "yas": right_younger_anatomical_surface,
+                "oas": right_older_anatomical_surface,
+                "f_out": right_file_prefix,
+                "maxanat": max_anat,
+                "maxcp": max_cp
+            }
+    
     elif mode == "reverse":
-        output = path.join(
-            output, fr"{subject}_{older_timepoint}_to_{younger_timepoint}")
+        # ---------------------
+        # Set up reverse info
+        # ---------------------
+        print("[INFO] Mode is set to reverse, creating output directories and files")
+        output = path.join(output, fr"{subject}_{older_timepoint}_to_{younger_timepoint}")
+        temp_output = path.join(user_home, "Scripts", "MyScripts", "Output", "MSM_Pipeline", "MSM_scripts", fr"{subject}_{older_timepoint}_to_{younger_timepoint}")
         makedirs(output, exist_ok=True)
+        makedirs(temp_output, exist_ok=True)
+        print(f"[INFO] Output directory created at {output}")
+        print(f"[INFO] Script directory created at {temp_output}")
+        
         left_file_prefix = fr"{output}/{subject}_L_{older_timepoint}-{younger_timepoint}."
         right_file_prefix = fr"{output}/{subject}_R_{older_timepoint}-{younger_timepoint}."
-        print(" \n")
-        print(fr"Generating script {temp_output}/Subject_{subject}_L_{older_timepoint}-{younger_timepoint}_MSM.sh")
-        script_dir = path.dirname(path.realpath(__file__))
-        # Templates for remote jobs
-        if not is_local:
-            #left hemisphere
-            template_path_l = path.join(script_dir, "Templates", "MSM_template_reverse_L.txt")
-            with open(template_path_l, "r") as f:
-                template_read_l = f.read()
-            template_l = Template(template_read_l)
-            to_write_l = template_l.substitute(
-                subject=subject, starting_time=older_timepoint, ending_time=younger_timepoint,
-                user_home=user_home, email=slurm_email, account=slurm_account, levels=levels,
-                config=config, yss=left_younger_spherical_surface, oss=left_older_spherical_surface, yc=left_younger_curvature,
-                oc=left_older_curvature, yas=left_younger_anatomical_surface, oas=left_older_anatomical_surface,
-                r_out=left_file_prefix, maxanat=max_anat, maxcp=max_cp)
-            with open(fr"{temp_output}/Subject_{subject}_L_{older_timepoint}-{younger_timepoint}_MSM.sh", "w+") as f:
-                    f.write(to_write_l)
-            
-            #right hemisphere
-            template_path_r = path.join(script_dir, "Templates", "MSM_template_reverse_R.txt")
-            with open(template_path_r, "r") as f:
-                template_read_r = f.read()
-            template_r = Template(template_read_r)
-            to_write_r = template_r.substitute(
-                subject=subject, starting_time=older_timepoint, ending_time=younger_timepoint,
-                user_home=user_home, email=slurm_email, account=slurm_account, levels=levels,
-                config=config, yss=right_younger_spherical_surface, oss=right_older_spherical_surface, yc=right_younger_curvature,
-                oc=right_older_curvature, yas=right_younger_anatomical_surface, oas=right_older_anatomical_surface,
-                r_out=right_file_prefix, maxanat=max_anat, maxcp=max_cp)
-            with open(fr"{temp_output}/Subject_{subject}_R_{older_timepoint}-{younger_timepoint}_MSM.sh", "w+") as f:
-                    f.write(to_write_r)
-            
-        # Templates for local jobs
-        elif is_local:
-            # left_hemisphere
-            if hemisphere == "L":
-                template_path_l = path.join(script_dir, "Templates", "MSM_template_reverse_L_local.txt")
-                with open(template_path_l, "r") as f:
-                    template_read_l = f.read()
-                template_l = Template(template_read_l)
-                to_write_l = template_l.substitute(
-                    levels=levels, config=config, yss=left_younger_spherical_surface, oss=left_older_spherical_surface, yc=left_younger_curvature,
-                    oc=left_older_curvature, yas=left_younger_anatomical_surface, oas=left_older_anatomical_surface,
-                    r_out=left_file_prefix, maxanat=max_anat, maxcp=max_cp)
-                with open(fr"{temp_output}/Subject_{subject}_L_{older_timepoint}-{younger_timepoint}_MSM.sh", "w+") as f:
-                    f.write(to_write_l)
-            
-            # right_hemisphere
-            elif hemisphere == "R":
-                template_path_r = path.join(script_dir, "Templates", "MSM_template_reverse_R_local.txt")
-                with open(template_path_r, "r") as f:
-                    template_read_r = f.read()
-                template_r = Template(template_read_r)
-                to_write_r = template_r.substitute(
-                    levels=levels, config=config, yss=right_younger_spherical_surface, oss=right_older_spherical_surface, yc=right_younger_curvature,
-                    oc=right_older_curvature, yas=right_younger_anatomical_surface, oas=right_older_anatomical_surface,
-                    r_out=right_file_prefix, maxanat=max_anat, maxcp=max_cp)
-                with open(fr"{temp_output}/Subject_{subject}_R_{older_timepoint}-{younger_timepoint}_MSM.sh", "w+") as f:
-                    f.write(to_write_r)
-         
-        # Submit remote jobs
-        if not is_local:
-            # Left hemisphere
-            if slurm_job_limit == None:
-                jobs_open = is_slurm_queue_open(slurm_user)
-            else:
-                jobs_open = is_slurm_queue_open(slurm_user, slurm_job_limit)
-            
-            while jobs_open <= 0:
-                print("no jobs open waiting 2 hours")
-                sleep(2 * 3600)
-                if slurm_job_limit == None:
-                    jobs_open = is_slurm_queue_open(slurm_user)
-                else:
-                    jobs_open = is_slurm_queue_open(slurm_user, slurm_job_limit)
-            print("Jobs open submitting script")
-            run_logged(fr"sbatch {temp_output}/Subject_{subject}_L_{older_timepoint}-{younger_timepoint}_MSM.sh")
-            remove(fr"{temp_output}/Subject_{subject}_L_{older_timepoint}-{younger_timepoint}_MSM.sh")
-            
-            # Right hemisphere
-            if slurm_job_limit == None:
-                jobs_open = is_slurm_queue_open(slurm_user)
-            else:
-                jobs_open = is_slurm_queue_open(slurm_user, slurm_job_limit)
-            
-            while jobs_open <= 0:
-                print("no jobs open waiting 2 hours")
-                sleep(2 * 3600)
-                if slurm_job_limit == None:
-                    jobs_open = is_slurm_queue_open(slurm_user)
-                else:
-                    jobs_open = is_slurm_queue_open(slurm_user, slurm_job_limit)
-            print("Jobs open submitting script")
-            run_logged(fr"sbatch {temp_output}/Subject_{subject}_R_{older_timepoint}-{younger_timepoint}_MSM.sh")
-            remove(fr"{temp_output}/Subject_{subject}_R_{older_timepoint}-{younger_timepoint}_MSM.sh")
-
-        # Run local jobs
+        script_output_l = path.join(temp_output, f"Subject_{subject}_L_{older_timepoint}-{younger_timepoint}_MSM.sh")
+        script_output_r = path.join(temp_output, f"Subject_{subject}_R_{older_timepoint}-{younger_timepoint}_MSM.sh")
+        
         if is_local:
-            if hemisphere == "L":
-                run_logged(fr"bash {temp_output}/Subject_{subject}_L_{older_timepoint}-{younger_timepoint}_MSM.sh")
-                remove(fr"{temp_output}/Subject_{subject}_L_{older_timepoint}-{younger_timepoint}_MSM.sh")
+            print("[INFO] Local flag used. Using local run templates")
+            template_path_l = path.join(template_dir, "MSM_template_reverse_L_local.txt")
+            template_path_r = path.join(template_dir, "MSM_template_reverse_R_local.txt")
+            template_dict_l = {
+                "levels": levels,
+                "config": config,
+                "yss": left_younger_spherical_surface,
+                "oss": left_older_spherical_surface,
+                "yc": left_younger_curvature,
+                "oc": left_older_curvature,
+                "yas": left_younger_anatomical_surface,
+                "oas": left_older_anatomical_surface,
+                "r_out": left_file_prefix,
+                "maxanat": max_anat,
+                "maxcp": max_cp,
+            }
+            template_dict_r = {
+                "levels": levels,
+                "config": config,
+                "yss": right_younger_spherical_surface,
+                "oss": right_older_spherical_surface,
+                "yc": right_younger_curvature,
+                "oc": right_older_curvature,
+                "yas": right_younger_anatomical_surface,
+                "oas": right_older_anatomical_surface,
+                "r_out": right_file_prefix,
+                "maxanat": max_anat,
+                "maxcp": max_cp,
+            }
+        else:
+            print("[INFO] Local flag not used, using remote templates")
+            template_path_l = path.join(template_dir, "MSM_template_reverse_L.txt")
+            template_path_r = path.join(template_dir, "MSM_template_reverse_R.txt")
+            template_dict_l = {
+                "subject": subject,
+                "starting_time": older_timepoint,
+                "ending_time": younger_timepoint,
+                "user_home": user_home,
+                "email": slurm_email,
+                "account": slurm_account,
+                "levels": levels,
+                "config": config,
+                "yss": left_younger_spherical_surface,
+                "oss": left_older_spherical_surface,
+                "yc": left_younger_curvature,
+                "oc": left_older_curvature,
+                "yas": left_younger_anatomical_surface,
+                "oas": left_older_anatomical_surface,
+                "r_out": left_file_prefix,
+                "maxanat": max_anat,
+                "maxcp": max_cp,
+            }
+            template_dict_r = {
+                "subject": subject,
+                "starting_time": older_timepoint,
+                "ending_time": younger_timepoint,
+                "user_home": user_home,
+                "email": slurm_email,
+                "account": slurm_account,
+                "levels": levels,
+                "config": config,
+                "yss": right_younger_spherical_surface,
+                "oss": right_older_spherical_surface,
+                "yc": right_younger_curvature,
+                "oc": right_older_curvature,
+                "yas": right_younger_anatomical_surface,
+                "oas": right_older_anatomical_surface,
+                "r_out": right_file_prefix,
+                "maxanat": max_anat,
+                "maxcp": max_cp,
+            }
             
-            elif hemisphere == "R":
-                run_logged(fr"bash {temp_output}/Subject_{subject}_R_{older_timepoint}-{younger_timepoint}_MSM.sh")
-                remove(fr"{temp_output}/Subject_{subject}_R_{older_timepoint}-{younger_timepoint}_MSM.sh")
+        
+    print(f"[INFO] left file prefix is: {left_file_prefix}")
+    print(f"[INFO] right file prefix is: {right_file_prefix}")
+    print(f"[INFO] Scripts will be generated at {script_output_l} and {script_output_r}")
+    print(f"[INFO] Left template: {template_path_l}")
+    print(f"[INFO] Right template: {template_path_r}")
+    
+    # ------------------
+    # Remote Templates
+    # ------------------
+    if not is_local:
+        # ------------------------
+        # Left Hemisphere Remote
+        # ------------------------
+        print("[STEP] Generateing left hemisphere script")
+        print("[INFO] Using the following info for template")
+        print(f"    Template: {template_path_l}")
+        for k,v in template_dict_l.items():
+            print(f"    {k}: {v}")
+        
+        print("[FUNCTION] generate_from_template(template_path=template_path_l, output_path=script_output_l, template_dict=template_dict_l)")
+        generate_from_template(template_path=template_path_l, output_path=script_output_l, template_dict=template_dict_l)
+        print()
+        
+        # -------------------------
+        # Right Hemisphere Remote
+        # -------------------------
+        print("[STEP] Generateing right hemisphere script")
+        print("[INFO] Using the following info for template")
+        print(f"    Template: {template_path_r}")
+        for k,v in template_dict_r.items():
+            print(f"    {k}: {v}")
+        
+        print("[FUNCTION] generate_from_template(template_path=template_path_r, output_path=script_output_r, template_dict=template_dict_r)")
+        generate_from_template(template_path=template_path_r, output_path=script_output_r, template_dict=template_dict_r)
+        print()
+                            
+    # -----------------
+    # Local Templates
+    # -----------------
+    elif is_local:
+        if hemisphere is None or hemisphere not in {"L", "R"}:
+            fail("Local runs must indicate which hemisphere to be run using 'L' or 'R'")
+        elif hemisphere == "L":
+            # -----------------------
+            # Left Hemisphere Local
+            # -----------------------
+            
+            print("[INFO] Using the following info for template")
+            print(f"    Template: {template_path_l}")
+            for k,v in template_dict_l.items():
+                print(f"    {k}: {v}")
+            
+            print("[FUNCTION] generate_from_template(template_path=template_path_l, output_path=script_output_l, template_dict=template_dict_l)")
+            generate_from_template(template_path=template_path_l, output_path=script_output_l, template_dict=template_dict_l)
+            print()
+            
+                
+        elif hemisphere == "R":
+            # -----------------------
+            # Right Hemisphere Local
+            # -----------------------            
+            print("[INFO] Using the following info for template")
+            print(f"    Template: {template_path_r}")
+            for k,v in template_dict_r.items():
+                print(f"    {k}: {v}")
+            
+            print("[FUNCTION] generate_from_template(template_path=template_path_r, output_path=script_output_r, template_dict=template_dict_r)")
+            generate_from_template(template_path=template_path_r, output_path=script_output_r, template_dict=template_dict_r)
+            print()
+
+    # ------------------------
+    #  Submit Remote Jobs
+    # ------------------------
+    if not is_local:
+        print("[STEP] Submitting remote jobs to Slurm")
+        # -----------------
+        # Left Hemisphere
+        # -----------------
+        print(f"[INFO] Script to submit: {script_output_l}")
+        if slurm_job_limit == None:
+            print("[INFO] No job limit provided, using default")
+            print("[FUNCTION] is_slurm_queue_open(slurm_user=slurm_user)")
+            jobs_open = is_slurm_queue_open(slurm_user=slurm_user)
+            print()
+        else:
+            print(f"[INFO] Checking Slurm with a job limit of {slurm_job_limit}")
+            print("[FUNCTION] is_slurm_queue_open(slurm_user=slurm_user, slurm_job_limit=slurm_job_limit)")
+            jobs_open = is_slurm_queue_open(slurm_user=slurm_user, slurm_job_limit=slurm_job_limit)
+            print()
+        while jobs_open <= 0:
+            print("[INFO] No jobs currently open. Waiting two hours then checking again.")
+            sleep(2 * 3600)
+            if slurm_job_limit == None:
+                print("[INFO] No job limit provided, using default")
+                print("[FUNCTION] is_slurm_queue_open(slurm_user=slurm_user)")
+                jobs_open = is_slurm_queue_open(slurm_user=slurm_user)
+                print()
+            else:
+                print(f"[INFO] Checking Slurm with a job limit of {slurm_job_limit}")
+                print("[FUNCTION] is_slurm_queue_open(slurm_user=slurm_user, slurm_job_limit=slurm_job_limit)")
+                jobs_open = is_slurm_queue_open(slurm_user=slurm_user, slurm_job_limit=slurm_job_limit)
+                print()
+        print("[INFO]Jobs open submitting script")
+        run_logged(fr"sbatch {script_output_l}", step="SUBMIT REMOTE")
+        print(f"[INFO] Deleting {script_output_l}")
+        remove(script_output_l)
+        
+        # ------------------
+        # Right Hemisphere
+        # ------------------
+        print(f"[INFO] Script to submit: {script_output_r}")
+        if slurm_job_limit == None:
+            print("[INFO] No job limit provided, using default")
+            print("[FUNCTION] is_slurm_queue_open(slurm_user=slurm_user)")
+            jobs_open = is_slurm_queue_open(slurm_user=slurm_user)
+            print()
+        else:
+            print(f"[INFO] Checking Slurm with a job limit of {slurm_job_limit}")
+            print("[FUNCTION] is_slurm_queue_open(slurm_user=slurm_user, slurm_job_limit=slurm_job_limit)")
+            jobs_open = is_slurm_queue_open(slurm_user=slurm_user, slurm_job_limit=slurm_job_limit)
+            print()
+        while jobs_open <= 0:
+            print("[INFO] No jobs currently open. Waiting two hours then checking again.")
+            sleep(2 * 3600)
+            if slurm_job_limit == None:
+                print("[INFO] No job limit provided, using default")
+                print("[FUNCTION] is_slurm_queue_open(slurm_user=slurm_user)")
+                jobs_open = is_slurm_queue_open(slurm_user=slurm_user)
+                print()
+            else:
+                print(f"[INFO] Checking Slurm with a job limit of {slurm_job_limit}")
+                print("[FUNCTION] is_slurm_queue_open(slurm_user=slurm_user, slurm_job_limit=slurm_job_limit)")
+                jobs_open = is_slurm_queue_open(slurm_user=slurm_user, slurm_job_limit=slurm_job_limit)
+                print()
+        print("[INFO]Jobs open submitting script")
+        run_logged(fr"sbatch {script_output_r}", step="SUBMIT REMOTE")
+        print(f"[INFO] Deleting {script_output_r}")
+        remove(script_output_r)
+    
+    # -------------------
+    # Run Local Scripts
+    # -------------------
+    elif is_local:
+        print("[STEP] Running script locally")
+        if hemisphere == "L":
+            print(f"[INFO] Script to run: {script_output_l}")
+            run_logged(fr"bash {temp_output}/Subject_{subject}_L_{younger_timepoint}-{older_timepoint}_MSM.sh", step="RUN MSM")
+            print(f"[INFO] Deleting {script_output_r}")
+            remove(fr"{temp_output}/Subject_{subject}_L_{younger_timepoint}-{older_timepoint}_MSM.sh")
+        elif hemisphere == "R":
+            print(f"[INFO] Script to run: {script_output_r}")
+            run_logged(fr"bash {temp_output}/Subject_{subject}_R_{younger_timepoint}-{older_timepoint}_MSM.sh", step="RUN MSM")
+            print(f"[INFO] Deleting {script_output_r}")
+            remove(fr"{temp_output}/Subject_{subject}_R_{younger_timepoint}-{older_timepoint}_MSM.sh")
+    if is_local:
+        print(f"[COMPLETE] MSM registration complete")
+    else:
+        print(f"[COMPLETE] MSM jobs for submitted to slurm")
             
 
 # Function for MSM BL to all
@@ -1403,19 +1519,23 @@ def generate_avg_maps(pre_msm_data: str, msm_data: str, subject: str, younger_ti
         print("[INFO] Younger timepoint uses MCRIBS pipeline")
         print(f"[FUNCTION] Calling get_files_mcribs dataset={pre_msm_data} subject={subject}, timepoint={younger_timepoint}")
         younger_files = get_files_mcribs(pre_msm_data, subject, younger_timepoint)
+        print()
     else:
         print("[INFO] Younger timepoint uses standard pipeline")
         print(f"[FUNCTION] Calling get_files dataset={pre_msm_data} subject={subject}, timepoint={younger_timepoint}")
         younger_files = get_files(pre_msm_data, subject, younger_timepoint)
+        print()
     
     if older_uses_mcribs:
         print("[INFO] Older timepoint uses MCRIBS pipeline")
         print(f"[FUNCTION] Calling get_files_mcribs dataset={pre_msm_data} subject={subject}, timepoint={older_timepoint}")
         older_files = get_files_mcribs(pre_msm_data, subject, older_timepoint)
+        print()
     else:
         print("[INFO] Older timepoint uses standard pipeline")
         print(f"[FUNCTION] Calling get_files dataset={pre_msm_data} subject={subject}, timepoint={older_timepoint}")
         older_files = get_files(pre_msm_data, subject, older_timepoint)
+        print()
         
     left_younger_spherical_surface = younger_files["LSS"]
     left_older_spherical_surface = older_files["LSS"]
@@ -1700,9 +1820,11 @@ def generate_avg_maps_all(pre_msm_data: str, msm_data: str, max_cp: str | None=N
             if uses_mcribs:
                 print(f"[FUNCTION] generate_avg_maps(pre_msm_data={pre_msm_data}, msm_data={msm_data}, subject={subject}, younger_timepoint={second_time}, older_timepoint={first_time}, max_cp={max_cp}, max_anat={max_anat}, younger_uses_mcribs=True, older_uses_mcribs=True)")
                 generate_avg_maps(pre_msm_data, msm_data, subject, second_time, first_time, max_cp, max_anat, True, True)
+                print()
             else:
                 print(f"[FUNCTION] generate_avg_maps(pre_msm_data={pre_msm_data}, msm_data={msm_data}, subject={subject}, younger_timepoint={second_time}, older_timepoint={first_time}, max_cp={max_cp}, max_anat={max_anat})")
                 generate_avg_maps(pre_msm_data, msm_data, subject, second_time, first_time, max_cp, max_anat)
+                print()
 
         elif first_month < second_month:
             print(f"[INFO] SKIP condition met: first_month={first_month} < second_month={second_month} (already processed direction)")
@@ -1714,9 +1836,11 @@ def generate_avg_maps_all(pre_msm_data: str, msm_data: str, max_cp: str | None=N
             if uses_mcribs:
                 print(f"[FUNCTION] generate_avg_maps(pre_msm_data={pre_msm_data}, msm_data={msm_data}, subject={subject}, younger_timepoint={second_time}, older_timepoint={first_time}, max_cp={max_cp}, max_anat={max_anat}, younger_uses_mcribs=True, older_uses_mcribs=True)")
                 generate_avg_maps(pre_msm_data, msm_data, subject, second_time, first_time, max_cp, max_anat, True, True)
+                print()
             else:
                 print(f"[FUNCTION] generate_avg_maps(pre_msm_data={pre_msm_data}, msm_data={msm_data}, subject={subject}, younger_timepoint={second_time}, older_timepoint={first_time}, max_cp={max_cp}, max_anat={max_anat})")
                 generate_avg_maps(pre_msm_data, msm_data, subject, second_time, first_time, max_cp, max_anat)
+                print()
 
     print("[COMPLETE] Finished generating all average maps")
 
@@ -1822,33 +1946,43 @@ def get_files_mcribs(dataset: str, subject: str, time_point: str):
     
     print('[FUNCTION] find(pattern="lh.midthickness.surf.gii", search_path=subject_dir)')
     left_anatomical_surface = find(pattern="lh.midthickness.surf.gii", search_path=subject_dir)
+    print()
     
     print('[FUNCTION] find(pattern="rh.midthickness.surf.gii", search_path=subject_dir)')
     right_anatomical_surface = find(pattern="rh.midthickness.surf.gii", search_path=subject_dir)
+    print()
     
     print('[FUNCTION] find(pattern="lh.sphere.reg2.surf.gii", search_path=subject_dir)')
     left_spherical_surface = find(pattern="lh.sphere.reg2.surf.gii", search_path=subject_dir)
+    print()
     
     print('[FUNCTION] find(pattern="rh.sphere.reg2.surf.gii", search_path=subject_dir)')
     right_spherical_surface = find(pattern="rh.sphere.reg2.surf.gii", search_path=subject_dir)
+    print()
     
     print('[FUNCTION] find(pattern="lh.curv.shape.gii", search_path=subject_dir)')
     left_curvature = find(pattern="lh.curv.shape.gii", search_path=subject_dir)
+    print()
     
     print('[FUNCTION] find(pattern="rh.curv.shape.gii", search_path=subject_dir)')
     right_curvature = find(pattern="rh.curv.shape.gii", search_path=subject_dir)
+    print()
     
     print('[FUNCTION] find(pattern="lh.mean.thickness", search_path=subject_dir)')
     left_cortex = find(pattern="lh.mean.thickness", search_path=subject_dir) # TODO Figure out what this should be
+    print()
     
     print('[FUNCTION] find(pattern="rh.mean.thickness", search_path=subject_dir)')
     right_cortex = find(pattern="rh.mean.thickness", search_path=subject_dir) # TODO Figure out what this should be
+    print()
     
     print('[FUNCTION] find(pattern=f"{subject}.L.rescaled.surf.gii", search_path=subject_dir)')
     left_rescaled_surface = find(pattern=f"{subject}.L.rescaled.surf.gii", search_path=subject_dir)
+    print()
     
     print('[FUNCTION] find(pattern=f"{subject}.R.rescaled.surf.gii", search_path=subject_dir)')
     right_rescaled_surface = find(pattern=f"{subject}.R.rescaled.surf.gii", search_path=subject_dir)
+    print()
     
     print("[INFO] Found these files:")
     print(f"    LAS: {left_anatomical_surface}")
