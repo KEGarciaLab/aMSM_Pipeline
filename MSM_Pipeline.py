@@ -106,23 +106,30 @@ def get_ciftify_subject_list(dataset: str, subjects: list, pattern: str):
 
 # Function to check number of slurm jobs remaining
 def is_slurm_queue_open(slurm_user: str, slurm_job_limit: int=500):
-    print(f"\nChecking slurm queue for {slurm_user}")
-    jobs = check_output(
-        ["squeue",
-         f"-u{slurm_user}",
-         "-o '%.10i %.9p %40j %.8u %.10T %.10M %.6D %R'", "-a"]).decode("utf-8")
+    # ---------------------------------
+    # Check slurm queue against limit
+    # ---------------------------------
+    print(f"\n[SLURM QUEUE CHECK] Checking slurm queue for {slurm_user} with job limit of {slurm_job_limit}")
+    
+    print("[STEP] Creating output folder")
     user_home = path.expanduser('~')
     output_dir = rf"{user_home}/Scripts/MyScripts/Output/MSM_Pipeline"
-
     makedirs(output_dir, exist_ok=True)
+    
+    print("[STEP] Running squeue and capturing output")
+    jobs = check_output(["squeue", f"-u{slurm_user}", "-o '%.10i %.9p %40j %.8u %.10T %.10M %.6D %R'", "-a"]).decode("utf-8")
+    
+    print("[STEP] Writing current queue to text file")
     with open(rf"{user_home}/Scripts/MyScripts/Output/MSM_Pipeline/queue.txt", 'w+') as f:
         f.write(jobs)
+    
+    print("[STEP] Counting jobs in queue")
     with open(rf"{user_home}/Scripts/MyScripts/Output/MSM_Pipeline/queue.txt", 'r') as f:
         jobs = (sum(1 for line in f)) - 1
+    print(f"[INFO] Current jobs in queue: {jobs}")
     open_jobs = slurm_job_limit - jobs
-    if open_jobs > 0:
-        print(f"{open_jobs} jobs currently open")
-
+    print(f"[INFO] Number of jobs open: {open_jobs}")
+    print(f"[COMPLETE] Finished checking queue. Returning number of open jobs as int.")
     return open_jobs
 
 
