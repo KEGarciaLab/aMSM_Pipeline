@@ -792,18 +792,24 @@ def post_process_all(dataset: str, starting_time: str, resolution: str, output: 
 
 # helper function for retriving subjects
 def get_subjects(dataset: str):
+    # ----------------------
+    # Get Subjects Dataset
+    # ----------------------
+    print(f"\n[GET SUBJECTS] Getting subjects from dataset {dataset}")
     subjects = []
-    print("RETRIVING LIST OF SUBJECTS")
-    print("*" * 50)
     for directory in listdir(dataset):
         full_path = path.join(dataset, directory)
         if path.isdir(full_path):
             fields = directory.split("_")
             subject = fields[1]
             if subject not in subjects:
-                print(f"Found subject number {subject}")
+                print(f"[INFO] Found subject {subject} at {full_path} adding to subjects list")
                 subjects.append(subject)
     subjects.sort()
+    print("[Info] Found the following subjects")
+    for subject in subjects:
+        print(f"    {subject}")
+    print(f"[COMPLETE] Found all subjects in dataset {dataset}. Returning list of subjects")
     return subjects
 
 
@@ -907,7 +913,9 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
             slurm_user: str | None=None, slurm_job_limit: int | None=None, use_rescaled: bool=False):
     
     print(f"\n[MSM] Starting MSM run for subject {subject} from time point {younger_timepoint} to {older_timepoint} in {mode} mode")
-    
+    for name, value in locals().items():
+        print(f"    {name}: {value}")
+
     # -------------------------------------
     # Setting up defaults and variables
     # -------------------------------------
@@ -1440,28 +1448,42 @@ def run_msm_bl_to_all(dataset: str, output: str, starting_time: str, slurm_accou
                       slurm_email: str, alphanumeric_timepoints: bool=False, time_point_number_start_character: int | None=None,
                       younger_uses_mcribs: bool=False, older_uses_mcribs: bool=False, slurm_job_limit: int | None=None, levels: int=6, config: str | None=None,
                       max_anat: str | None=None, max_cp: str | None=None, use_rescaled: bool=False):
-
-    subjects = get_subjects(dataset)
-    print("\nAll subjects found. Beginning MSM")
-    print('*' * 50)
+    # --------------------------
+    # Batch Run MSM BL to All
+    # --------------------------
+    print(f"\n[MSM BL TO ALL] Beginning batch run for subjects in dataset {dataset} starting from time point {starting_time}")
+    print("[INFO] Arguments passed:")
+    for name, value in locals().items():
+        print(f"    {name}: {value}")
+        
+    print(f"[STEP] Retrieving subjects from dataset {dataset}")
+    print("[FUNCTION] get_subjects(dataset=dataset)")
+    subjects = get_subjects(dataset=dataset)
+    print()
+    
+    print("[STEP] Submitting MSM jobs")
     for subject in subjects:
-        time_points = get_subject_time_points(
-            dataset, subject, alphanumeric_timepoints, time_point_number_start_character, starting_time)
+        print(f"[INFO] Retrieving timepoints for {subject}")
+        print("[FUNCTION] get_subject_time_points(dataset=dataset, subject=subject, alphanumeric_timepoints=alphanumeric_timepoints, time_point_number_start_character=time_point_number_start_character, starting_time=starting_time)")
+        time_points = get_subject_time_points(dataset=dataset, subject=subject, alphanumeric_timepoints=alphanumeric_timepoints, time_point_number_start_character=time_point_number_start_character, starting_time=starting_time)
+        print()
+        
         if starting_time not in time_points:
-            print(
-                f"ERROR: Starting Time missing for {subject}! Proceeding to next subject")
+            print(f"[WARN] Starting Time missing for subejct {subject}. Proceeding to next subject")
             continue
-
+        
+        print("[INFO] Submit runs to run_msm")
         for time_point in time_points:
             if time_point != starting_time:
-                run_msm(dataset=dataset, output=output, subject=subject, younger_timepoint=starting_time, older_timepoint=time_point,
-                        mode="forward", younger_uses_mcribs=younger_uses_mcribs, older_uses_mcribs=older_uses_mcribs, levels=levels,
-                        config=config, max_anat=max_anat, max_cp=max_cp, slurm_email=slurm_email, slurm_account=slurm_account,
-                        slurm_user=slurm_user, slurm_job_limit=slurm_job_limit, use_rescaled=use_rescaled)
-                run_msm(dataset=dataset, output=output, subject=subject, younger_timepoint=starting_time, older_timepoint=time_point,
-                        mode="reverse", younger_uses_mcribs=younger_uses_mcribs, older_uses_mcribs=older_uses_mcribs, levels=levels,
-                        config=config, max_anat=max_anat, max_cp=max_cp, slurm_email=slurm_email, slurm_account=slurm_account,
-                        slurm_user=slurm_user, slurm_job_limit=slurm_job_limit, use_rescaled=use_rescaled)
+                print("[INFO] Starting forward run")
+                print('[FUNCTION] run_msm(dataset=dataset, output=output, subject=subject, younger_timepoint=starting_time, older_timepoint=time_point, mode="forward", younger_uses_mcribs=younger_uses_mcribs, older_uses_mcribs=older_uses_mcribs, levels=levels, config=config, max_anat=max_anat, max_cp=max_cp, slurm_email=slurm_email, slurm_account=slurm_account, slurm_user=slurm_user, slurm_job_limit=slurm_job_limit, use_rescaled=use_rescaled)')
+                run_msm(dataset=dataset, output=output, subject=subject, younger_timepoint=starting_time, older_timepoint=time_point, mode="forward", younger_uses_mcribs=younger_uses_mcribs, older_uses_mcribs=older_uses_mcribs, levels=levels, config=config, max_anat=max_anat, max_cp=max_cp, slurm_email=slurm_email, slurm_account=slurm_account, slurm_user=slurm_user, slurm_job_limit=slurm_job_limit, use_rescaled=use_rescaled)
+                print()
+                print("[INFO] Starting reverse run")
+                print('[FUNCTION] run_msm(dataset=dataset, output=output, subject=subject, younger_timepoint=starting_time, older_timepoint=time_point, mode="reverse", younger_uses_mcribs=younger_uses_mcribs, older_uses_mcribs=older_uses_mcribs, levels=levels, config=config, max_anat=max_anat, max_cp=max_cp, slurm_email=slurm_email, slurm_account=slurm_account, slurm_user=slurm_user, slurm_job_limit=slurm_job_limit, use_rescaled=use_rescaled)')
+                run_msm(dataset=dataset, output=output, subject=subject, younger_timepoint=starting_time, older_timepoint=time_point, mode="reverse", younger_uses_mcribs=younger_uses_mcribs, older_uses_mcribs=older_uses_mcribs, levels=levels, config=config, max_anat=max_anat, max_cp=max_cp, slurm_email=slurm_email, slurm_account=slurm_account, slurm_user=slurm_user, slurm_job_limit=slurm_job_limit, use_rescaled=use_rescaled)
+                print()
+    print("[COMPLETE] Completed batch run")
 
 
 # Function to run MSM on shirt time windows
@@ -1470,22 +1492,42 @@ def run_msm_short_time_windows(dataset: str, output: str, slurm_account: str, sl
                                younger_uses_mcribs: bool=False, older_uses_mcribs: bool=False, slurm_job_limit: int | None=None, levels: int=6,
                                config: str | None=None, max_anat: str | None=None, max_cp: str | None=None,
                                starting_time: str | None=None, use_rescaled: bool=False):
-    subjects = get_subjects(dataset)
-    print("\nAll subjects found. Beginning MSM")
-    print('*' * 50)
+    # ----------------------------------
+    # Batch Run MSM Short Time Windows
+    # ----------------------------------
+    print(f"\n[Run MSM Short Time Windows] Batch running MSM with short time windows from dataset {dataset}")
+    for name, value in locals().items():
+        print(f"    {name}: {value}")
+        
+    print("[STEP] Getting subjects from dataset")
+    print("[FUNCTION] get_subjects(dataset=dataset)")
+    subjects = get_subjects(dataset=dataset)
+    print()
+    
+    print("[STEP] Submitting MSM jobs")
     for subject in subjects:
-        time_points = get_subject_time_points(
-            dataset, subject, alphanumeric_timepoints, time_point_number_start_character, starting_time)
+        print(f"[INFO] Getting time points for {subject}")
+        print("[FUNCTION] get_subject_time_points(dataset=dataset, subject=subject, alphanumeric_timepoints=alphanumeric_timepoints, time_point_number_start_character=time_point_number_start_character, starting_time=starting_time)")
+        time_points = get_subject_time_points(dataset=dataset, subject=subject, alphanumeric_timepoints=alphanumeric_timepoints, time_point_number_start_character=time_point_number_start_character, starting_time=starting_time)
+        print()
+        
+        print("[INFO] Iterateing over time points to submit jobs")
         for i, time_point in enumerate(time_points):
             if i + 1 >= len(time_points):
                 break
             younger_time = time_point
             older_time = time_points[i + 1]
             if younger_time != starting_time and older_time != starting_time:
-                run_msm(dataset, output, subject, younger_time, older_time, "forward", younger_uses_mcribs, older_uses_mcribs, False, None,
-                        levels, config, max_anat, max_cp, slurm_email, slurm_account, slurm_user, slurm_job_limit, use_rescaled)
-                run_msm(dataset, output, subject, younger_time, older_time, "reverse", younger_uses_mcribs, older_uses_mcribs, False, None,
-                        levels, config, max_anat, max_cp, slurm_email, slurm_account, slurm_user, slurm_job_limit, use_rescaled)
+                print(f"[INFO] submitting job between time points {younger_time} and {older_time}")
+                print("[INFO] Submitting forward job")
+                print('[FUNCTION] run_msm(dataset=dataset, output=output, subject=subject, younger_timepoint=younger_time, older_timepoint=older_time, mode="forward", younger_uses_mcribs=younger_uses_mcribs, older_uses_mcribs=older_uses_mcribs, is_local=False, hemisphere=None, levels=levels, config=config, max_anat=max_anat, max_cp=max_cp, slurm_email=slurm_email, slurm_account=slurm_account, slurm_user=slurm_user, slurm_job_limit=slurm_job_limit, use_rescaled=use_rescaled)')
+                run_msm(dataset=dataset, output=output, subject=subject, younger_timepoint=younger_time, older_timepoint=older_time, mode="forward", younger_uses_mcribs=younger_uses_mcribs, older_uses_mcribs=older_uses_mcribs, is_local=False, hemisphere=None, levels=levels, config=config, max_anat=max_anat, max_cp=max_cp, slurm_email=slurm_email, slurm_account=slurm_account, slurm_user=slurm_user, slurm_job_limit=slurm_job_limit, use_rescaled=use_rescaled)
+                print()
+                print("[INFO] Submitting reverse job")
+                print('[FUNCTION] run_msm(dataset=dataset, output=output, subject=subject, younger_timepoint=younger_time, older_timepoint=older_time, mode="reverse", younger_uses_mcribs=younger_uses_mcribs, older_uses_mcribs=older_uses_mcribs, is_local=False, hemisphere=None, levels=levels, config=config, max_anat=max_anat, max_cp=max_cp, slurm_email=slurm_email, slurm_account=slurm_account, slurm_user=slurm_user, slurm_job_limit=slurm_job_limit, use_rescaled=use_rescaled)')
+                run_msm(dataset=dataset, output=output, subject=subject, younger_timepoint=younger_time, older_timepoint=older_time, mode="reverse", younger_uses_mcribs=younger_uses_mcribs, older_uses_mcribs=older_uses_mcribs, is_local=False, hemisphere=None, levels=levels, config=config, max_anat=max_anat, max_cp=max_cp, slurm_email=slurm_email, slurm_account=slurm_account, slurm_user=slurm_user, slurm_job_limit=slurm_job_limit, use_rescaled=use_rescaled)
+                print()
+    print(f"[COMPLETE] Finished bacth submission for dataset {dataset}")
 
 
 # Function to generate average maps
