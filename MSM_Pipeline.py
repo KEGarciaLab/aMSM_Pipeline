@@ -292,10 +292,16 @@ def get_subject_time_points(dataset: str, subject: str, alphanumeric_timepoints:
 
 
 # Helper function for searching files
-def find(pattern, search_path):
+def find(pattern, search_path, required_dirs=None):
     print(f'\n[FIND] Finding file matching the pattern {pattern} starting at {search_path}')
     for root, dirs, files in walk(search_path):
         print(f"[INFO] Searching in directory: {root}")
+        
+        if required_dirs:
+            parts=path.normpath(root).split(path.sep)
+            if not all(directory in parts for directory in required_dirs):
+                continue
+        
         for name in files:
             if fnmatch(name, pattern):
                 full_path = path.join(root, name)
@@ -329,28 +335,28 @@ def get_files(dataset: str, subject: str, time_point: str):
     # Locate files
     # ---------------------------------------------
     print(f"[STEP] Locating Files")
-    print(f'[FUNCTION] find(pattern="*.L.midthickness.32k_fs_LR.surf.gii", search_path=subject_dir)')
-    left_anatomical_surface = find(pattern="*.L.midthickness.32k_fs_LR.surf.gii", search_path=subject_dir)
+    print(f'[FUNCTION] find(pattern="*.L.midthickness.32k_fs_LR.surf.gii", search_path=subject_dir, required_dirs=["T1w"])')
+    left_anatomical_surface = find(pattern="*.L.midthickness.32k_fs_LR.surf.gii", search_path=subject_dir, required_dirs=["T1w"])
     print()
     
-    print(f'[FUNCTION] find(pattern="*.R.midthickness.32k_fs_LR.surf.gii", search_path=subject_dir)')
-    right_anatomical_surface = find(pattern="*.R.midthickness.32k_fs_LR.surf.gii", search_path=subject_dir)
+    print(f'[FUNCTION] find(pattern="*.R.midthickness.32k_fs_LR.surf.gii", search_path=subject_dir, required_dirs=["T1w"])')
+    right_anatomical_surface = find(pattern="*.R.midthickness.32k_fs_LR.surf.gii", search_path=subject_dir, required_dirs=["T1w"])
     print()
     
-    print(f'[FUNCTION] find(pattern="*.L.sphere.32k_fs_LR.surf.gii", search_path=subject_dir)')
-    left_spherical_surface = find(pattern="*.L.sphere.32k_fs_LR.surf.gii", search_path=subject_dir)
+    print(f'[FUNCTION] find(pattern="*.L.sphere.32k_fs_LR.surf.gii", search_path=subject_dir, required_dirs=["T1w"])')
+    left_spherical_surface = find(pattern="*.L.sphere.32k_fs_LR.surf.gii", search_path=subject_dir, required_dirs=["T1w"])
     print()
     
-    print(f'[FUNCTION] find(pattern="*.R.sphere.32k_fs_LR.surf.gii", search_path=subject_dir)')
-    right_spherical_surface = find(pattern="*.R.sphere.32k_fs_LR.surf.gii", search_path=subject_dir)
+    print(f'[FUNCTION] find(pattern="*.R.sphere.32k_fs_LR.surf.gii", search_path=subject_dir, required_dirs=["T1w"])')
+    right_spherical_surface = find(pattern="*.R.sphere.32k_fs_LR.surf.gii", search_path=subject_dir, required_dirs=["T1w"])
     print()
     
-    print(f'[FUNCTION] find(pattern="*.L.atlasroi.32k_fs_LR.shape.gii)", search_path=subject_dir)')
-    left_cortex = find(pattern="*.L.atlasroi.32k_fs_LR.shape.gii)", search_path=subject_dir)
+    print(f'[FUNCTION] find(pattern="*.L.atlasroi.32k_fs_LR.shape.gii)", search_path=subject_dir), required_dirs=["T1w"]')
+    left_cortex = find(pattern="*.L.atlasroi.32k_fs_LR.shape.gii)", search_path=subject_dir, required_dirs=["T1w"])
     print()
     
-    print(f'[FUNCTION] find(pattern="*.R.atlasroi.32k_fs_LR.shape.gii)", search_path=subject_dir)')
-    right_cortex = find(pattern="*.R.atlasroi.32k_fs_LR.shape.gii)", search_path=subject_dir)
+    print(f'[FUNCTION] find(pattern="*.R.atlasroi.32k_fs_LR.shape.gii)", search_path=subject_dir), required_dirs=["T1w"]')
+    right_cortex = find(pattern="*.R.atlasroi.32k_fs_LR.shape.gii)", search_path=subject_dir, required_dirs=["T1w"])
     print()
     
     print(f'[FUNCTION] find(pattern="*.L.rescaled.surf.gii", search_path=subject_dir)')
