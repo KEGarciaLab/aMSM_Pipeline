@@ -1700,7 +1700,7 @@ def generate_avg_maps(pre_msm_data: str, msm_data: str, subject: str, younger_ti
     right_revfor_cpgrid_surfdist = f"{msm_avg_output}/{subject}_R_{older_timepoint}-{younger_timepoint}.revfor.surfdist.CPgrid.reg.func.gii"
     right_revfor_anatgrid_surfdist = f"{msm_avg_output}/{subject}_R_{older_timepoint}-{younger_timepoint}.revfor.surfdist.ANATgrid.reg.func.gii"
     
-    print("[FILES] Surface distance (RevFor):")
+    print("[FILES] Surface distribution maps (RevFor):")
     print(f"    L CP:   {left_revfor_cpgrid_surfdist}")
     print(f"    R CP:   {right_revfor_cpgrid_surfdist}")
     print(f"    L ANAT: {left_revfor_anatgrid_surfdist}")
@@ -1711,7 +1711,7 @@ def generate_avg_maps(pre_msm_data: str, msm_data: str, subject: str, younger_ti
     right_avgfor_cpgrid_surfdist = f"{msm_avg_output}/{subject}_R_{younger_timepoint}-{older_timepoint}.avgfor.surfdist.CPgrid.reg.func.gii"
     right_avgfor_anatgrid_surfdist = f"{msm_avg_output}/{subject}_R_{younger_timepoint}-{older_timepoint}.avgfor.surfdist.ANATgrid.reg.func.gii"
     
-    print("[FILES] Surface distance (AvgFor):")
+    print("[FILES] Surface distribution maps (AvgFor):")
     print(f"    L CP:   {left_avgfor_cpgrid_surfdist}")
     print(f"    R CP:   {right_avgfor_cpgrid_surfdist}")
     print(f"    L ANAT: {left_avgfor_anatgrid_surfdist}")
