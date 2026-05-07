@@ -2031,13 +2031,17 @@ def rescale_surfaces(dataset: str,  subject: str, time_point: str, uses_mcribs: 
 
 # Rescale surfaces for all subjects
 def rescale_surfaces_all(dataset: str, uses_mcribs: bool=True):
+    print(f"\n[RESCALE ALL] Rescaling all surfaces in dataset {dataset}")
     for subject_folder in listdir(dataset):
         subject_path = path.join(dataset, subject_folder)
         if path.isdir(subject_path):
             fields = subject_folder.split("_")
             subject = fields[1]
             time_point = fields[2]
-            rescale_surfaces(dataset, subject, time_point, uses_mcribs)
+            print(f"[INFO] Rescale subject {subject} at time point {time_point}")
+            print("[FUNCTION] rescale_surfaces(dataset=dataset, subject=subject, time_point=time_point, uses_mcribs=uses_mcribs)")
+            rescale_surfaces(dataset=dataset, subject=subject, time_point=time_point, uses_mcribs=uses_mcribs)
+            print()
             
             
 # function to retrieve files for mcribs subject
