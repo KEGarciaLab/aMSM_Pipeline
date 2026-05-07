@@ -314,7 +314,7 @@ def find(pattern, search_path, required_dirs=None):
             
 
 # Helper function for retriving MSM files
-def get_files(dataset: str, subject: str, time_point: str):
+def get_files(dataset: str, subject: str, time_point: str, is_rescaled=False):
     print(f"\n[GET FILES] Getting files for Subject {subject} at time point {time_point} in dataset {dataset}")
     
     # -------------------------
@@ -359,13 +359,6 @@ def get_files(dataset: str, subject: str, time_point: str):
     right_cortex = find(pattern="*.R.atlasroi.32k_fs_LR.shape.gii)", search_path=subject_dir, required_dirs=["T1w"])
     print()
     
-    print(f'[FUNCTION] find(pattern="*.L.rescaled.surf.gii", search_path=subject_dir)')
-    left_rescaled_surface = find(pattern="*.L.rescaled.surf.gii", search_path=subject_dir)
-    print()
-    
-    print(f'[FUNCTION] find(pattern="*.R.rescaled.surf.gii", search_path=subject_dir)')
-    right_rescaled_surface = find(pattern="*.R.rescaled.surf.gii", search_path=subject_dir)
-    print()
     
     print("[FILES] Located the following files:")
     print(f"    LAS: {left_anatomical_surface}")
@@ -374,8 +367,7 @@ def get_files(dataset: str, subject: str, time_point: str):
     print(f"    RSS: {right_spherical_surface}")
     print(f"    LEFT CORTEX: {left_cortex}")
     print(f"    RIGHT CORTEX: {right_cortex}")
-    print(f"    LEFT RESCALE: {left_rescaled_surface}")
-    print(f"    RIGHT RESCALE: {right_rescaled_surface}")
+    
 
     # --------------------------------------------------------
     # Locate curvature file
@@ -402,6 +394,44 @@ def get_files(dataset: str, subject: str, time_point: str):
     print(f"[INFO] Right Curvature Output: {right_curvature}")
     run_logged(fr"wb_command -cifti-separate {base_curvature} -metric CORTEX_LEFT {left_curvature} -metric CORTEX_RIGHT {right_curvature}", step="SEP CURV")
 
+    # ---------------------------------------------
+    # Grab rescaled and resampled files if needed
+    #----------------------------------------------
+    if is_rescaled:
+        print(f'[FUNCTION] find(pattern="*.L.rescaled.surf.gii", search_path=subject_dir)')
+        left_rescaled_surface = find(pattern="*.L.rescaled.surf.gii", search_path=subject_dir)
+        print()
+        
+        print(f'[FUNCTION] find(pattern="*.R.rescaled.surf.gii", search_path=subject_dir)')
+        right_rescaled_surface = find(pattern="*.R.rescaled.surf.gii", search_path=subject_dir)
+        print()
+        
+        print('[FUNCTION] find(pattern="*.L.generated.sphere.surf.gii", search_path=subject_dir)')
+        left_generated_sphere = find(pattern="*.L.generated.sphere.surf.gii", search_path=subject_dir)
+        print()
+        
+        print('[FUNCTION] find(pattern="*.R.generated.sphere.surf.gii", search_path=subject_dir)')
+        right_generated_sphere = find(pattern="*.R.generated.sphere.surf.gii", search_path=subject_dir)
+        print()
+        
+        print(f'[FUNCTION] find(pattern="*.L.rescaled.ANATgrid.surf.gii", search_path=subject_dir)')
+        left_resampled_anatgrid=find(pattern="*.L.rescaled.ANATgrid.surf.gii", search_path=subject_dir)
+        print()
+        
+        print(f'[FUNCTION] find(pattern="*.L.rescaled.CPgrid.surf.gii", search_path=subject_dir)')
+        left_resampled_cpgrid=find(pattern="*.L.rescaled.CPgrid.surf.gii", search_path=subject_dir)
+        print()
+        
+        print(f'[FUNCTION] find(pattern="*.L=R.rescaled.ANATgrid.surf.gii", search_path=subject_dir)')
+        right_resampled_anatgrid=find(pattern="*.R.rescaled.ANATgrid.surf.gii", search_path=subject_dir)
+        print()
+        
+        print(f'[FUNCTION] find(pattern="*.R.rescaled.CPgrid.surf.gii", search_path=subject_dir)')
+        right_resampled_cpgrid=find(pattern="*.R.rescaled.CPgrid.surf.gii", search_path=subject_dir)
+        print()
+    else:
+        left_rescaled_surface = right_rescaled_surface = left_generated_sphere = right_generated_sphere = left_resampled_anatgrid = right_resampled_anatgrid = left_resampled_cpgrid = right_resampled_cpgrid = None
+    
     # -----------------------
     # Return Files
     # -----------------------
@@ -417,22 +447,19 @@ def get_files(dataset: str, subject: str, time_point: str):
         "LEFT CORTEX": left_cortex,
         "RIGHT CORTEX": right_cortex,
         "LEFT RESCALE": left_rescaled_surface,
-        "RIGHT RESCALE": right_rescaled_surface
+        "RIGHT RESCALE": right_rescaled_surface,
+        "LEFT RESCALE ANAT": left_resampled_anatgrid,
+        "LEFT RESCALE CP": left_resampled_cpgrid,
+        "RIGHT RESCALE ANAT": right_resampled_anatgrid,
+        "RIGHT RESCALE CP": right_resampled_cpgrid,
+        "LEFT GEN SPHERE": left_generated_sphere,
+        "RIGHT GEN SPHERE": right_generated_sphere,
     }
     
     print("[INFO] Returning the following:")
-    print(f"    LAS: {left_anatomical_surface}")
-    print(f"    RAS: {right_anatomical_surface}")
-    print(f"    LSS: {left_spherical_surface}")
-    print(f"    RSS: {right_spherical_surface}")
-    print(f"    LEFT CURVATURE: {left_curvature}")
-    print(f"    RIGHT CURVATURE: {right_curvature}")
-    print(f"    SUBJECT DIR: {subject_dir}")
-    print(f"    SUBJECT PREFIX: {subject_full_name}")
-    print(f"    LEFT CORTEX: {left_cortex}")
-    print(f"    RIGHT CORTEX: {right_cortex}")
-    print(f"    LEFT RESCALE: {left_rescaled_surface}")
-    print(f"    RIGHT RESCALE: {right_rescaled_surface}")
+    for k,v in subject_files.items():
+        print(f"    {k}: {v}")
+    
     print(f"[COMPELTE] Finished finding files for Subject {subject} at time point {time_point} in {dataset}. Returning dictonary of files")
     return subject_files
 
@@ -827,7 +854,7 @@ def get_subjects(dataset: str):
 
 
 # Helper function for sphere generation
-def generate_sphere(subject_dir, left_midthickness, right_midthickness, max_anat):
+def generate_sphere(subject_dir, subject_prefix, left_midthickness, right_midthickness, max_anat):
     # --------------------------------------------
     # Generate sphere based on rescaled surfaces
     # --------------------------------------------
@@ -850,8 +877,8 @@ def generate_sphere(subject_dir, left_midthickness, right_midthickness, max_anat
     left_matched = path.join(subject_dir, "lh.matched.surf.gii")
     right_matched = path.join(subject_dir, "rh.matched.surf.gii")
     
-    left_spherical_surface = path.join(subject_dir, "lh.sphere.surf.gii")
-    right_spherical_surface = path.join(subject_dir, "rh.sphere.surf.gii")
+    left_spherical_surface = path.join(subject_dir, f"{subject_prefix}.L.generated.sphere.surf.gii")
+    right_spherical_surface = path.join(subject_dir, f"{subject_prefix}.R.generated.sphere.surf.gii")
     
     print(f"[FILES] Files will be gnereaterd as follows:")
     print(f"    LEFT SMOOTHED: {left_smoothed}")
@@ -952,10 +979,9 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
     
     print(f"[INFO] Mode is {mode}, setting script path to match")
     if mode == "forward":
-        pass
+        temp_output = path.join(user_home, "Scripts", "MyScripts", "Output", "MSM_Pipeline", "MSM_scripts", fr"{subject}_{younger_timepoint}_to_{older_timepoint}")
     elif mode == "reverse":
-        temp_output = path.join(user_home, "Scripts", "MyScripts", "Output", "MSM_Pipeline",
-                                "MSM_scripts", fr"{subject}_{older_timepoint}_to_{younger_timepoint}")
+        temp_output = path.join(user_home, "Scripts", "MyScripts", "Output", "MSM_Pipeline", "MSM_scripts", fr"{subject}_{older_timepoint}_to_{younger_timepoint}")
     makedirs(temp_output, exist_ok=True)
     
     print("[INFO] The following settings will be used:")
@@ -977,53 +1003,32 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
     print(f"[STEP] Retrieving files for younger timepoint")
     if younger_uses_mcribs:
         print(f"[INFO] Younger time point uses M-CRIB-S naming conventions")
-        print(f"[FUNCTION] get_files_mcribs(dataset=dataset, subject=subject, time_point=younger_timepoint)")
-        younger_files = get_files_mcribs(dataset=dataset, subject=subject, time_point=younger_timepoint)
+        print(f"[FUNCTION] get_files_mcribs(dataset=dataset, subject=subject, time_point=younger_timepoint, is_rescaled=True)")
+        younger_files = get_files_mcribs(dataset=dataset, subject=subject, time_point=younger_timepoint, is_rescaled=True)
         print()
         
         print(f"[INFO] M-CRIB-S Surfaces must be rescaled. Using rescaled surfaces")
         left_younger_anatomical_surface = younger_files["LEFT RESCALE"]
         right_younger_anatomical_surface = younger_files["RIGHT RESCALE"]
-        
-        print("[STEP] Generating new sphere matched to icosphere")
-        subject_dir = younger_files["SUBJECT DIR"]
-        left_younger_midthickness = younger_files["LAS"]
-        right_younger_midthickness = younger_files["RAS"]
-        
-        print("[FILES] Input files:")
-        print(f"    SUBJECT DIR: {subject_dir}")
-        print(f"    LEFT MIDTHICKNESS: {left_younger_midthickness}")
-        print(f"    RIGHT MIDTHICKNESS: {right_younger_midthickness}")
-    
-        print("[FUNCTION] generate_sphere(subject_dir=subject_dir, left_midthickness=left_younger_midthickness, right_midthickness=right_younger_midthickness, max_anat=max_anat)")
-        left_younger_spherical_surface, right_younger_spherical_surface = generate_sphere(subject_dir=subject_dir, left_midthickness=left_younger_midthickness, right_midthickness=right_younger_midthickness, max_anat=max_anat)
-        print()
+        left_younger_spherical_surface = younger_files["LEFT GEN SPHERE"]
+        right_younger_spherical_surface = younger_files["RIGHT GEN SPHERE"]
     else:
         print("[INFO] Younger timepoint uses Ciftify/Freesurfer naming conventiions")
-        print("[FUNCTION] get_files(dataset=dataset, subject=subject, time_point=younger_timepoint)")
-        younger_files = get_files(dataset=dataset, subject=subject, time_point=younger_timepoint)
-        print()
         if use_rescaled:
             print("[INFO] Rescale option is set to true for Freesurfer subejcts")
+            print("[FUNCTION] get_files(dataset=dataset, subject=subject, time_point=younger_timepoint, is_rescaled=True)")
+            younger_files = get_files(dataset=dataset, subject=subject, time_point=younger_timepoint, is_rescaled=True)
+            print()
             left_younger_anatomical_surface = younger_files["LEFT RESCALE"]
             right_younger_anatomical_surface = younger_files["RIGHT RESCALE"]
-            
-            print("[STEP] Generating new sphere matched to icosphere")
-            subject_dir = younger_files["SUBJECT DIR"]
-            left_younger_midthickness = younger_files["LAS"]
-            right_younger_midthickness = younger_files["RAS"]
-            
-            print("[FILES] Input files:")
-            print(f"    SUBJECT DIR: {subject_dir}")
-            print(f"    LEFT MIDTHICKNESS: {left_younger_midthickness}")
-            print(f"    RIGHT MIDTHICKNESS: {right_younger_midthickness}")
-            
-            print("[FUNCTION] generate_sphere(subject_dir=subject_dir, left_midthickness=left_younger_midthickness, right_midthickness=right_younger_midthickness, max_anat=max_anat)")
-            left_younger_spherical_surface, right_younger_spherical_surface = generate_sphere(subject_dir=subject_dir, left_midthickness=left_younger_midthickness, right_midthickness=right_younger_midthickness, max_anat=max_anat)
-            print()
+            left_younger_spherical_surface = younger_files["LEFT GEN SPHERE"]
+            right_younger_spherical_surface = younger_files["RIGHT GEN SPHERE"]
             
         else:
             print("[INFO] Rescale option set to False for Freesurfer subjects")
+            print("[FUNCTION] get_files(dataset=dataset, subject=subject, time_point=younger_timepoint)")
+            younger_files = get_files(dataset=dataset, subject=subject, time_point=younger_timepoint)
+            print()
             left_younger_anatomical_surface = younger_files["LAS"]
             right_younger_anatomical_surface = younger_files["RAS"]
             left_younger_spherical_surface = younger_files["LSS"]
@@ -1045,52 +1050,31 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
     print("[STEP] Retrieving files for older timepoint")    
     if older_uses_mcribs:
         print(f"[INFO] Older time point uses M-CRIB-S naming conventions")
-        print(f"[FUNCTION] get_files_mcribs(dataset=dataset, subject=subject, time_point=older_timepoint)")
-        older_files = get_files_mcribs(dataset=dataset, subject=subject, time_point=older_timepoint)
+        print(f"[FUNCTION] get_files_mcribs(dataset=dataset, subject=subject, time_point=older_timepoint, is_rescaled=True)")
+        older_files = get_files_mcribs(dataset=dataset, subject=subject, time_point=older_timepoint, is_rescaled=True)
         print()
         
         print(f"[INFO] M-CRIB-S Surfaces must be rescaled. Using rescaled surfaces")
         left_older_anatomical_surface = older_files["LEFT RESCALE"]
         right_older_anatomical_surface = older_files["RIGHT RESCALE"]
-        
-        print("[STEP] Generating new sphere matched to icosphere")
-        subject_dir = younger_files["SUBJECT DIR"]
-        left_older_midthickness = younger_files["LAS"]
-        right_older_midthickness = younger_files["RAS"]
-        
-        print("[FILES] Input files:")
-        print(f"    SUBJECT DIR: {subject_dir}")
-        print(f"    LEFT MIDTHICKNESS: {left_older_midthickness}")
-        print(f"    RIGHT MIDTHICKNESS: {right_older_midthickness}")
-    
-        print("[FUNCTION] generate_sphere(subject_dir=subject_dir, left_midthickness=left_older_midthickness, right_midthickness=right_older_midthickness, max_anat=max_anat)")
-        left_older_spherical_surface, right_older_spherical_surface = generate_sphere(subject_dir=subject_dir, left_midthickness=left_older_midthickness, right_midthickness=right_older_midthickness, max_anat=max_anat)
-        print()
+        left_older_spherical_surface = older_files["LEFT GEN SPHERE"]
+        right_older_spherical_surface = older_files["RIGHT GEN SPHERE"]
     else:
         print("[INFO] Older timepoint uses Ciftify/Freesurfer naming conventiions")
-        print("[FUNCTION] get_files(dataset=dataset, subject=subject, time_point=older_timepoint)")
-        older_files = get_files(dataset=dataset, subject=subject, time_point=older_timepoint)
-        print()
         if use_rescaled:
             print("[INFO] Rescale option is set to true for Freesurfer subjects")
+            print("[FUNCTION] get_files(dataset=dataset, subject=subject, time_point=older_timepoint, is_rescaled=True)")
+            older_files = get_files(dataset=dataset, subject=subject, time_point=older_timepoint, is_rescaled=True)
+            print()
             left_older_anatomical_surface = older_files["LEFT RESCALE"]
             right_older_anatomical_surface = older_files["RIGHT RESCALE"]
-            
-            print("[STEP] Generating new sphere matched to icosphere")
-            subject_dir = younger_files["SUBJECT DIR"]
-            left_older_midthickness = younger_files["LAS"]
-            right_older_midthickness = younger_files["RAS"]
-            
-            print("[FILES] Input files:")
-            print(f"    SUBJECT DIR: {subject_dir}")
-            print(f"    LEFT MIDTHICKNESS: {left_older_midthickness}")
-            print(f"    RIGHT MIDTHICKNESS: {right_older_midthickness}")
-        
-            print("[FUNCTION] generate_sphere(subject_dir=subject_dir, left_midthickness=left_older_midthickness, right_midthickness=right_older_midthickness, max_anat=max_anat)")
-            left_older_spherical_surface, right_older_spherical_surface = generate_sphere(subject_dir=subject_dir, left_midthickness=left_older_midthickness, right_midthickness=right_older_midthickness, max_anat=max_anat)
-            print()
+            left_older_spherical_surface = older_files["LEFT GEN SPHERE"]
+            right_older_spherical_surface = older_files["RIGHT GEN SPHERE"]
         else:
             print("[INFO] Rescale option set to False for Freesurfer subjects")
+            print("[FUNCTION] get_files(dataset=dataset, subject=subject, time_point=older_timepoint)")
+            older_files = get_files(dataset=dataset, subject=subject, time_point=older_timepoint)
+            print()
             left_older_anatomical_surface = older_files["LAS"]
             right_older_anatomical_surface = older_files["RAS"]
             left_older_spherical_surface = older_files["LSS"]
@@ -1902,40 +1886,62 @@ def generate_avg_maps_all(pre_msm_data: str, msm_data: str, max_cp: str | None=N
 
 # Rescale mcribs surface
 def rescale_surfaces(dataset: str,  subject: str, time_point: str, uses_mcribs: bool=False):
-    print(f"\nBEGIN RESCALING SURFACES FOR SUBJECT {subject} AT TIMEPOINT {time_point}")
-    print('*' * 50)
-    # Retrieve all necessay files
+    # ------------------
+    # Rescale Surfaces
+    # ------------------
+    print(f"\n[RESCALE] Begin rescaling for subject {subject} at time point {time_point}")
+    
+    # ----------------
+    # Retrieve Files
+    # ----------------
     print("Retriving subject files")
     if uses_mcribs:
-        subject_files = get_files_mcribs(dataset, subject, time_point)
+        print("[FUNCTION] get_files_mcribs(dataset=dataset, subject=subject, time_point=time_point)")
+        subject_files = get_files_mcribs(dataset=dataset, subject=subject, time_point=time_point)
+        print()
     else:
-        subject_files = get_files(dataset, subject, time_point)
+        print("[FUNCTION] get_files(dataset=dataset, subject=subject, time_point=time_point)")
+        subject_files = get_files(dataset=dataset, subject=subject, time_point=time_point)
+        print()
+    
     left_midthickness_file = subject_files["LAS"]
     right_midthickness_file = subject_files["RAS"]
     subject_dir = subject_files["SUBJECT DIR"]
-    subject_full_name = subject_files["SUBJECT PREFIX"]
-    print(f"Subject directory: {subject_dir}")
-    print(f"Subject full name: {subject_full_name}")
-    print(f"Left midthickness file: {left_midthickness_file}")
-    print(f"Right midthickness file: {right_midthickness_file}")
+    subject_prefix = subject_files["SUBJECT PREFIX"]
+    script_dir = path.dirname(path.realpath(__file__))
+    max_anat = path.join(script_dir, "NeededFiles", "ico6sphere.LR.reg.surf.gii")
+    max_cp = path.join(script_dir, "NeededFiles", "ico5sphere.LR.reg.surf.gii")
+    print("[INFO] Files found:")
+    print(f"    Subject directory: {subject_dir}")
+    print(f"    Subject prefix: {subject_prefix}")
+    print(f"    Left midthickness file: {left_midthickness_file}")
+    print(f"    Right midthickness file: {right_midthickness_file}")
     # left_cortex = subject_files["LEFT CORTEX"]
     # right_cortex = subject_files["RIGHT CORTEX"]
     
-    # output file names
-    left_shape_file = path.join(subject_dir, f"{subject_full_name}.L.areas.shape.gii")
-    right_shape_file = path.join(subject_dir, f"{subject_full_name}.R.areas.shape.gii")
-    left_affine_matrix = path.join(subject_dir, f"{subject_full_name}.L.rescaleaffine.nii")
-    right_affine_matrix = path.join(subject_dir, f"{subject_full_name}.R.rescaleaffine.nii")
-    left_rescaled_surface = path.join(subject_dir, f"{subject_full_name}.L.rescaled.surf.gii")
-    right_rescaled_surface = path.join(subject_dir, f"{subject_full_name}.R.rescaled.surf.gii")
     
-    # crete shape files
-    print("Creating shape files")
+    left_shape_file = path.join(subject_dir, f"{subject_prefix}.L.areas.shape.gii")
+    right_shape_file = path.join(subject_dir, f"{subject_prefix}.R.areas.shape.gii")
+    left_affine_matrix = path.join(subject_dir, f"{subject_prefix}.L.rescaleaffine.nii")
+    right_affine_matrix = path.join(subject_dir, f"{subject_prefix}.R.rescaleaffine.nii")
+    left_rescaled_surface = path.join(subject_dir, f"{subject_prefix}.L.rescaled.surf.gii")
+    right_rescaled_surface = path.join(subject_dir, f"{subject_prefix}.R.rescaled.surf.gii")
+    left_resampled_surface_anatgrid = path.join(subject_dir, f"{subject_prefix}.L.rescaled.ANATgrid.surf.gii")
+    right_resampled_surface_anatgrid = path.join(subject_dir, f"{subject_prefix}.R.rescaled.ANATgrid.surf.gii")
+    left_resampled_surface_cpgrid = path.join(subject_dir, f"{subject_prefix}.L.rescaled.CPgrid.surf.gii")
+    right_resampled_surface_cpgrid = path.join(subject_dir, f"{subject_prefix}.R.rescaled.CPgrid.surf.gii")
+    
+    # -------------------
+    # Create shape files
+    # -------------------
+    print("[STEP] Creating shape files")
     run_logged(f"wb_command -surface-vertex-areas {left_midthickness_file} {left_shape_file}")
     run_logged(f"wb_command -surface-vertex-areas {left_midthickness_file} {right_shape_file}")
     
-    #subject cortex shape
-    print("Calculating surface areas")
+    # ------------------------
+    # Calculate Surface area
+    # ------------------------
+    print("[STEP] Calculating surface areas")
     run_logged(f"wb_command -metric-stats {left_shape_file} -reduce SUM")
     command_output = run_logged(f"wb_command -metric-stats {left_shape_file} -reduce SUM", shell=True, capture_output=True, text=True, check=True)
     left_surface_area = float(command_output.stdout.strip())
@@ -1943,18 +1949,22 @@ def rescale_surfaces(dataset: str,  subject: str, time_point: str, uses_mcribs: 
     run_logged(f"wb_command -metric-stats {right_shape_file} -reduce SUM")
     command_output = run_logged(f"wb_command -metric-stats {right_shape_file} -reduce SUM", shell=True, capture_output=True, text=True, check=True)
     right_surface_area = float(command_output.stdout.strip())
-    print(f"Left Surface Area: {left_surface_area}")
-    print(f"Right Surface Area: {right_surface_area}")
+    print(f"[INFO] Left Surface Area: {left_surface_area}")
+    print(f"[INFO] Right Surface Area: {right_surface_area}")
     
-    # Rescale value calculations
-    print("Calculating rescale values")
+    # -------------------------
+    # Calculate Rescale Value
+    # -------------------------
+    print("[STEP] Calculating rescale values")
     left_rescale_value = sqrt(10000 / left_surface_area)
     right_rescale_value = sqrt(10000 / right_surface_area)
-    print(f"Left Rescale Value: {left_rescale_value}")
-    print(f"Right Rescale Value: {right_rescale_value}")
+    print(f"[INFO] Left Rescale Value: {left_rescale_value}")
+    print(f"[INFO] Right Rescale Value: {right_rescale_value}")
     
-    # create affine matrix
-    print("Creating affine matrices")
+    # ---------------------
+    # Apply affine rescale
+    # ----------------------
+    print("[STEP] Creating affine matrices")
     with open(left_affine_matrix, "w+") as f:
         f.writelines([f"{left_rescale_value} 0 0 0\n",
                      f"0 {left_rescale_value} 0 0\n",
@@ -1967,11 +1977,56 @@ def rescale_surfaces(dataset: str,  subject: str, time_point: str, uses_mcribs: 
                      f"0 0 {right_rescale_value} 0\n",
                      "0 0 0 1"])
         
-    # apply affine matrix
-    print("Applying affine matrices to surfaces")
+    
+    print("[STEP] Applying affine matrices to surfaces")
     run_logged(f"wb_command -surface-apply-affine {left_midthickness_file} {left_affine_matrix} {left_rescaled_surface}")
     run_logged(f"wb_command -surface-apply-affine {right_midthickness_file} {right_affine_matrix} {right_rescaled_surface}")
-    print("Rescaling complete\n")
+    
+    # ------------------
+    # Generate Spheres
+    # ------------------
+    print("[STEP] Generating new spheres for rescaled surfaces")
+    print("[INFO] Input files and options:")
+    print(f"    SUBJECT DIR: {subject_dir}")
+    print(f"    SUBJECT PREFIX: {subject_prefix}")
+    print(f"    LEFT MIDTHICKNESS: {left_midthickness_file}")
+    print(f"    RIGHT MIDTHICKNESS: {right_midthickness_file}")
+    print(f"    MAX ANAT: {max_anat}")
+    print("[FUNCTION] generate_sphere(subject_dir=subject_dir, subject_prefix=subject_prefix, left_midthickness=left_midthickness_file, right_midthickness=right_midthickness_file, max_anat=max_anat)")
+    left_spherical_surface, right_spherical_surface = generate_sphere(subject_dir=subject_dir, subject_prefix=subject_prefix, left_midthickness=left_midthickness_file, right_midthickness=right_midthickness_file, max_anat=max_anat)
+    print()
+    
+    # -----------------------
+    # Resample to anat grid
+    # -----------------------
+    print("[STEP] Resampling rescaled surfaces")
+    print("[INFO] Input Files:")
+    print(f"    LEFT RESCALED SURFACE: {left_rescaled_surface}")
+    print(f"    RIGHT RESCALED SURFACE: {right_rescaled_surface}")
+    print(f"    LEFT SPHERE: {left_spherical_surface}")
+    print(f"    RIGHT SPHERE: {right_spherical_surface}")
+    print(f"    MAX ANAT: {max_anat}")
+    print(f"    MAX CP: {max_cp}")
+    
+    print("[INFO] Output Files:")
+    print(f"    LEFT RESAMLPED SURFACE ANATGRID: {left_resampled_surface_anatgrid}")
+    print(f"    RIGHT RESAMLPED SURFACE ANATGRID: {right_resampled_surface_anatgrid}")
+    print(f"    LEFT RESAMLPED SURFACE CPGRID: {left_resampled_surface_cpgrid}")
+    print(f"    RIGHT RESAMLPED SURFACE CPGRID: {right_resampled_surface_cpgrid}")
+    
+    print("[INFO] Start resample to ANATgrid")
+    run_logged(f'wb_command -metric-resample {left_rescaled_surface} {left_spherical_surface} {max_anat} "BARYCENTRIC" {left_resampled_surface_anatgrid}', step="RESAMPLE ANAT")
+    print("[INFO] Left hemisphere complete")
+    run_logged(f'wb_command -metric-resample {right_rescaled_surface} {right_spherical_surface} {max_anat} "BARYCENTRIC" {right_resampled_surface_anatgrid}', step="RESAMPLE ANAT")
+    print("[INFO] Right hemisphere complete")
+    
+    print("[INFO] Start resample to CPgrid")
+    run_logged(f'wb_command -metric-resample {left_rescaled_surface} {left_spherical_surface} {max_cp} "BARYCENTRIC" {left_resampled_surface_anatgrid}', step="RESAMPLE CP")
+    print("[INFO] Left hemisphere complete")
+    run_logged(f'wb_command -metric-resample {right_rescaled_surface} {right_spherical_surface} {max_cp} "BARYCENTRIC" {right_resampled_surface_anatgrid}', step="RESAMPLE CP")
+    print("[INFO] Right hemispher complete")
+    
+    print("[COMPLETE] Rescaling complete")
 
 
 # Rescale surfaces for all subjects
@@ -1986,7 +2041,7 @@ def rescale_surfaces_all(dataset: str, uses_mcribs: bool=True):
             
             
 # function to retrieve files for mcribs subject
-def get_files_mcribs(dataset: str, subject: str, time_point: str):
+def get_files_mcribs(dataset: str, subject: str, time_point: str, is_rescaled=False):
     print(f"\n[GET FILES] Getting files for Subject {subject} at time point {time_point} in {dataset}, using M-CRIB-S naming conventions")
     
     # -------------------------
@@ -2031,27 +2086,43 @@ def get_files_mcribs(dataset: str, subject: str, time_point: str):
     right_cortex = find(pattern="rh.mean.thickness", search_path=subject_dir) # TODO Figure out what this should be
     print()
     
-    print('[FUNCTION] find(pattern=f"{subject}.L.rescaled.surf.gii", search_path=subject_dir)')
-    left_rescaled_surface = find(pattern=f"{subject}.L.rescaled.surf.gii", search_path=subject_dir)
-    print()
-    
-    print('[FUNCTION] find(pattern=f"{subject}.R.rescaled.surf.gii", search_path=subject_dir)')
-    right_rescaled_surface = find(pattern=f"{subject}.R.rescaled.surf.gii", search_path=subject_dir)
-    print()
-    
-    print("[INFO] Found these files:")
-    print(f"    LAS: {left_anatomical_surface}")
-    print(f"    RAS: {right_anatomical_surface}")
-    print(f"    LSS: {left_spherical_surface}")
-    print(f"    RSS: {right_spherical_surface}")
-    print(f"    Left Curvature: {left_curvature}")
-    print(f"    Right Curvature: {right_curvature}")
-    print(f"    Subject Directory: {subject_dir}")
-    print(f"    Subject: {subject}")
-    print(f"    Left Cortex: {left_cortex}")
-    print(f"    Right Cortex: {right_cortex}")
-    print(f"    Left Rescaled Surface: {left_rescaled_surface}")
-    print(f"    Right Rescaled Surface: {right_rescaled_surface}")
+    # ---------------------------------------------
+    # Grab rescaled and resampled files if needed
+    #----------------------------------------------
+    if is_rescaled:
+        print('[FUNCTION] find(pattern="*.L.rescaled.surf.gii", search_path=subject_dir)')
+        left_rescaled_surface = find(pattern="*.L.rescaled.surf.gii", search_path=subject_dir)
+        print()
+        
+        print('[FUNCTION] find(pattern="*.R.rescaled.surf.gii", search_path=subject_dir)')
+        right_rescaled_surface = find(pattern="*.R.rescaled.surf.gii", search_path=subject_dir)
+        print()
+        
+        print('[FUNCTION] find(pattern="*.L.generated.sphere.surf.gii", search_path=subject_dir)')
+        left_generated_sphere = find(pattern="*.L.generated.sphere.surf.gii", search_path=subject_dir)
+        print()
+        
+        print('[FUNCTION] find(pattern="*.R.generated.sphere.surf.gii", search_path=subject_dir)')
+        right_generated_sphere = find(pattern="*.R.generated.sphere.surf.gii", search_path=subject_dir)
+        print()
+        
+        print(f'[FUNCTION] find(pattern="*.L.rescaled.ANATgrid.surf.gii", search_path=subject_dir)')
+        left_resampled_anatgrid=find(pattern="*.L.rescaled.ANATgrid.surf.gii", search_path=subject_dir)
+        print()
+        
+        print(f'[FUNCTION] find(pattern="*.L.rescaled.CPgrid.surf.gii", search_path=subject_dir)')
+        left_resampled_cpgrid=find(pattern="*.L.rescaled.CPgrid.surf.gii", search_path=subject_dir)
+        print()
+        
+        print(f'[FUNCTION] find(pattern="*.L=R.rescaled.ANATgrid.surf.gii", search_path=subject_dir)')
+        right_resampled_anatgrid=find(pattern="*.R.rescaled.ANATgrid.surf.gii", search_path=subject_dir)
+        print()
+        
+        print(f'[FUNCTION] find(pattern="*.R.rescaled.CPgrid.surf.gii", search_path=subject_dir)')
+        right_resampled_cpgrid=find(pattern="*.R.rescaled.CPgrid.surf.gii", search_path=subject_dir)
+        print()
+    else:
+        left_rescaled_surface = right_rescaled_surface = left_generated_sphere = right_generated_sphere = left_resampled_anatgrid = right_resampled_anatgrid = left_resampled_cpgrid = right_resampled_cpgrid = None
     
     #-----------------
     # Return Files
@@ -2068,8 +2139,19 @@ def get_files_mcribs(dataset: str, subject: str, time_point: str):
         "LEFT CORTEX": left_cortex,
         "RIGHT CORTEX": right_cortex,
         "LEFT RESCALE": left_rescaled_surface,
-        "RIGHT RESCALE": right_rescaled_surface
+        "RIGHT RESCALE": right_rescaled_surface,
+        "LEFT RESCALE ANAT": left_resampled_anatgrid,
+        "LEFT RESCALE CP": left_resampled_cpgrid,
+        "RIGHT RESCALE ANAT": right_resampled_anatgrid,
+        "RIGHT RESCALE CP": right_resampled_cpgrid,
+        "LEFT GEN SPHERE": left_generated_sphere,
+        "RIGHT GEN SPHERE": right_generated_sphere,
     }
+    
+    print("[INFO] Returniing these files:")
+    for k,v in subject_files.items():
+        print(f"    {k}: {v}")
+        
     print(f"[COMPLETE] Found all files for subject {subject}, at time point {time_point}, in {dataset}. Returning dictonary of files")
     return subject_files    
 
