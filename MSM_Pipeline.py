@@ -358,14 +358,12 @@ def get_files(dataset: str, subject: str, time_point: str, is_rescaled=False):
     right_spherical_surface = find(patterns="*.R.sphere.32k_fs_LR.surf.gii", search_path=subject_dir, required_dirs=["T1w"])
     print()
     
-    print(f'[FUNCTION] find(patterns="*.L.atlasroi.32k_fs_LR.shape.gii)", search_path=subject_dir), required_dirs=["T1w"]')
-    # left_cortex = find(patterns="*.L.atlasroi.32k_fs_LR.shape.gii)", search_path=subject_dir, required_dirs=["T1w"])
-    left_cortex = None
+    print(f'[FUNCTION] find(patterns="*.L.atlasroi.32k_fs_LR.shape.gii", search_path=subject_dir), required_dirs=["T1w"]')
+    left_cortex = find(patterns="*.L.atlasroi.32k_fs_LR.shape.gii", search_path=subject_dir, required_dirs=["T1w"])
     print()
     
-    print(f'[FUNCTION] find(patterns="*.R.atlasroi.32k_fs_LR.shape.gii)", search_path=subject_dir), required_dirs=["T1w"]')
-    # right_cortex = find(patterns="*.R.atlasroi.32k_fs_LR.shape.gii)", search_path=subject_dir, required_dirs=["T1w"])
-    right_cortex = None
+    print(f'[FUNCTION] find(patterns="*.R.atlasroi.32k_fs_LR.shape.gii", search_path=subject_dir), required_dirs=["T1w"]')
+    right_cortex = find(patterns="*.R.atlasroi.32k_fs_LR.shape.gii", search_path=subject_dir, required_dirs=["T1w"])
     print()
     
     
@@ -383,8 +381,8 @@ def get_files(dataset: str, subject: str, time_point: str, is_rescaled=False):
     # --------------------------------------------------------
     print("[STEP] locate curvature file")
     
-    print(f'[FUNCTION] find(patterns="*.curvature.32k_fs_LR.dscaler.nii", search_path=subject_dir)')
-    base_curvature = find(patterns="*.curvature.32k_fs_LR.dscaler.nii", search_path=subject_dir)
+    print(f'[FUNCTION] find(patterns="*.curvature.32k_fs_LR.dscalar.nii", search_path=subject_dir)')
+    base_curvature = find(patterns="*.curvature.32k_fs_LR.dscalar.nii", search_path=subject_dir)
     print()
     
     print("[FILES] Located the following files:")
