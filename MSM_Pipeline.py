@@ -383,8 +383,8 @@ def get_files(dataset: str, subject: str, time_point: str, is_rescaled=False):
     # --------------------------------------------------------
     print("[STEP] locate curvature file")
     
-    print(f'[FUNCTION] find(patterns="*.curvature.32k_fs_LR.dscaler.nii)", search_path=subject_dir)')
-    base_curvature = find(patterns="*.curvature.32k_fs_LR.dscaler.nii)", search_path=subject_dir)
+    print(f'[FUNCTION] find(patterns="*.curvature.32k_fs_LR.dscaler.nii", search_path=subject_dir)')
+    base_curvature = find(patterns="*.curvature.32k_fs_LR.dscaler.nii", search_path=subject_dir)
     print()
     
     print("[FILES] Located the following files:")
