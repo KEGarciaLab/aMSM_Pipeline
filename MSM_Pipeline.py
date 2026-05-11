@@ -292,26 +292,33 @@ def get_subject_time_points(dataset: str, subject: str, alphanumeric_timepoints:
 
 
 # Helper function for searching files
-def find(pattern, search_path, required_dirs=None):
-    print(f'\n[FIND] Finding file matching the pattern {pattern} starting at {search_path}')
-    for root, dirs, files in walk(search_path):
-        print(f"[INFO] Searching in directory: {root}")
-        
-        if required_dirs:
-            parts=path.normpath(root).split(path.sep)
-            if not all(directory in parts for directory in required_dirs):
-                continue
-        
-        for name in files:
-            if fnmatch(name, pattern):
-                full_path = path.join(root, name)
-                print(f"[INFO] Found file matching pattern: {name}")
-                print(f"[INFO] Full path is: {full_path}")
-                print(f"[COMPLETE] found file. Returning file path object.")
-                return full_path
-    
-    fail(f"No file found matching {pattern} in {search_path} or its subdirectories")
-            
+def find(patterns, search_path, required_dirs=None):
+    if isinstance(patterns, str):
+        patterns = [patterns]
+
+    print(f'\n[FIND] Finding file matching patterns {patterns} starting at {search_path}')
+
+    for pattern in patterns:
+        print(f"[INFO] Trying pattern: {pattern}")
+
+        for root, dirs, files in walk(search_path):
+            print(f"[INFO] Searching in directory: {root}")
+
+            if required_dirs:
+                parts = path.normpath(root).split(path.sep)
+                if not all(directory in parts for directory in required_dirs):
+                    continue
+
+            for name in files:
+                if fnmatch(name, pattern):
+                    full_path = path.join(root, name)
+                    print(f"[INFO] Found file matching pattern: {name}")
+                    print(f"[INFO] Full path is: {full_path}")
+                    print(f"[COMPLETE] Found file. Returning file path object.")
+                    return full_path
+
+    fail(f"No file found matching any pattern in {search_path}")            
+
 
 # Helper function for retriving MSM files
 def get_files(dataset: str, subject: str, time_point: str, is_rescaled=False):
@@ -335,28 +342,28 @@ def get_files(dataset: str, subject: str, time_point: str, is_rescaled=False):
     # Locate files
     # ---------------------------------------------
     print(f"[STEP] Locating Files")
-    print(f'[FUNCTION] find(pattern="*.L.midthickness.32k_fs_LR.surf.gii", search_path=subject_dir, required_dirs=["T1w"])')
-    left_anatomical_surface = find(pattern="*.L.midthickness.32k_fs_LR.surf.gii", search_path=subject_dir, required_dirs=["T1w"])
+    print(f'[FUNCTION] find(patterns="*.L.midthickness.32k_fs_LR.surf.gii", search_path=subject_dir, required_dirs=["T1w"])')
+    left_anatomical_surface = find(patterns="*.L.midthickness.32k_fs_LR.surf.gii", search_path=subject_dir, required_dirs=["T1w"])
     print()
     
-    print(f'[FUNCTION] find(pattern="*.R.midthickness.32k_fs_LR.surf.gii", search_path=subject_dir, required_dirs=["T1w"])')
-    right_anatomical_surface = find(pattern="*.R.midthickness.32k_fs_LR.surf.gii", search_path=subject_dir, required_dirs=["T1w"])
+    print(f'[FUNCTION] find(patterns="*.R.midthickness.32k_fs_LR.surf.gii", search_path=subject_dir, required_dirs=["T1w"])')
+    right_anatomical_surface = find(patterns="*.R.midthickness.32k_fs_LR.surf.gii", search_path=subject_dir, required_dirs=["T1w"])
     print()
     
-    print(f'[FUNCTION] find(pattern="*.L.sphere.32k_fs_LR.surf.gii", search_path=subject_dir, required_dirs=["T1w"])')
-    left_spherical_surface = find(pattern="*.L.sphere.32k_fs_LR.surf.gii", search_path=subject_dir, required_dirs=["T1w"])
+    print(f'[FUNCTION] find(patterns="*.L.sphere.32k_fs_LR.surf.gii", search_path=subject_dir, required_dirs=["T1w"])')
+    left_spherical_surface = find(patterns="*.L.sphere.32k_fs_LR.surf.gii", search_path=subject_dir, required_dirs=["T1w"])
     print()
     
-    print(f'[FUNCTION] find(pattern="*.R.sphere.32k_fs_LR.surf.gii", search_path=subject_dir, required_dirs=["T1w"])')
-    right_spherical_surface = find(pattern="*.R.sphere.32k_fs_LR.surf.gii", search_path=subject_dir, required_dirs=["T1w"])
+    print(f'[FUNCTION] find(patterns="*.R.sphere.32k_fs_LR.surf.gii", search_path=subject_dir, required_dirs=["T1w"])')
+    right_spherical_surface = find(patterns="*.R.sphere.32k_fs_LR.surf.gii", search_path=subject_dir, required_dirs=["T1w"])
     print()
     
-    print(f'[FUNCTION] find(pattern="*.L.atlasroi.32k_fs_LR.shape.gii)", search_path=subject_dir), required_dirs=["T1w"]')
-    left_cortex = find(pattern="*.L.atlasroi.32k_fs_LR.shape.gii)", search_path=subject_dir, required_dirs=["T1w"])
+    print(f'[FUNCTION] find(patterns="*.L.atlasroi.32k_fs_LR.shape.gii)", search_path=subject_dir), required_dirs=["T1w"]')
+    left_cortex = find(patterns="*.L.atlasroi.32k_fs_LR.shape.gii)", search_path=subject_dir, required_dirs=["T1w"])
     print()
     
-    print(f'[FUNCTION] find(pattern="*.R.atlasroi.32k_fs_LR.shape.gii)", search_path=subject_dir), required_dirs=["T1w"]')
-    right_cortex = find(pattern="*.R.atlasroi.32k_fs_LR.shape.gii)", search_path=subject_dir, required_dirs=["T1w"])
+    print(f'[FUNCTION] find(patterns="*.R.atlasroi.32k_fs_LR.shape.gii)", search_path=subject_dir), required_dirs=["T1w"]')
+    right_cortex = find(patterns="*.R.atlasroi.32k_fs_LR.shape.gii)", search_path=subject_dir, required_dirs=["T1w"])
     print()
     
     
@@ -374,8 +381,8 @@ def get_files(dataset: str, subject: str, time_point: str, is_rescaled=False):
     # --------------------------------------------------------
     print("[STEP] locate curvature file")
     
-    print(f'[FUNCTION] find(pattern="*.curvature.32k_fs_LR.dscaler.nii)", search_path=subject_dir)')
-    base_curvature = find(pattern="*.curvature.32k_fs_LR.dscaler.nii)", search_path=subject_dir)
+    print(f'[FUNCTION] find(patterns="*.curvature.32k_fs_LR.dscaler.nii)", search_path=subject_dir)')
+    base_curvature = find(patterns="*.curvature.32k_fs_LR.dscaler.nii)", search_path=subject_dir)
     print()
     
     print("[FILES] Located the following files:")
@@ -398,36 +405,36 @@ def get_files(dataset: str, subject: str, time_point: str, is_rescaled=False):
     # Grab rescaled and resampled files if needed
     #----------------------------------------------
     if is_rescaled:
-        print(f'[FUNCTION] find(pattern="*.L.rescaled.surf.gii", search_path=subject_dir)')
-        left_rescaled_surface = find(pattern="*.L.rescaled.surf.gii", search_path=subject_dir)
+        print(f'[FUNCTION] find(patterns="*.L.rescaled.surf.gii", search_path=subject_dir)')
+        left_rescaled_surface = find(patterns="*.L.rescaled.surf.gii", search_path=subject_dir)
         print()
         
-        print(f'[FUNCTION] find(pattern="*.R.rescaled.surf.gii", search_path=subject_dir)')
-        right_rescaled_surface = find(pattern="*.R.rescaled.surf.gii", search_path=subject_dir)
+        print(f'[FUNCTION] find(patterns="*.R.rescaled.surf.gii", search_path=subject_dir)')
+        right_rescaled_surface = find(patterns="*.R.rescaled.surf.gii", search_path=subject_dir)
         print()
         
-        print('[FUNCTION] find(pattern="*.L.generated.sphere.surf.gii", search_path=subject_dir)')
-        left_generated_sphere = find(pattern="*.L.generated.sphere.surf.gii", search_path=subject_dir)
+        print('[FUNCTION] find(patterns="*.L.generated.sphere.surf.gii", search_path=subject_dir)')
+        left_generated_sphere = find(patterns="*.L.generated.sphere.surf.gii", search_path=subject_dir)
         print()
         
-        print('[FUNCTION] find(pattern="*.R.generated.sphere.surf.gii", search_path=subject_dir)')
-        right_generated_sphere = find(pattern="*.R.generated.sphere.surf.gii", search_path=subject_dir)
+        print('[FUNCTION] find(patterns="*.R.generated.sphere.surf.gii", search_path=subject_dir)')
+        right_generated_sphere = find(patterns="*.R.generated.sphere.surf.gii", search_path=subject_dir)
         print()
         
-        print(f'[FUNCTION] find(pattern="*.L.rescaled.ANATgrid.surf.gii", search_path=subject_dir)')
-        left_resampled_anatgrid=find(pattern="*.L.rescaled.ANATgrid.surf.gii", search_path=subject_dir)
+        print(f'[FUNCTION] find(patterns="*.L.rescaled.ANATgrid.surf.gii", search_path=subject_dir)')
+        left_resampled_anatgrid=find(patterns="*.L.rescaled.ANATgrid.surf.gii", search_path=subject_dir)
         print()
         
-        print(f'[FUNCTION] find(pattern="*.L.rescaled.CPgrid.surf.gii", search_path=subject_dir)')
-        left_resampled_cpgrid=find(pattern="*.L.rescaled.CPgrid.surf.gii", search_path=subject_dir)
+        print(f'[FUNCTION] find(patterns="*.L.rescaled.CPgrid.surf.gii", search_path=subject_dir)')
+        left_resampled_cpgrid=find(patterns="*.L.rescaled.CPgrid.surf.gii", search_path=subject_dir)
         print()
         
-        print(f'[FUNCTION] find(pattern="*.L=R.rescaled.ANATgrid.surf.gii", search_path=subject_dir)')
-        right_resampled_anatgrid=find(pattern="*.R.rescaled.ANATgrid.surf.gii", search_path=subject_dir)
+        print(f'[FUNCTION] find(patterns="*.L=R.rescaled.ANATgrid.surf.gii", search_path=subject_dir)')
+        right_resampled_anatgrid=find(patterns="*.R.rescaled.ANATgrid.surf.gii", search_path=subject_dir)
         print()
         
-        print(f'[FUNCTION] find(pattern="*.R.rescaled.CPgrid.surf.gii", search_path=subject_dir)')
-        right_resampled_cpgrid=find(pattern="*.R.rescaled.CPgrid.surf.gii", search_path=subject_dir)
+        print(f'[FUNCTION] find(patterns="*.R.rescaled.CPgrid.surf.gii", search_path=subject_dir)')
+        right_resampled_cpgrid=find(patterns="*.R.rescaled.CPgrid.surf.gii", search_path=subject_dir)
         print()
     else:
         left_rescaled_surface = right_rescaled_surface = left_generated_sphere = right_generated_sphere = left_resampled_anatgrid = right_resampled_anatgrid = left_resampled_cpgrid = right_resampled_cpgrid = None
@@ -2058,72 +2065,72 @@ def get_files_mcribs(dataset: str, subject: str, time_point: str, is_rescaled=Fa
     # Search for files
     # --------------------------
     
-    print('[FUNCTION] find(pattern="lh.midthickness.surf.gii", search_path=subject_dir)')
-    left_anatomical_surface = find(pattern="lh.midthickness.surf.gii", search_path=subject_dir)
+    print('[FUNCTION] find(patterns="lh.midthickness.surf.gii", search_path=subject_dir)')
+    left_anatomical_surface = find(patterns=[f"lh.{subject}{time_point}_midthickness_711_rot-2B.surf.gii", f"lh.{subject}{time_point}_midthickness_711-2B.surf.gii"], search_path=subject_dir)
     print()
     
-    print('[FUNCTION] find(pattern="rh.midthickness.surf.gii", search_path=subject_dir)')
-    right_anatomical_surface = find(pattern="rh.midthickness.surf.gii", search_path=subject_dir)
+    print('[FUNCTION] find(patterns="rh.midthickness.surf.gii", search_path=subject_dir)')
+    right_anatomical_surface = find(patterns="rh.midthickness.surf.gii", search_path=subject_dir)
     print()
     
-    print('[FUNCTION] find(pattern="lh.sphere.reg2.surf.gii", search_path=subject_dir)')
-    left_spherical_surface = find(pattern="lh.sphere.reg2.surf.gii", search_path=subject_dir)
+    print('[FUNCTION] find(patterns="lh.sphere.reg2.surf.gii", search_path=subject_dir)')
+    left_spherical_surface = find(patterns="lh.sphere.reg2.surf.gii", search_path=subject_dir)
     print()
     
-    print('[FUNCTION] find(pattern="rh.sphere.reg2.surf.gii", search_path=subject_dir)')
-    right_spherical_surface = find(pattern="rh.sphere.reg2.surf.gii", search_path=subject_dir)
+    print('[FUNCTION] find(patterns="rh.sphere.reg2.surf.gii", search_path=subject_dir)')
+    right_spherical_surface = find(patterns="rh.sphere.reg2.surf.gii", search_path=subject_dir)
     print()
     
-    print('[FUNCTION] find(pattern="lh.curv.shape.gii", search_path=subject_dir)')
-    left_curvature = find(pattern="lh.curv.shape.gii", search_path=subject_dir)
+    print('[FUNCTION] find(patterns="lh.curv.shape.gii", search_path=subject_dir)')
+    left_curvature = find(patterns="lh.curv.shape.gii", search_path=subject_dir)
     print()
     
-    print('[FUNCTION] find(pattern="rh.curv.shape.gii", search_path=subject_dir)')
-    right_curvature = find(pattern="rh.curv.shape.gii", search_path=subject_dir)
+    print('[FUNCTION] find(patterns="rh.curv.shape.gii", search_path=subject_dir)')
+    right_curvature = find(patterns="rh.curv.shape.gii", search_path=subject_dir)
     print()
     
-    print('[FUNCTION] find(pattern="lh.mean.thickness", search_path=subject_dir)')
-    left_cortex = find(pattern="lh.mean.thickness", search_path=subject_dir) # TODO Figure out what this should be
+    print('[FUNCTION] find(patterns="lh.mean.thickness", search_path=subject_dir)')
+    left_cortex = find(patterns="lh.mean.thickness", search_path=subject_dir) # TODO Figure out what this should be
     print()
     
-    print('[FUNCTION] find(pattern="rh.mean.thickness", search_path=subject_dir)')
-    right_cortex = find(pattern="rh.mean.thickness", search_path=subject_dir) # TODO Figure out what this should be
+    print('[FUNCTION] find(patterns="rh.mean.thickness", search_path=subject_dir)')
+    right_cortex = find(patterns="rh.mean.thickness", search_path=subject_dir) # TODO Figure out what this should be
     print()
     
     # ---------------------------------------------
     # Grab rescaled and resampled files if needed
     #----------------------------------------------
     if is_rescaled:
-        print('[FUNCTION] find(pattern="*.L.rescaled.surf.gii", search_path=subject_dir)')
-        left_rescaled_surface = find(pattern="*.L.rescaled.surf.gii", search_path=subject_dir)
+        print('[FUNCTION] find(patterns="*.L.rescaled.surf.gii", search_path=subject_dir)')
+        left_rescaled_surface = find(patterns="*.L.rescaled.surf.gii", search_path=subject_dir)
         print()
         
-        print('[FUNCTION] find(pattern="*.R.rescaled.surf.gii", search_path=subject_dir)')
-        right_rescaled_surface = find(pattern="*.R.rescaled.surf.gii", search_path=subject_dir)
+        print('[FUNCTION] find(patterns="*.R.rescaled.surf.gii", search_path=subject_dir)')
+        right_rescaled_surface = find(patterns="*.R.rescaled.surf.gii", search_path=subject_dir)
         print()
         
-        print('[FUNCTION] find(pattern="*.L.generated.sphere.surf.gii", search_path=subject_dir)')
-        left_generated_sphere = find(pattern="*.L.generated.sphere.surf.gii", search_path=subject_dir)
+        print('[FUNCTION] find(patterns="*.L.generated.sphere.surf.gii", search_path=subject_dir)')
+        left_generated_sphere = find(patterns="*.L.generated.sphere.surf.gii", search_path=subject_dir)
         print()
         
-        print('[FUNCTION] find(pattern="*.R.generated.sphere.surf.gii", search_path=subject_dir)')
-        right_generated_sphere = find(pattern="*.R.generated.sphere.surf.gii", search_path=subject_dir)
+        print('[FUNCTION] find(patterns="*.R.generated.sphere.surf.gii", search_path=subject_dir)')
+        right_generated_sphere = find(patterns="*.R.generated.sphere.surf.gii", search_path=subject_dir)
         print()
         
-        print(f'[FUNCTION] find(pattern="*.L.rescaled.ANATgrid.surf.gii", search_path=subject_dir)')
-        left_resampled_anatgrid=find(pattern="*.L.rescaled.ANATgrid.surf.gii", search_path=subject_dir)
+        print(f'[FUNCTION] find(patterns="*.L.rescaled.ANATgrid.surf.gii", search_path=subject_dir)')
+        left_resampled_anatgrid=find(patterns="*.L.rescaled.ANATgrid.surf.gii", search_path=subject_dir)
         print()
         
-        print(f'[FUNCTION] find(pattern="*.L.rescaled.CPgrid.surf.gii", search_path=subject_dir)')
-        left_resampled_cpgrid=find(pattern="*.L.rescaled.CPgrid.surf.gii", search_path=subject_dir)
+        print(f'[FUNCTION] find(patterns="*.L.rescaled.CPgrid.surf.gii", search_path=subject_dir)')
+        left_resampled_cpgrid=find(patterns="*.L.rescaled.CPgrid.surf.gii", search_path=subject_dir)
         print()
         
-        print(f'[FUNCTION] find(pattern="*.L=R.rescaled.ANATgrid.surf.gii", search_path=subject_dir)')
-        right_resampled_anatgrid=find(pattern="*.R.rescaled.ANATgrid.surf.gii", search_path=subject_dir)
+        print(f'[FUNCTION] find(patterns="*.L=R.rescaled.ANATgrid.surf.gii", search_path=subject_dir)')
+        right_resampled_anatgrid=find(patterns="*.R.rescaled.ANATgrid.surf.gii", search_path=subject_dir)
         print()
         
-        print(f'[FUNCTION] find(pattern="*.R.rescaled.CPgrid.surf.gii", search_path=subject_dir)')
-        right_resampled_cpgrid=find(pattern="*.R.rescaled.CPgrid.surf.gii", search_path=subject_dir)
+        print(f'[FUNCTION] find(patterns="*.R.rescaled.CPgrid.surf.gii", search_path=subject_dir)')
+        right_resampled_cpgrid=find(patterns="*.R.rescaled.CPgrid.surf.gii", search_path=subject_dir)
         print()
     else:
         left_rescaled_surface = right_rescaled_surface = left_generated_sphere = right_generated_sphere = left_resampled_anatgrid = right_resampled_anatgrid = left_resampled_cpgrid = right_resampled_cpgrid = None
