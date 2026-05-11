@@ -47,8 +47,8 @@ Mode = Literal["forward", "reverse", "average"]
 Hemisphere = Literal["L", "R"]
 PIPELINE_VERSION = '1.5.3-indev'
 
-print("[START] Begin pipeline execution")
-print(f"[INFO] Pipeline Version: {PIPELINE_VERSION}")
+print(f"{datetime.now}[START] Begin pipeline execution")
+print(f"{datetime.now}[INFO] Pipeline Version: {PIPELINE_VERSION}")
 # makes sure all commands log properly
 def run_logged(cmd, step=None):
     header = f"[RUN]" if not step else f"[RUN:{step}]"
@@ -64,16 +64,16 @@ def run_logged(cmd, step=None):
         process.wait()
 
     if process.returncode != 0:
-        print(f"[ERROR] Command failed with return code {process.returncode}")
+        print(f"{datetime.now}[ERROR] Command failed with return code {process.returncode}")
 
     return process
 
 
 # prints error messages
 def fail(msg):
-    print(f"[ERROR] {msg}")
-    print(f"[ERROR] Exiting pipeline. If you feel this is a bug please report at https://github.com/KEGarciaLab/aMSM_Pipeline/issues")
-    print(f"[ERROR] Full log can be found at {log_path}")
+    print(f"{datetime.now}[ERROR] {msg}")
+    print(f"{datetime.now}[ERROR] Exiting pipeline. If you feel this is a bug please report at https://github.com/KEGarciaLab/aMSM_Pipeline/issues")
+    print(f"{datetime.now}[ERROR] Full log can be found at {log_path}")
     exit(1)
 
 
@@ -111,25 +111,25 @@ def is_slurm_queue_open(slurm_user: str, slurm_job_limit: int=500):
     # ---------------------------------
     print(f"\n[SLURM QUEUE CHECK] Checking slurm queue for {slurm_user} with job limit of {slurm_job_limit}")
     
-    print("[STEP] Creating output folder")
+    print(f"{datetime.now}[STEP] Creating output folder")
     user_home = path.expanduser('~')
     output_dir = rf"{user_home}/Scripts/MyScripts/Output/MSM_Pipeline"
     makedirs(output_dir, exist_ok=True)
     
-    print("[STEP] Running squeue and capturing output")
+    print(f"{datetime.now}[STEP] Running squeue and capturing output")
     jobs = check_output(["squeue", f"-u{slurm_user}", "-o '%.10i %.9p %40j %.8u %.10T %.10M %.6D %R'", "-a"]).decode("utf-8")
     
-    print("[STEP] Writing current queue to text file")
+    print(f"{datetime.now}[STEP] Writing current queue to text file")
     with open(rf"{user_home}/Scripts/MyScripts/Output/MSM_Pipeline/queue.txt", 'w+') as f:
         f.write(jobs)
     
-    print("[STEP] Counting jobs in queue")
+    print(f"{datetime.now}[STEP] Counting jobs in queue")
     with open(rf"{user_home}/Scripts/MyScripts/Output/MSM_Pipeline/queue.txt", 'r') as f:
         jobs = (sum(1 for line in f)) - 1
-    print(f"[INFO] Current jobs in queue: {jobs}")
+    print(f"{datetime.now}[INFO] Current jobs in queue: {jobs}")
     open_jobs = slurm_job_limit - jobs
-    print(f"[INFO] Number of jobs open: {open_jobs}")
-    print(f"[COMPLETE] Finished checking queue. Returning number of open jobs as int.")
+    print(f"{datetime.now}[INFO] Number of jobs open: {open_jobs}")
+    print(f"{datetime.now}[COMPLETE] Finished checking queue. Returning number of open jobs as int.")
     return open_jobs
 
 
@@ -199,22 +199,22 @@ def run_ciftify(dataset: str, delimiter: str, subject_index: int, time_index: in
 # Helper function for sorting time points
 def sort_time_points(time_points: list, number_start_character: int, starting_time=None):
     print(f"\n[SORT TIME POINTS] Starting custom alphanumeric sort function")
-    print("[INFO] Time point list to sort:")
+    print(f"{datetime.now}[INFO] Time point list to sort:")
     print("\n".join(f"    {time_point}" for time_point in time_points))
     
     # --------------------------------------------------
     # Creating copy of list and removing starting time
     # --------------------------------------------------
     copy = time_points.copy()
-    print("[INFO] Crated copy of orginal list")
+    print(f"{datetime.now}[INFO] Crated copy of orginal list")
     if starting_time is not None and starting_time in time_points:
-        print("[INFO] Starting time located in list removing from copy for sorting")
+        print(f"{datetime.now}[INFO] Starting time located in list removing from copy for sorting")
         copy.pop(time_points.index(starting_time))
 
     # --------------------------------
     # Sorting based on number start
     # --------------------------------
-    print(f"[INFO] sorting by number which starts at character index {number_start_character}")
+    print(f"{datetime.now}[INFO] sorting by number which starts at character index {number_start_character}")
     copy.sort(key=lambda time_point: int(
         time_point[number_start_character:]))
 
@@ -222,11 +222,11 @@ def sort_time_points(time_points: list, number_start_character: int, starting_ti
     # Readd starting time
     # ---------------------
     if starting_time is not None and starting_time in time_points:
-        print(f"[INFO] Insterting starting time {starting_time} to the beginning of list")
+        print(f"{datetime.now}[INFO] Insterting starting time {starting_time} to the beginning of list")
         copy.insert(0, starting_time)
-    print("[INFO] Sorted time points:")
+    print(f"{datetime.now}[INFO] Sorted time points:")
     print("\n".join(f"    {time_point}" for time_point in copy))
-    print("[COMPLETE] Finished sorting time points, returning sorted list")
+    print(f"{datetime.now}[COMPLETE] Finished sorting time points, returning sorted list")
     return copy
 
 
@@ -241,53 +241,53 @@ def get_subject_time_points(dataset: str, subject: str, alphanumeric_timepoints:
     # Searching for Subject Dirs
     # -----------------------------
     subject_dirs = []
-    print("[STEP] Locating all subject directories")
+    print(f"{datetime.now}[STEP] Locating all subject directories")
     pattern = compile(fr"Subject_{subject}_.*")
-    print(f"[INFO] Searching for subject dirs matching Subject_{subject}_.*")
+    print(f"{datetime.now}[INFO] Searching for subject dirs matching Subject_{subject}_.*")
     for entry in listdir(dataset):
         full_path = path.join(dataset, entry)
         if path.isdir(full_path) and pattern.match(entry):
-            print(f"[INFO] Found Match: {entry}")
-            print(f"[INFO] Adding to subject_dirs list")
+            print(f"{datetime.now}[INFO] Found Match: {entry}")
+            print(f"{datetime.now}[INFO] Adding to subject_dirs list")
             subject_dirs.append(entry)
     
-    print(f"[FLIES] Found the following directories:")
+    print(f"{datetime.now}[FLIES] Found the following directories:")
     print("\n".join(f"    {dir}" for dir in subject_dirs))
 
     # --------------------------
     # Extracting Time Points
     #---------------------------
-    print("[STEP] Extracting timepoints from directory names")
+    print(f"{datetime.now}[STEP] Extracting timepoints from directory names")
     time_points = []
     for directory in subject_dirs:
-        print(f"[INFO] Current directory: {directory}")
+        print(f"{datetime.now}[INFO] Current directory: {directory}")
         fields = directory.split("_")
         time_point = fields[2]
         if time_point not in time_points:
-            print(f"[INFO] Found time point: {time_point}")
-            print("[INFO] Adding to time points list")
+            print(f"{datetime.now}[INFO] Found time point: {time_point}")
+            print(f"{datetime.now}[INFO] Adding to time points list")
             time_points.append(time_point)
-    print("[INFO] Found the following time points:")
+    print(f"{datetime.now}[INFO] Found the following time points:")
     print("\n".join(f"    {time_point}" for time_point in time_points))
 
     # ----------------------
     # Sorting Time Points
     # ----------------------
     if alphanumeric_timepoints:
-        print("[INFO] Using alphanumeric time points, using custom sort")
-        print("[FUNCTION] sort_time_points(time_points=time_points, number_start_character=time_point_number_start_character, starting_time=starting_time)")
+        print(f"{datetime.now}[INFO] Using alphanumeric time points, using custom sort")
+        print(f"{datetime.now}[FUNCTION] sort_time_points(time_points=time_points, number_start_character=time_point_number_start_character, starting_time=starting_time)")
         time_points = sort_time_points(time_points=time_points, number_start_character=time_point_number_start_character, starting_time=starting_time)
         print()
     elif time_points[0].isdigit():
-        print("[INFO] Numeric time points detected, using interger sort")
+        print(f"{datetime.now}[INFO] Numeric time points detected, using interger sort")
         time_points.sort(key=int)
     else:
-        print("[INFO] Using lexicograpic sort")
+        print(f"{datetime.now}[INFO] Using lexicograpic sort")
         time_points.sort()
     
-    print("[INFO] Sorted time points:")
+    print(f"{datetime.now}[INFO] Sorted time points:")
     print("\n".join(f"    {time_point}" for time_point in time_points))
-    print(f"[COMPLETE] Retrieved all time points for subject {subject}")
+    print(f"{datetime.now}[COMPLETE] Retrieved all time points for subject {subject}")
     return time_points
 
 
@@ -299,10 +299,10 @@ def find(patterns, search_path, required_dirs=None):
     print(f'\n[FIND] Finding file matching patterns {patterns} starting at {search_path}')
 
     for pattern in patterns:
-        print(f"[INFO] Trying pattern: {pattern}")
+        print(f"{datetime.now}[INFO] Trying pattern: {pattern}")
 
         for root, dirs, files in walk(search_path):
-            print(f"[INFO] Searching in directory: {root}")
+            print(f"{datetime.now}[INFO] Searching in directory: {root}")
 
             if required_dirs:
                 parts = path.normpath(root).split(path.sep)
@@ -312,9 +312,9 @@ def find(patterns, search_path, required_dirs=None):
             for name in files:
                 if fnmatch(name, pattern):
                     full_path = path.join(root, name)
-                    print(f"[INFO] Found file matching pattern: {name}")
-                    print(f"[INFO] Full path is: {full_path}")
-                    print(f"[COMPLETE] Found file. Returning file path object.")
+                    print(f"{datetime.now}[INFO] Found file matching pattern: {name}")
+                    print(f"{datetime.now}[INFO] Full path is: {full_path}")
+                    print(f"{datetime.now}[COMPLETE] Found file. Returning file path object.")
                     return full_path
 
     fail(f"No file found matching any pattern in {search_path}")            
@@ -327,7 +327,7 @@ def get_files(dataset: str, subject: str, time_point: str, is_rescaled=False):
     # -------------------------
     # Set up variables
     # -------------------------
-    print("[STEP] Locating subject directory and subejct prefix")
+    print(f"{datetime.now}[STEP] Locating subject directory and subejct prefix")
     subject_dir = path.join(dataset, f"Subject_{subject}_{time_point}")
     subdirs = [directory for directory in listdir(subject_dir) if path.isdir(
         path.join(subject_dir, directory)) and directory != "zz_templates"]
@@ -335,39 +335,39 @@ def get_files(dataset: str, subject: str, time_point: str, is_rescaled=False):
         return
     subject_dir = path.join(subject_dir, subdirs[0])
     subject_full_name = subdirs[0]
-    print(f"[INFO] Subject directory located at {subject_dir}")
-    print(f"[INFO] Subejct prefix: {subject_full_name}")
+    print(f"{datetime.now}[INFO] Subject directory located at {subject_dir}")
+    print(f"{datetime.now}[INFO] Subejct prefix: {subject_full_name}")
     
     # ---------------------------------------------
     # Locate files
     # ---------------------------------------------
-    print(f"[STEP] Locating Files")
-    print(f'[FUNCTION] find(patterns="*.L.midthickness.32k_fs_LR.surf.gii", search_path=subject_dir, required_dirs=["T1w"])')
+    print(f"{datetime.now}[STEP] Locating Files")
+    print(f'{datetime.now}[FUNCTION] find(patterns="*.L.midthickness.32k_fs_LR.surf.gii", search_path=subject_dir, required_dirs=["T1w"])')
     left_anatomical_surface = find(patterns="*.L.midthickness.32k_fs_LR.surf.gii", search_path=subject_dir, required_dirs=["T1w"])
     print()
     
-    print(f'[FUNCTION] find(patterns="*.R.midthickness.32k_fs_LR.surf.gii", search_path=subject_dir, required_dirs=["T1w"])')
+    print(f'{datetime.now}[FUNCTION] find(patterns="*.R.midthickness.32k_fs_LR.surf.gii", search_path=subject_dir, required_dirs=["T1w"])')
     right_anatomical_surface = find(patterns="*.R.midthickness.32k_fs_LR.surf.gii", search_path=subject_dir, required_dirs=["T1w"])
     print()
     
-    print(f'[FUNCTION] find(patterns="*.L.sphere.32k_fs_LR.surf.gii", search_path=subject_dir, required_dirs=["T1w"])')
+    print(f'{datetime.now}[FUNCTION] find(patterns="*.L.sphere.32k_fs_LR.surf.gii", search_path=subject_dir, required_dirs=["T1w"])')
     left_spherical_surface = find(patterns="*.L.sphere.32k_fs_LR.surf.gii", search_path=subject_dir, required_dirs=["T1w"])
     print()
     
-    print(f'[FUNCTION] find(patterns="*.R.sphere.32k_fs_LR.surf.gii", search_path=subject_dir, required_dirs=["T1w"])')
+    print(f'{datetime.now}[FUNCTION] find(patterns="*.R.sphere.32k_fs_LR.surf.gii", search_path=subject_dir, required_dirs=["T1w"])')
     right_spherical_surface = find(patterns="*.R.sphere.32k_fs_LR.surf.gii", search_path=subject_dir, required_dirs=["T1w"])
     print()
     
-    print(f'[FUNCTION] find(patterns="*.L.atlasroi.32k_fs_LR.shape.gii", search_path=subject_dir)')
+    print(f'{datetime.now}[FUNCTION] find(patterns="*.L.atlasroi.32k_fs_LR.shape.gii", search_path=subject_dir)')
     left_cortex = find(patterns="*.L.atlasroi.32k_fs_LR.shape.gii", search_path=subject_dir)
     print()
     
-    print(f'[FUNCTION] find(patterns="*.R.atlasroi.32k_fs_LR.shape.gii", search_path=subject_dir)')
+    print(f'{datetime.now}[FUNCTION] find(patterns="*.R.atlasroi.32k_fs_LR.shape.gii", search_path=subject_dir)')
     right_cortex = find(patterns="*.R.atlasroi.32k_fs_LR.shape.gii", search_path=subject_dir)
     print()
     
     
-    print("[FILES] Located the following files:")
+    print(f"{datetime.now}[FILES] Located the following files:")
     print(f"    LAS: {left_anatomical_surface}")
     print(f"    RAS: {right_anatomical_surface}")
     print(f"    LSS: {left_spherical_surface}")
@@ -379,61 +379,61 @@ def get_files(dataset: str, subject: str, time_point: str, is_rescaled=False):
     # --------------------------------------------------------
     # Locate curvature file
     # --------------------------------------------------------
-    print("[STEP] locate curvature file")
+    print(f"{datetime.now}[STEP] locate curvature file")
     
-    print(f'[FUNCTION] find(patterns="*.curvature.32k_fs_LR.dscalar.nii", search_path=subject_dir)')
+    print(f'{datetime.now}[FUNCTION] find(patterns="*.curvature.32k_fs_LR.dscalar.nii", search_path=subject_dir)')
     base_curvature = find(patterns="*.curvature.32k_fs_LR.dscalar.nii", search_path=subject_dir)
     print()
     
-    print("[FILES] Located the following files:")
+    print(f"{datetime.now}[FILES] Located the following files:")
     print(f"    BASE CURVATURE: {base_curvature}")
     
     # ----------------------------------------
     # Seperate curvature
     # ----------------------------------------
-    print("[STEP] Define outputs and directory")
+    print(f"{datetime.now}[STEP] Define outputs and directory")
     subject_curvature_dir = path.dirname(base_curvature)
     left_curvature = fr"{subject_curvature_dir}/{subject_full_name}_Curvature.L.func.gii"
     right_curvature = fr"{subject_curvature_dir}/{subject_full_name}_Curvature.R.func.gii"
     
-    print(f"[INFO] Curvature Directory: {subject_curvature_dir}")
-    print(f"[INFO] Left Curvature Output: {left_curvature}")
-    print(f"[INFO] Right Curvature Output: {right_curvature}")
+    print(f"{datetime.now}[INFO] Curvature Directory: {subject_curvature_dir}")
+    print(f"{datetime.now}[INFO] Left Curvature Output: {left_curvature}")
+    print(f"{datetime.now}[INFO] Right Curvature Output: {right_curvature}")
     run_logged(fr"wb_command -cifti-separate {base_curvature} COLUMN -metric CORTEX_LEFT {left_curvature} -metric CORTEX_RIGHT {right_curvature}", step="SEP CURV")
 
     # ---------------------------------------------
     # Grab rescaled and resampled files if needed
     #----------------------------------------------
     if is_rescaled:
-        print(f'[FUNCTION] find(patterns="*.L.rescaled.surf.gii", search_path=subject_dir)')
+        print(f'{datetime.now}[FUNCTION] find(patterns="*.L.rescaled.surf.gii", search_path=subject_dir)')
         left_rescaled_surface = find(patterns="*.L.rescaled.surf.gii", search_path=subject_dir)
         print()
         
-        print(f'[FUNCTION] find(patterns="*.R.rescaled.surf.gii", search_path=subject_dir)')
+        print(f'{datetime.now}[FUNCTION] find(patterns="*.R.rescaled.surf.gii", search_path=subject_dir)')
         right_rescaled_surface = find(patterns="*.R.rescaled.surf.gii", search_path=subject_dir)
         print()
         
-        print('[FUNCTION] find(patterns="*.L.generated.sphere.surf.gii", search_path=subject_dir)')
+        print(f'{datetime.now}[FUNCTION] find(patterns="*.L.generated.sphere.surf.gii", search_path=subject_dir)')
         left_generated_sphere = find(patterns="*.L.generated.sphere.surf.gii", search_path=subject_dir)
         print()
         
-        print('[FUNCTION] find(patterns="*.R.generated.sphere.surf.gii", search_path=subject_dir)')
+        print(f'{datetime.now}[FUNCTION] find(patterns="*.R.generated.sphere.surf.gii", search_path=subject_dir)')
         right_generated_sphere = find(patterns="*.R.generated.sphere.surf.gii", search_path=subject_dir)
         print()
         
-        print(f'[FUNCTION] find(patterns="*.L.rescaled.ANATgrid.surf.gii", search_path=subject_dir)')
+        print(f'{datetime.now}[FUNCTION] find(patterns="*.L.rescaled.ANATgrid.surf.gii", search_path=subject_dir)')
         left_resampled_anatgrid=find(patterns="*.L.rescaled.ANATgrid.surf.gii", search_path=subject_dir)
         print()
         
-        print(f'[FUNCTION] find(patterns="*.L.rescaled.CPgrid.surf.gii", search_path=subject_dir)')
+        print(f'{datetime.now}[FUNCTION] find(patterns="*.L.rescaled.CPgrid.surf.gii", search_path=subject_dir)')
         left_resampled_cpgrid=find(patterns="*.L.rescaled.CPgrid.surf.gii", search_path=subject_dir)
         print()
         
-        print(f'[FUNCTION] find(patterns="*.L=R.rescaled.ANATgrid.surf.gii", search_path=subject_dir)')
+        print(f'{datetime.now}[FUNCTION] find(patterns="*.L=R.rescaled.ANATgrid.surf.gii", search_path=subject_dir)')
         right_resampled_anatgrid=find(patterns="*.R.rescaled.ANATgrid.surf.gii", search_path=subject_dir)
         print()
         
-        print(f'[FUNCTION] find(patterns="*.R.rescaled.CPgrid.surf.gii", search_path=subject_dir)')
+        print(f'{datetime.now}[FUNCTION] find(patterns="*.R.rescaled.CPgrid.surf.gii", search_path=subject_dir)')
         right_resampled_cpgrid=find(patterns="*.R.rescaled.CPgrid.surf.gii", search_path=subject_dir)
         print()
     else:
@@ -463,11 +463,11 @@ def get_files(dataset: str, subject: str, time_point: str, is_rescaled=False):
         "RIGHT GEN SPHERE": right_generated_sphere,
     }
     
-    print("[INFO] Returning the following:")
+    print(f"{datetime.now}[INFO] Returning the following:")
     for k,v in subject_files.items():
         print(f"    {k}: {v}")
     
-    print(f"[COMPELTE] Finished finding files for Subject {subject} at time point {time_point} in {dataset}. Returning dictonary of files")
+    print(f"{datetime.now}[COMPELTE] Finished finding files for Subject {subject} at time point {time_point} in {dataset}. Returning dictonary of files")
     return subject_files
 
 
@@ -478,27 +478,27 @@ def generate_qc_image(dataset: str, subject: str, younger_timepoint: str, older_
     # -------------------------
     # Locate surfaces
     # -------------------------
-    print("[STEP] Locating surfaces")
+    print(f"{datetime.now}[STEP] Locating surfaces")
 
     if younger_uses_mcribs:
-        print("[INFO] Younger timepoint uses MCRIBS pipeline")
-        print(f"[FUNCTION] Calling get_files_mcribs dataset={dataset} subject={subject}, timepoint={younger_timepoint}")
+        print(f"{datetime.now}[INFO] Younger timepoint uses MCRIBS pipeline")
+        print(f"{datetime.now}[FUNCTION] Calling get_files_mcribs dataset={dataset} subject={subject}, timepoint={younger_timepoint}")
         younger_files = get_files_mcribs(dataset, subject, younger_timepoint)
         print()
     else:
-        print("[INFO] Younger timepoint uses standard pipeline")
-        print(f"[FUNCTION] Calling get_files dataset={dataset} subject={subject}, timepoint={younger_timepoint}")
+        print(f"{datetime.now}[INFO] Younger timepoint uses standard pipeline")
+        print(f"{datetime.now}[FUNCTION] Calling get_files dataset={dataset} subject={subject}, timepoint={younger_timepoint}")
         younger_files = get_files(dataset, subject, younger_timepoint)
         print()
         
     if older_uses_mcribs:
-        print("[INFO] Older timepoint uses MCRIBS pipeline")
-        print(f"[FUNCTION] Calling get_files_mcribs dataset={dataset} subject={subject}, timepoint={older_timepoint}")
+        print(f"{datetime.now}[INFO] Older timepoint uses MCRIBS pipeline")
+        print(f"{datetime.now}[FUNCTION] Calling get_files_mcribs dataset={dataset} subject={subject}, timepoint={older_timepoint}")
         older_files = get_files_mcribs(dataset, subject, older_timepoint)
         print()
     else:
-        print("[INFO] Older timepoint uses standard pipeline")
-        print(f"[FUNCTION] Calling get_files dataset={dataset} subject={subject}, timepoint={older_timepoint}")
+        print(f"{datetime.now}[INFO] Older timepoint uses standard pipeline")
+        print(f"{datetime.now}[FUNCTION] Calling get_files dataset={dataset} subject={subject}, timepoint={older_timepoint}")
         older_files = get_files(dataset, subject, older_timepoint)
         print()
 
@@ -513,7 +513,7 @@ def generate_qc_image(dataset: str, subject: str, younger_timepoint: str, older_
         left_older_surface = older_files["LAS"]
         right_older_surface = older_files["RAS"]
 
-    print("[FILES] Selected surfaces:")
+    print(f"{datetime.now}[FILES] Selected surfaces:")
     print(f"    Younger L: {left_younger_surface}")
     print(f"    Younger R: {right_younger_surface}")
     print(f"    Older   L: {left_older_surface}")
@@ -525,7 +525,7 @@ def generate_qc_image(dataset: str, subject: str, younger_timepoint: str, older_
     print("\n[STEP] Creating spec file")
 
     spec_file = path.join(output, f"{subject}_{younger_timepoint}_to_{older_timepoint}.spec")
-    print(f"[INFO] Spec file: {spec_file}")
+    print(f"{datetime.now}[INFO] Spec file: {spec_file}")
 
     run_logged(f"wb_command -add-to-spec-file {spec_file} CORTEX_LEFT {left_younger_surface}", step="SPEC")
     run_logged(f"wb_command -add-to-spec-file {spec_file} CORTEX_LEFT {left_older_surface}", step="SPEC")
@@ -540,14 +540,14 @@ def generate_qc_image(dataset: str, subject: str, younger_timepoint: str, older_
     script_dir = path.dirname(path.realpath(__file__))
     template_path = path.join(script_dir, "Templates", "pre_msm_qc_template.scene")
 
-    print(f"[INFO] Using template: {template_path}")
+    print(f"{datetime.now}[INFO] Using template: {template_path}")
 
     with open(template_path, "r") as f:
         template = Template(f.read())
 
     scene_file = path.join(output, f"{subject}_{younger_timepoint}_to_{older_timepoint}.scene")
 
-    print(f"[INFO] Writing scene file: {scene_file}")
+    print(f"{datetime.now}[INFO] Writing scene file: {scene_file}")
 
     with open(scene_file, "w+") as f:
         f.write(template.substitute(
@@ -560,10 +560,10 @@ def generate_qc_image(dataset: str, subject: str, younger_timepoint: str, older_
     print("\n[STEP] Generating QC image")
 
     image_file = path.join(output, f"{subject}_{younger_timepoint}_to_{older_timepoint}.png")
-    print(f"[INFO] Output image: {image_file}")
+    print(f"{datetime.now}[INFO] Output image: {image_file}")
 
     run_logged(f"wb_command -show-scene {scene_file} 1 {image_file} 1024 512",step="RENDER")
-    print("[COMPLETE] FInished generating qc images")
+    print(f"{datetime.now}[COMPLETE] FInished generating qc images")
 
     
 # Generate all pre-MSM qc images
@@ -601,7 +601,7 @@ def generate_post_processing_image(subject_directory: str, resolution: str, mode
     # ---------------------
     # Extracting metadata
     # ---------------------
-    print("[STEP] Gathering registration info")
+    print(f"{datetime.now}[STEP] Gathering registration info")
     subject_basename = path.basename(subject_directory)
     subject_basename_list = subject_basename.split("_")
     subject = subject_basename_list[0]
@@ -856,13 +856,13 @@ def get_subjects(dataset: str):
             fields = directory.split("_")
             subject = fields[1]
             if subject not in subjects:
-                print(f"[INFO] Found subject {subject} at {full_path} adding to subjects list")
+                print(f"{datetime.now}[INFO] Found subject {subject} at {full_path} adding to subjects list")
                 subjects.append(subject)
     subjects.sort()
-    print("[Info] Found the following subjects")
+    print(f"{datetime.now}[Info] Found the following subjects")
     for subject in subjects:
         print(f"    {subject}")
-    print(f"[COMPLETE] Found all subjects in dataset {dataset}. Returning list of subjects")
+    print(f"{datetime.now}[COMPLETE] Found all subjects in dataset {dataset}. Returning list of subjects")
     return subjects
 
 
@@ -872,7 +872,7 @@ def generate_sphere(subject_dir, subject_prefix, left_midthickness, right_midthi
     # Generate sphere based on rescaled surfaces
     # --------------------------------------------
     print(f"\n[GENERATE SPHERE] Generating sphere for rescaled surface")
-    print("[INFO] USing the following settings:")
+    print(f"{datetime.now}[INFO] USing the following settings:")
     print(f"    LEFT MIDTHICKNESS: {left_midthickness}")
     print(f"    RIGHT MIDTHICKNESS: {right_midthickness}")
     print(f"    MAX ANAT: max_anat")
@@ -880,7 +880,7 @@ def generate_sphere(subject_dir, subject_prefix, left_midthickness, right_midthi
     # ---------------------
     # Set up outputs
     # ---------------------
-    print(f"[INFO] Defining output files")
+    print(f"{datetime.now}[INFO] Defining output files")
     left_smoothed = path.join(subject_dir, "lh.midthickness.smoothed.surf.gii")
     right_smoothed = path.join(subject_dir, "rh.midthickness.smoothed.surf.gii")
     
@@ -893,7 +893,7 @@ def generate_sphere(subject_dir, subject_prefix, left_midthickness, right_midthi
     left_spherical_surface = path.join(subject_dir, f"{subject_prefix}.L.generated.sphere.surf.gii")
     right_spherical_surface = path.join(subject_dir, f"{subject_prefix}.R.generated.sphere.surf.gii")
     
-    print(f"[FILES] Files will be gnereaterd as follows:")
+    print(f"{datetime.now}[FILES] Files will be gnereaterd as follows:")
     print(f"    LEFT SMOOTHED: {left_smoothed}")
     print(f"    RIGHT SMOOTHED: {right_smoothed}")
     print(f"    LEFT INFLATED: {left_inflated}")
@@ -904,58 +904,58 @@ def generate_sphere(subject_dir, subject_prefix, left_midthickness, right_midthi
     # ----------------------------
     # SMOOTHING MIDTHICKNESS
     # ----------------------------
-    print("[STEP] Smoothing midthickness")
+    print(f"{datetime.now}[STEP] Smoothing midthickness")
     run_logged(f'wb_command -surface-smoothing {left_midthickness} 1 10000 {left_smoothed}', step="SMOOTHING")
     run_logged(f'wb_command -surface-smoothing {right_midthickness} 1 10000 {right_smoothed}', step="SMOOTHING")
     
     # ---------------------------
     # INFLATE SMOOTHED SURFACE
     # ---------------------------
-    print("[STEP] Inflating smoothed surfaces")
+    print(f"{datetime.now}[STEP] Inflating smoothed surfaces")
     run_logged(f'wb_command -surface-inflation {left_smoothed} {left_smoothed} 10 1 100 2 {left_inflated}', step="INFLATE")
     run_logged(f'wb_command -surface-inflation {right_smoothed} {right_smoothed} 10 1 100 2 {right_inflated}', step="INFLATE")
     
     # -------------------------------------
     # MATCH INFLATED SURFACE TO ICOSPHERE
     # -------------------------------------
-    print("[STEP] Matching inflated surface to icosphere")
+    print(f"{datetime.now}[STEP] Matching inflated surface to icosphere")
     run_logged(f'wb_command -surface-match {max_anat} {left_inflated} {left_matched}', step="MATCHING")
     run_logged(f'wb_command -surface-match {max_anat} {right_inflated} {right_matched}', step="MATCHING")
     
     # ------------------
     # CENTERING SPHERE
     # ------------------
-    print("[INFO] Centering matched sphere")
+    print(f"{datetime.now}[INFO] Centering matched sphere")
     run_logged(f'wb_command -surface-modify-sphere -recenter {left_matched} 100 {left_spherical_surface}', step="CENTERING")
     run_logged(f'wb_command -surface-modify-sphere -recenter {right_matched} 100 {right_spherical_surface}', step="CENTERING")
     
     # ---------------
     # RETURN FILES
     # ---------------
-    print("[INFO] Returning path objects for left and right spherical surface")
-    print(f"[COMPLETE] Finished generating shperes in {subject_dir}")
+    print(f"{datetime.now}[INFO] Returning path objects for left and right spherical surface")
+    print(f"{datetime.now}[COMPLETE] Finished generating shperes in {subject_dir}")
     return left_spherical_surface, right_spherical_surface
 
 
 # Helper Function for template replacement
 def generate_from_template(template_path, output_path, template_dict):
     print(f"\n[TEMPLATE] Generating script at {output_path} from template located at {template_path}")
-    print("[STEP] Reading template")
+    print(f"{datetime.now}[STEP] Reading template")
     with open(template_path, "r") as f:
         template_read = f.read()
     template = Template(template_read)
     try:
-        print("[INFO] Values to write:")
+        print(f"{datetime.now}[INFO] Values to write:")
         for k,v in template_dict.items():
                 print(f"    {k}: {v}")
-        print("[STEP] Attempting Substitution")
+        print(f"{datetime.now}[STEP] Attempting Substitution")
         to_write = template.substitute(template_dict)
     except:
         fail("Unable to substitue template. Check log to ensure all files were gathered correctly")
     with open(output_path, "w+") as f:
-        print(f"[INFO] Writng substituded template to {output_path}")
+        print(f"{datetime.now}[INFO] Writng substituded template to {output_path}")
         f.write(to_write)
-    print("[COMPLETE] Finished generating script from template")
+    print(f"{datetime.now}[COMPLETE] Finished generating script from template")
 
 
 # Function for running MSM commands
@@ -972,17 +972,17 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
     # -------------------------------------
     # Setting up defaults and variables
     # -------------------------------------
-    print("[STEP] Seting up options and variables")
+    print(f"{datetime.now}[STEP] Seting up options and variables")
     user_home = path.expanduser('~')
     script_dir = path.dirname(path.realpath(__file__))
     if config == None:
-        print("[INFO] No config file provided, using default")
+        print(f"{datetime.now}[INFO] No config file provided, using default")
         config = path.join(script_dir, "NeededFiles", "configAnatGrid6")
     if max_anat == None:
-        print("[INFO] max_anat not provided, using default")
+        print(f"{datetime.now}[INFO] max_anat not provided, using default")
         max_anat = path.join(script_dir, "NeededFiles", "ico6sphere.LR.reg.surf.gii")
     if max_cp == None:
-        print("[INFO] max_cp not provided, using default")
+        print(f"{datetime.now}[INFO] max_cp not provided, using default")
         max_cp = path.join(script_dir, "NeededFiles", "ico5sphere.LR.reg.surf.gii")
     if is_local and hemisphere is None:
         fail("local mode selected but no hemisphere seleceted")
@@ -990,14 +990,14 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
         fail("mode must be forward or reverse")
         
     
-    print(f"[INFO] Mode is {mode}, setting script path to match")
+    print(f"{datetime.now}[INFO] Mode is {mode}, setting script path to match")
     if mode == "forward":
         temp_output = path.join(user_home, "Scripts", "MyScripts", "Output", "MSM_Pipeline", "MSM_scripts", fr"{subject}_{younger_timepoint}_to_{older_timepoint}")
     elif mode == "reverse":
         temp_output = path.join(user_home, "Scripts", "MyScripts", "Output", "MSM_Pipeline", "MSM_scripts", fr"{subject}_{older_timepoint}_to_{younger_timepoint}")
     makedirs(temp_output, exist_ok=True)
     
-    print("[INFO] The following settings will be used:")
+    print(f"{datetime.now}[INFO] The following settings will be used:")
     print(f"    Subject: {subject}")
     print(f"    Younger Time Point: {younger_timepoint}")
     print(f"    Older Time Point: {older_timepoint}")
@@ -1013,23 +1013,23 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
     # -------------------------
     # Retrieve Younger Files
     # -------------------------
-    print(f"[STEP] Retrieving files for younger timepoint")
+    print(f"{datetime.now}[STEP] Retrieving files for younger timepoint")
     if younger_uses_mcribs:
-        print(f"[INFO] Younger time point uses M-CRIB-S naming conventions")
-        print(f"[FUNCTION] get_files_mcribs(dataset=dataset, subject=subject, time_point=younger_timepoint, is_rescaled=True)")
+        print(f"{datetime.now}[INFO] Younger time point uses M-CRIB-S naming conventions")
+        print(f"{datetime.now}[FUNCTION] get_files_mcribs(dataset=dataset, subject=subject, time_point=younger_timepoint, is_rescaled=True)")
         younger_files = get_files_mcribs(dataset=dataset, subject=subject, time_point=younger_timepoint, is_rescaled=True)
         print()
         
-        print(f"[INFO] M-CRIB-S Surfaces must be rescaled. Using rescaled surfaces")
+        print(f"{datetime.now}[INFO] M-CRIB-S Surfaces must be rescaled. Using rescaled surfaces")
         left_younger_anatomical_surface = younger_files["LEFT RESCALE"]
         right_younger_anatomical_surface = younger_files["RIGHT RESCALE"]
         left_younger_spherical_surface = younger_files["LEFT GEN SPHERE"]
         right_younger_spherical_surface = younger_files["RIGHT GEN SPHERE"]
     else:
-        print("[INFO] Younger timepoint uses Ciftify/Freesurfer naming conventiions")
+        print(f"{datetime.now}[INFO] Younger timepoint uses Ciftify/Freesurfer naming conventiions")
         if use_rescaled:
-            print("[INFO] Rescale option is set to true for Freesurfer subejcts")
-            print("[FUNCTION] get_files(dataset=dataset, subject=subject, time_point=younger_timepoint, is_rescaled=True)")
+            print(f"{datetime.now}[INFO] Rescale option is set to true for Freesurfer subejcts")
+            print(f"{datetime.now}[FUNCTION] get_files(dataset=dataset, subject=subject, time_point=younger_timepoint, is_rescaled=True)")
             younger_files = get_files(dataset=dataset, subject=subject, time_point=younger_timepoint, is_rescaled=True)
             print()
             left_younger_anatomical_surface = younger_files["LEFT RESCALE"]
@@ -1038,8 +1038,8 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
             right_younger_spherical_surface = younger_files["RIGHT GEN SPHERE"]
             
         else:
-            print("[INFO] Rescale option set to False for Freesurfer subjects")
-            print("[FUNCTION] get_files(dataset=dataset, subject=subject, time_point=younger_timepoint)")
+            print(f"{datetime.now}[INFO] Rescale option set to False for Freesurfer subjects")
+            print(f"{datetime.now}[FUNCTION] get_files(dataset=dataset, subject=subject, time_point=younger_timepoint)")
             younger_files = get_files(dataset=dataset, subject=subject, time_point=younger_timepoint)
             print()
             left_younger_anatomical_surface = younger_files["LAS"]
@@ -1049,7 +1049,7 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
     
     left_younger_curvature = younger_files["LEFT CURVATURE"]
     right_younger_curvature = younger_files["RIGHT CURVATURE"]
-    print("[FILES] Younger files retrieved")
+    print(f"{datetime.now}[FILES] Younger files retrieved")
     print(f"    LYAS: {left_younger_anatomical_surface}")
     print(f"    RYAS: {right_younger_anatomical_surface}")
     print(f"    LYSS: {left_younger_spherical_surface}")
@@ -1060,23 +1060,23 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
     # -------------------------
     # Retrieve Older Files
     # -------------------------    
-    print("[STEP] Retrieving files for older timepoint")    
+    print(f"{datetime.now}[STEP] Retrieving files for older timepoint")    
     if older_uses_mcribs:
-        print(f"[INFO] Older time point uses M-CRIB-S naming conventions")
-        print(f"[FUNCTION] get_files_mcribs(dataset=dataset, subject=subject, time_point=older_timepoint, is_rescaled=True)")
+        print(f"{datetime.now}[INFO] Older time point uses M-CRIB-S naming conventions")
+        print(f"{datetime.now}[FUNCTION] get_files_mcribs(dataset=dataset, subject=subject, time_point=older_timepoint, is_rescaled=True)")
         older_files = get_files_mcribs(dataset=dataset, subject=subject, time_point=older_timepoint, is_rescaled=True)
         print()
         
-        print(f"[INFO] M-CRIB-S Surfaces must be rescaled. Using rescaled surfaces")
+        print(f"{datetime.now}[INFO] M-CRIB-S Surfaces must be rescaled. Using rescaled surfaces")
         left_older_anatomical_surface = older_files["LEFT RESCALE"]
         right_older_anatomical_surface = older_files["RIGHT RESCALE"]
         left_older_spherical_surface = older_files["LEFT GEN SPHERE"]
         right_older_spherical_surface = older_files["RIGHT GEN SPHERE"]
     else:
-        print("[INFO] Older timepoint uses Ciftify/Freesurfer naming conventiions")
+        print(f"{datetime.now}[INFO] Older timepoint uses Ciftify/Freesurfer naming conventiions")
         if use_rescaled:
-            print("[INFO] Rescale option is set to true for Freesurfer subjects")
-            print("[FUNCTION] get_files(dataset=dataset, subject=subject, time_point=older_timepoint, is_rescaled=True)")
+            print(f"{datetime.now}[INFO] Rescale option is set to true for Freesurfer subjects")
+            print(f"{datetime.now}[FUNCTION] get_files(dataset=dataset, subject=subject, time_point=older_timepoint, is_rescaled=True)")
             older_files = get_files(dataset=dataset, subject=subject, time_point=older_timepoint, is_rescaled=True)
             print()
             left_older_anatomical_surface = older_files["LEFT RESCALE"]
@@ -1084,8 +1084,8 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
             left_older_spherical_surface = older_files["LEFT GEN SPHERE"]
             right_older_spherical_surface = older_files["RIGHT GEN SPHERE"]
         else:
-            print("[INFO] Rescale option set to False for Freesurfer subjects")
-            print("[FUNCTION] get_files(dataset=dataset, subject=subject, time_point=older_timepoint)")
+            print(f"{datetime.now}[INFO] Rescale option set to False for Freesurfer subjects")
+            print(f"{datetime.now}[FUNCTION] get_files(dataset=dataset, subject=subject, time_point=older_timepoint)")
             older_files = get_files(dataset=dataset, subject=subject, time_point=older_timepoint)
             print()
             left_older_anatomical_surface = older_files["LAS"]
@@ -1095,7 +1095,7 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
 
     left_older_curvature = older_files["LEFT CURVATURE"]
     right_older_curvature = older_files["RIGHT CURVATURE"]
-    print("[FILES] Older files retrieved")
+    print(f"{datetime.now}[FILES] Older files retrieved")
     print(f"    LOAS: {left_older_anatomical_surface}")
     print(f"    ROAS: {right_older_anatomical_surface}")
     print(f"    LOSS: {left_older_spherical_surface}")
@@ -1106,21 +1106,21 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
     #--------------------
     # Generate Scritps
     #--------------------
-    print("[STEP] Generating scripts for MSM runs")
+    print(f"{datetime.now}[STEP] Generating scripts for MSM runs")
     script_dir = path.dirname(path.realpath(__file__))
     template_dir = path.join(script_dir, "Templates")
-    print(f"[INFO] Templates located in {template_dir}")
+    print(f"{datetime.now}[INFO] Templates located in {template_dir}")
     if mode == "forward":
         # ---------------------
         # Set up forward info
         # ---------------------
-        print("[INFO] Mode is set to forward, creating output directories and files")
+        print(f"{datetime.now}[INFO] Mode is set to forward, creating output directories and files")
         output = path.join(output, fr"{subject}_{younger_timepoint}_to_{older_timepoint}")
         temp_output = path.join(user_home, "Scripts", "MyScripts", "Output", "MSM_Pipeline", "MSM_scripts", fr"{subject}_{younger_timepoint}_to_{older_timepoint}")
         makedirs(output, exist_ok=True)
         makedirs(temp_output, exist_ok=True)
-        print(f"[INFO] Output directory created at {output}")
-        print(f"[INFO] Script directory created at {temp_output}")
+        print(f"{datetime.now}[INFO] Output directory created at {output}")
+        print(f"{datetime.now}[INFO] Script directory created at {temp_output}")
         
         left_file_prefix = fr"{output}/{subject}_L_{younger_timepoint}-{older_timepoint}."
         right_file_prefix = fr"{output}/{subject}_R_{younger_timepoint}-{older_timepoint}."
@@ -1128,7 +1128,7 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
         script_output_r = path.join(temp_output, f"Subject_{subject}_R_{younger_timepoint}-{older_timepoint}_MSM.sh")
         
         if is_local:
-            print("[INFO] Local flag used. Using local run templates")
+            print(f"{datetime.now}[INFO] Local flag used. Using local run templates")
             template_path_l = path.join(template_dir, "MSM_template_forward_L_local.txt")
             template_path_r = path.join(template_dir, "MSM_template_forward_R_local.txt")
             template_dict_l = {
@@ -1160,7 +1160,7 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
             
             
         else:
-            print("[INFO] Local flag not used, using remote templates")
+            print(f"{datetime.now}[INFO] Local flag not used, using remote templates")
             template_path_l = path.join(template_dir, "MSM_template_forward_L.txt")
             template_path_r = path.join(template_dir, "MSM_template_forward_R.txt")
             template_dict_l = {
@@ -1206,13 +1206,13 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
         # ---------------------
         # Set up reverse info
         # ---------------------
-        print("[INFO] Mode is set to reverse, creating output directories and files")
+        print(f"{datetime.now}[INFO] Mode is set to reverse, creating output directories and files")
         output = path.join(output, fr"{subject}_{older_timepoint}_to_{younger_timepoint}")
         temp_output = path.join(user_home, "Scripts", "MyScripts", "Output", "MSM_Pipeline", "MSM_scripts", fr"{subject}_{older_timepoint}_to_{younger_timepoint}")
         makedirs(output, exist_ok=True)
         makedirs(temp_output, exist_ok=True)
-        print(f"[INFO] Output directory created at {output}")
-        print(f"[INFO] Script directory created at {temp_output}")
+        print(f"{datetime.now}[INFO] Output directory created at {output}")
+        print(f"{datetime.now}[INFO] Script directory created at {temp_output}")
         
         left_file_prefix = fr"{output}/{subject}_L_{older_timepoint}-{younger_timepoint}."
         right_file_prefix = fr"{output}/{subject}_R_{older_timepoint}-{younger_timepoint}."
@@ -1220,7 +1220,7 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
         script_output_r = path.join(temp_output, f"Subject_{subject}_R_{older_timepoint}-{younger_timepoint}_MSM.sh")
         
         if is_local:
-            print("[INFO] Local flag used. Using local run templates")
+            print(f"{datetime.now}[INFO] Local flag used. Using local run templates")
             template_path_l = path.join(template_dir, "MSM_template_reverse_L_local.txt")
             template_path_r = path.join(template_dir, "MSM_template_reverse_R_local.txt")
             template_dict_l = {
@@ -1250,7 +1250,7 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
                 "maxcp": max_cp,
             }
         else:
-            print("[INFO] Local flag not used, using remote templates")
+            print(f"{datetime.now}[INFO] Local flag not used, using remote templates")
             template_path_l = path.join(template_dir, "MSM_template_reverse_L.txt")
             template_path_r = path.join(template_dir, "MSM_template_reverse_R.txt")
             template_dict_l = {
@@ -1293,11 +1293,11 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
             }
             
         
-    print(f"[INFO] left file prefix is: {left_file_prefix}")
-    print(f"[INFO] right file prefix is: {right_file_prefix}")
-    print(f"[INFO] Scripts will be generated at {script_output_l} and {script_output_r}")
-    print(f"[INFO] Left template: {template_path_l}")
-    print(f"[INFO] Right template: {template_path_r}")
+    print(f"{datetime.now}[INFO] left file prefix is: {left_file_prefix}")
+    print(f"{datetime.now}[INFO] right file prefix is: {right_file_prefix}")
+    print(f"{datetime.now}[INFO] Scripts will be generated at {script_output_l} and {script_output_r}")
+    print(f"{datetime.now}[INFO] Left template: {template_path_l}")
+    print(f"{datetime.now}[INFO] Right template: {template_path_r}")
     
     # ------------------
     # Remote Templates
@@ -1306,26 +1306,26 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
         # ------------------------
         # Left Hemisphere Remote
         # ------------------------
-        print("[STEP] Generateing left hemisphere script")
-        print("[INFO] Using the following info for template")
+        print(f"{datetime.now}[STEP] Generateing left hemisphere script")
+        print(f"{datetime.now}[INFO] Using the following info for template")
         print(f"    Template: {template_path_l}")
         for k,v in template_dict_l.items():
             print(f"    {k}: {v}")
         
-        print("[FUNCTION] generate_from_template(template_path=template_path_l, output_path=script_output_l, template_dict=template_dict_l)")
+        print(f"{datetime.now}[FUNCTION] generate_from_template(template_path=template_path_l, output_path=script_output_l, template_dict=template_dict_l)")
         generate_from_template(template_path=template_path_l, output_path=script_output_l, template_dict=template_dict_l)
         print()
         
         # -------------------------
         # Right Hemisphere Remote
         # -------------------------
-        print("[STEP] Generateing right hemisphere script")
-        print("[INFO] Using the following info for template")
+        print(f"{datetime.now}[STEP] Generateing right hemisphere script")
+        print(f"{datetime.now}[INFO] Using the following info for template")
         print(f"    Template: {template_path_r}")
         for k,v in template_dict_r.items():
             print(f"    {k}: {v}")
         
-        print("[FUNCTION] generate_from_template(template_path=template_path_r, output_path=script_output_r, template_dict=template_dict_r)")
+        print(f"{datetime.now}[FUNCTION] generate_from_template(template_path=template_path_r, output_path=script_output_r, template_dict=template_dict_r)")
         generate_from_template(template_path=template_path_r, output_path=script_output_r, template_dict=template_dict_r)
         print()
                             
@@ -1340,12 +1340,12 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
             # Left Hemisphere Local
             # -----------------------
             
-            print("[INFO] Using the following info for template")
+            print(f"{datetime.now}[INFO] Using the following info for template")
             print(f"    Template: {template_path_l}")
             for k,v in template_dict_l.items():
                 print(f"    {k}: {v}")
             
-            print("[FUNCTION] generate_from_template(template_path=template_path_l, output_path=script_output_l, template_dict=template_dict_l)")
+            print(f"{datetime.now}[FUNCTION] generate_from_template(template_path=template_path_l, output_path=script_output_l, template_dict=template_dict_l)")
             generate_from_template(template_path=template_path_l, output_path=script_output_l, template_dict=template_dict_l)
             print()
             
@@ -1354,12 +1354,12 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
             # -----------------------
             # Right Hemisphere Local
             # -----------------------            
-            print("[INFO] Using the following info for template")
+            print(f"{datetime.now}[INFO] Using the following info for template")
             print(f"    Template: {template_path_r}")
             for k,v in template_dict_r.items():
                 print(f"    {k}: {v}")
             
-            print("[FUNCTION] generate_from_template(template_path=template_path_r, output_path=script_output_r, template_dict=template_dict_r)")
+            print(f"{datetime.now}[FUNCTION] generate_from_template(template_path=template_path_r, output_path=script_output_r, template_dict=template_dict_r)")
             generate_from_template(template_path=template_path_r, output_path=script_output_r, template_dict=template_dict_r)
             print()
 
@@ -1367,90 +1367,90 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
     #  Submit Remote Jobs
     # ------------------------
     if not is_local:
-        print("[STEP] Submitting remote jobs to Slurm")
+        print(f"{datetime.now}[STEP] Submitting remote jobs to Slurm")
         # -----------------
         # Left Hemisphere
         # -----------------
-        print(f"[INFO] Script to submit: {script_output_l}")
+        print(f"{datetime.now}[INFO] Script to submit: {script_output_l}")
         if slurm_job_limit == None:
-            print("[INFO] No job limit provided, using default")
-            print("[FUNCTION] is_slurm_queue_open(slurm_user=slurm_user)")
+            print(f"{datetime.now}[INFO] No job limit provided, using default")
+            print(f"{datetime.now}[FUNCTION] is_slurm_queue_open(slurm_user=slurm_user)")
             jobs_open = is_slurm_queue_open(slurm_user=slurm_user)
             print()
         else:
-            print(f"[INFO] Checking Slurm with a job limit of {slurm_job_limit}")
-            print("[FUNCTION] is_slurm_queue_open(slurm_user=slurm_user, slurm_job_limit=slurm_job_limit)")
+            print(f"{datetime.now}[INFO] Checking Slurm with a job limit of {slurm_job_limit}")
+            print(f"{datetime.now}[FUNCTION] is_slurm_queue_open(slurm_user=slurm_user, slurm_job_limit=slurm_job_limit)")
             jobs_open = is_slurm_queue_open(slurm_user=slurm_user, slurm_job_limit=slurm_job_limit)
             print()
         while jobs_open <= 0:
-            print("[INFO] No jobs currently open. Waiting two hours then checking again.")
+            print(f"{datetime.now}[INFO] No jobs currently open. Waiting two hours then checking again.")
             sleep(2 * 3600)
             if slurm_job_limit == None:
-                print("[INFO] No job limit provided, using default")
-                print("[FUNCTION] is_slurm_queue_open(slurm_user=slurm_user)")
+                print(f"{datetime.now}[INFO] No job limit provided, using default")
+                print(f"{datetime.now}[FUNCTION] is_slurm_queue_open(slurm_user=slurm_user)")
                 jobs_open = is_slurm_queue_open(slurm_user=slurm_user)
                 print()
             else:
-                print(f"[INFO] Checking Slurm with a job limit of {slurm_job_limit}")
-                print("[FUNCTION] is_slurm_queue_open(slurm_user=slurm_user, slurm_job_limit=slurm_job_limit)")
+                print(f"{datetime.now}[INFO] Checking Slurm with a job limit of {slurm_job_limit}")
+                print(f"{datetime.now}[FUNCTION] is_slurm_queue_open(slurm_user=slurm_user, slurm_job_limit=slurm_job_limit)")
                 jobs_open = is_slurm_queue_open(slurm_user=slurm_user, slurm_job_limit=slurm_job_limit)
                 print()
-        print("[INFO]Jobs open submitting script")
+        print(f"{datetime.now}[INFO]Jobs open submitting script")
         run_logged(fr"sbatch {script_output_l}", step="SUBMIT REMOTE")
-        print(f"[INFO] Deleting {script_output_l}")
+        print(f"{datetime.now}[INFO] Deleting {script_output_l}")
         remove(script_output_l)
         
         # ------------------
         # Right Hemisphere
         # ------------------
-        print(f"[INFO] Script to submit: {script_output_r}")
+        print(f"{datetime.now}[INFO] Script to submit: {script_output_r}")
         if slurm_job_limit == None:
-            print("[INFO] No job limit provided, using default")
-            print("[FUNCTION] is_slurm_queue_open(slurm_user=slurm_user)")
+            print(f"{datetime.now}[INFO] No job limit provided, using default")
+            print(f"{datetime.now}[FUNCTION] is_slurm_queue_open(slurm_user=slurm_user)")
             jobs_open = is_slurm_queue_open(slurm_user=slurm_user)
             print()
         else:
-            print(f"[INFO] Checking Slurm with a job limit of {slurm_job_limit}")
-            print("[FUNCTION] is_slurm_queue_open(slurm_user=slurm_user, slurm_job_limit=slurm_job_limit)")
+            print(f"{datetime.now}[INFO] Checking Slurm with a job limit of {slurm_job_limit}")
+            print(f"{datetime.now}[FUNCTION] is_slurm_queue_open(slurm_user=slurm_user, slurm_job_limit=slurm_job_limit)")
             jobs_open = is_slurm_queue_open(slurm_user=slurm_user, slurm_job_limit=slurm_job_limit)
             print()
         while jobs_open <= 0:
-            print("[INFO] No jobs currently open. Waiting two hours then checking again.")
+            print(f"{datetime.now}[INFO] No jobs currently open. Waiting two hours then checking again.")
             sleep(2 * 3600)
             if slurm_job_limit == None:
-                print("[INFO] No job limit provided, using default")
-                print("[FUNCTION] is_slurm_queue_open(slurm_user=slurm_user)")
+                print(f"{datetime.now}[INFO] No job limit provided, using default")
+                print(f"{datetime.now}[FUNCTION] is_slurm_queue_open(slurm_user=slurm_user)")
                 jobs_open = is_slurm_queue_open(slurm_user=slurm_user)
                 print()
             else:
-                print(f"[INFO] Checking Slurm with a job limit of {slurm_job_limit}")
-                print("[FUNCTION] is_slurm_queue_open(slurm_user=slurm_user, slurm_job_limit=slurm_job_limit)")
+                print(f"{datetime.now}[INFO] Checking Slurm with a job limit of {slurm_job_limit}")
+                print(f"{datetime.now}[FUNCTION] is_slurm_queue_open(slurm_user=slurm_user, slurm_job_limit=slurm_job_limit)")
                 jobs_open = is_slurm_queue_open(slurm_user=slurm_user, slurm_job_limit=slurm_job_limit)
                 print()
-        print("[INFO]Jobs open submitting script")
+        print(f"{datetime.now}[INFO]Jobs open submitting script")
         run_logged(fr"sbatch {script_output_r}", step="SUBMIT REMOTE")
-        print(f"[INFO] Deleting {script_output_r}")
+        print(f"{datetime.now}[INFO] Deleting {script_output_r}")
         remove(script_output_r)
     
     # -------------------
     # Run Local Scripts
     # -------------------
     elif is_local:
-        print("[STEP] Running script locally")
+        print(f"{datetime.now}[STEP] Running script locally")
         if hemisphere == "L":
-            print(f"[INFO] Script to run: {script_output_l}")
+            print(f"{datetime.now}[INFO] Script to run: {script_output_l}")
             run_logged(fr"bash {temp_output}/Subject_{subject}_L_{younger_timepoint}-{older_timepoint}_MSM.sh", step="RUN MSM")
-            print(f"[INFO] Deleting {script_output_r}")
+            print(f"{datetime.now}[INFO] Deleting {script_output_r}")
             remove(fr"{temp_output}/Subject_{subject}_L_{younger_timepoint}-{older_timepoint}_MSM.sh")
         elif hemisphere == "R":
-            print(f"[INFO] Script to run: {script_output_r}")
+            print(f"{datetime.now}[INFO] Script to run: {script_output_r}")
             run_logged(fr"bash {temp_output}/Subject_{subject}_R_{younger_timepoint}-{older_timepoint}_MSM.sh", step="RUN MSM")
-            print(f"[INFO] Deleting {script_output_r}")
+            print(f"{datetime.now}[INFO] Deleting {script_output_r}")
             remove(fr"{temp_output}/Subject_{subject}_R_{younger_timepoint}-{older_timepoint}_MSM.sh")
     if is_local:
-        print(f"[COMPLETE] MSM registration complete")
+        print(f"{datetime.now}[COMPLETE] MSM registration complete")
     else:
-        print(f"[COMPLETE] MSM jobs for submitted to slurm")
+        print(f"{datetime.now}[COMPLETE] MSM jobs for submitted to slurm")
             
 
 # Function for MSM BL to all
@@ -1462,38 +1462,38 @@ def run_msm_bl_to_all(dataset: str, output: str, starting_time: str, slurm_accou
     # Batch Run MSM BL to All
     # --------------------------
     print(f"\n[MSM BL TO ALL] Beginning batch run for subjects in dataset {dataset} starting from time point {starting_time}")
-    print("[INFO] Arguments passed:")
+    print(f"{datetime.now}[INFO] Arguments passed:")
     for name, value in locals().items():
         print(f"    {name}: {value}")
         
-    print(f"[STEP] Retrieving subjects from dataset {dataset}")
-    print("[FUNCTION] get_subjects(dataset=dataset)")
+    print(f"{datetime.now}[STEP] Retrieving subjects from dataset {dataset}")
+    print(f"{datetime.now}[FUNCTION] get_subjects(dataset=dataset)")
     subjects = get_subjects(dataset=dataset)
     print()
     
-    print("[STEP] Submitting MSM jobs")
+    print(f"{datetime.now}[STEP] Submitting MSM jobs")
     for subject in subjects:
-        print(f"[INFO] Retrieving timepoints for {subject}")
-        print("[FUNCTION] get_subject_time_points(dataset=dataset, subject=subject, alphanumeric_timepoints=alphanumeric_timepoints, time_point_number_start_character=time_point_number_start_character, starting_time=starting_time)")
+        print(f"{datetime.now}[INFO] Retrieving timepoints for {subject}")
+        print(f"{datetime.now}[FUNCTION] get_subject_time_points(dataset=dataset, subject=subject, alphanumeric_timepoints=alphanumeric_timepoints, time_point_number_start_character=time_point_number_start_character, starting_time=starting_time)")
         time_points = get_subject_time_points(dataset=dataset, subject=subject, alphanumeric_timepoints=alphanumeric_timepoints, time_point_number_start_character=time_point_number_start_character, starting_time=starting_time)
         print()
         
         if starting_time not in time_points:
-            print(f"[WARN] Starting Time missing for subejct {subject}. Proceeding to next subject")
+            print(f"{datetime.now}[WARN] Starting Time missing for subejct {subject}. Proceeding to next subject")
             continue
         
-        print("[INFO] Submit runs to run_msm")
+        print(f"{datetime.now}[INFO] Submit runs to run_msm")
         for time_point in time_points:
             if time_point != starting_time:
-                print("[INFO] Starting forward run")
-                print('[FUNCTION] run_msm(dataset=dataset, output=output, subject=subject, younger_timepoint=starting_time, older_timepoint=time_point, mode="forward", younger_uses_mcribs=younger_uses_mcribs, older_uses_mcribs=older_uses_mcribs, levels=levels, config=config, max_anat=max_anat, max_cp=max_cp, slurm_email=slurm_email, slurm_account=slurm_account, slurm_user=slurm_user, slurm_job_limit=slurm_job_limit, use_rescaled=use_rescaled)')
+                print(f"{datetime.now}[INFO] Starting forward run")
+                print(f'{datetime.now}[FUNCTION] run_msm(dataset=dataset, output=output, subject=subject, younger_timepoint=starting_time, older_timepoint=time_point, mode="forward", younger_uses_mcribs=younger_uses_mcribs, older_uses_mcribs=older_uses_mcribs, levels=levels, config=config, max_anat=max_anat, max_cp=max_cp, slurm_email=slurm_email, slurm_account=slurm_account, slurm_user=slurm_user, slurm_job_limit=slurm_job_limit, use_rescaled=use_rescaled)')
                 run_msm(dataset=dataset, output=output, subject=subject, younger_timepoint=starting_time, older_timepoint=time_point, mode="forward", younger_uses_mcribs=younger_uses_mcribs, older_uses_mcribs=older_uses_mcribs, levels=levels, config=config, max_anat=max_anat, max_cp=max_cp, slurm_email=slurm_email, slurm_account=slurm_account, slurm_user=slurm_user, slurm_job_limit=slurm_job_limit, use_rescaled=use_rescaled)
                 print()
-                print("[INFO] Starting reverse run")
-                print('[FUNCTION] run_msm(dataset=dataset, output=output, subject=subject, younger_timepoint=starting_time, older_timepoint=time_point, mode="reverse", younger_uses_mcribs=younger_uses_mcribs, older_uses_mcribs=older_uses_mcribs, levels=levels, config=config, max_anat=max_anat, max_cp=max_cp, slurm_email=slurm_email, slurm_account=slurm_account, slurm_user=slurm_user, slurm_job_limit=slurm_job_limit, use_rescaled=use_rescaled)')
+                print(f"{datetime.now}[INFO] Starting reverse run")
+                print(f'{datetime.now}[FUNCTION] run_msm(dataset=dataset, output=output, subject=subject, younger_timepoint=starting_time, older_timepoint=time_point, mode="reverse", younger_uses_mcribs=younger_uses_mcribs, older_uses_mcribs=older_uses_mcribs, levels=levels, config=config, max_anat=max_anat, max_cp=max_cp, slurm_email=slurm_email, slurm_account=slurm_account, slurm_user=slurm_user, slurm_job_limit=slurm_job_limit, use_rescaled=use_rescaled)')
                 run_msm(dataset=dataset, output=output, subject=subject, younger_timepoint=starting_time, older_timepoint=time_point, mode="reverse", younger_uses_mcribs=younger_uses_mcribs, older_uses_mcribs=older_uses_mcribs, levels=levels, config=config, max_anat=max_anat, max_cp=max_cp, slurm_email=slurm_email, slurm_account=slurm_account, slurm_user=slurm_user, slurm_job_limit=slurm_job_limit, use_rescaled=use_rescaled)
                 print()
-    print("[COMPLETE] Completed batch run")
+    print(f"{datetime.now}[COMPLETE] Completed batch run")
 
 
 # Function to run MSM on shirt time windows
@@ -1509,35 +1509,35 @@ def run_msm_short_time_windows(dataset: str, output: str, slurm_account: str, sl
     for name, value in locals().items():
         print(f"    {name}: {value}")
         
-    print("[STEP] Getting subjects from dataset")
-    print("[FUNCTION] get_subjects(dataset=dataset)")
+    print(f"{datetime.now}[STEP] Getting subjects from dataset")
+    print(f"{datetime.now}[FUNCTION] get_subjects(dataset=dataset)")
     subjects = get_subjects(dataset=dataset)
     print()
     
-    print("[STEP] Submitting MSM jobs")
+    print(f"{datetime.now}[STEP] Submitting MSM jobs")
     for subject in subjects:
-        print(f"[INFO] Getting time points for {subject}")
-        print("[FUNCTION] get_subject_time_points(dataset=dataset, subject=subject, alphanumeric_timepoints=alphanumeric_timepoints, time_point_number_start_character=time_point_number_start_character, starting_time=starting_time)")
+        print(f"{datetime.now}[INFO] Getting time points for {subject}")
+        print(f"{datetime.now}[FUNCTION] get_subject_time_points(dataset=dataset, subject=subject, alphanumeric_timepoints=alphanumeric_timepoints, time_point_number_start_character=time_point_number_start_character, starting_time=starting_time)")
         time_points = get_subject_time_points(dataset=dataset, subject=subject, alphanumeric_timepoints=alphanumeric_timepoints, time_point_number_start_character=time_point_number_start_character, starting_time=starting_time)
         print()
         
-        print("[INFO] Iterateing over time points to submit jobs")
+        print(f"{datetime.now}[INFO] Iterateing over time points to submit jobs")
         for i, time_point in enumerate(time_points):
             if i + 1 >= len(time_points):
                 break
             younger_time = time_point
             older_time = time_points[i + 1]
             if younger_time != starting_time and older_time != starting_time:
-                print(f"[INFO] submitting job between time points {younger_time} and {older_time}")
-                print("[INFO] Submitting forward job")
-                print('[FUNCTION] run_msm(dataset=dataset, output=output, subject=subject, younger_timepoint=younger_time, older_timepoint=older_time, mode="forward", younger_uses_mcribs=younger_uses_mcribs, older_uses_mcribs=older_uses_mcribs, is_local=False, hemisphere=None, levels=levels, config=config, max_anat=max_anat, max_cp=max_cp, slurm_email=slurm_email, slurm_account=slurm_account, slurm_user=slurm_user, slurm_job_limit=slurm_job_limit, use_rescaled=use_rescaled)')
+                print(f"{datetime.now}[INFO] submitting job between time points {younger_time} and {older_time}")
+                print(f"{datetime.now}[INFO] Submitting forward job")
+                print(f'{datetime.now}[FUNCTION] run_msm(dataset=dataset, output=output, subject=subject, younger_timepoint=younger_time, older_timepoint=older_time, mode="forward", younger_uses_mcribs=younger_uses_mcribs, older_uses_mcribs=older_uses_mcribs, is_local=False, hemisphere=None, levels=levels, config=config, max_anat=max_anat, max_cp=max_cp, slurm_email=slurm_email, slurm_account=slurm_account, slurm_user=slurm_user, slurm_job_limit=slurm_job_limit, use_rescaled=use_rescaled)')
                 run_msm(dataset=dataset, output=output, subject=subject, younger_timepoint=younger_time, older_timepoint=older_time, mode="forward", younger_uses_mcribs=younger_uses_mcribs, older_uses_mcribs=older_uses_mcribs, is_local=False, hemisphere=None, levels=levels, config=config, max_anat=max_anat, max_cp=max_cp, slurm_email=slurm_email, slurm_account=slurm_account, slurm_user=slurm_user, slurm_job_limit=slurm_job_limit, use_rescaled=use_rescaled)
                 print()
-                print("[INFO] Submitting reverse job")
-                print('[FUNCTION] run_msm(dataset=dataset, output=output, subject=subject, younger_timepoint=younger_time, older_timepoint=older_time, mode="reverse", younger_uses_mcribs=younger_uses_mcribs, older_uses_mcribs=older_uses_mcribs, is_local=False, hemisphere=None, levels=levels, config=config, max_anat=max_anat, max_cp=max_cp, slurm_email=slurm_email, slurm_account=slurm_account, slurm_user=slurm_user, slurm_job_limit=slurm_job_limit, use_rescaled=use_rescaled)')
+                print(f"{datetime.now}[INFO] Submitting reverse job")
+                print(f'{datetime.now}[FUNCTION] run_msm(dataset=dataset, output=output, subject=subject, younger_timepoint=younger_time, older_timepoint=older_time, mode="reverse", younger_uses_mcribs=younger_uses_mcribs, older_uses_mcribs=older_uses_mcribs, is_local=False, hemisphere=None, levels=levels, config=config, max_anat=max_anat, max_cp=max_cp, slurm_email=slurm_email, slurm_account=slurm_account, slurm_user=slurm_user, slurm_job_limit=slurm_job_limit, use_rescaled=use_rescaled)')
                 run_msm(dataset=dataset, output=output, subject=subject, younger_timepoint=younger_time, older_timepoint=older_time, mode="reverse", younger_uses_mcribs=younger_uses_mcribs, older_uses_mcribs=older_uses_mcribs, is_local=False, hemisphere=None, levels=levels, config=config, max_anat=max_anat, max_cp=max_cp, slurm_email=slurm_email, slurm_account=slurm_account, slurm_user=slurm_user, slurm_job_limit=slurm_job_limit, use_rescaled=use_rescaled)
                 print()
-    print(f"[COMPLETE] Finished bacth submission for dataset {dataset}")
+    print(f"{datetime.now}[COMPLETE] Finished bacth submission for dataset {dataset}")
 
 
 # Function to generate average maps
@@ -1547,7 +1547,7 @@ def generate_avg_maps(pre_msm_data: str, msm_data: str, subject: str, younger_ti
     # -------------------------
     # Setup defaults
     # -------------------------
-    print("[STEP] Setting up defaults and output directories")
+    print(f"{datetime.now}[STEP] Setting up defaults and output directories")
     if max_cp == None:
         script_dir = path.dirname(path.realpath(__file__))
         max_cp = path.join(script_dir, "NeededFiles", "ico5sphere.LR.reg.surf.gii")
@@ -1559,33 +1559,33 @@ def generate_avg_maps(pre_msm_data: str, msm_data: str, subject: str, younger_ti
         msm_data, f"{subject}_{younger_timepoint}_to_{older_timepoint}_avg")
     makedirs(msm_avg_output, exist_ok=True)
     
-    print(f"[INFO] Output directory: {msm_avg_output}")
-    print(f"[INFO] max_cp: {max_cp}")
-    print(f"[INFO] max_anat: {max_anat}")
+    print(f"{datetime.now}[INFO] Output directory: {msm_avg_output}")
+    print(f"{datetime.now}[INFO] max_cp: {max_cp}")
+    print(f"{datetime.now}[INFO] max_anat: {max_anat}")
 
     # -------------------------
     # Locate input files
     # -------------------------
-    print("[STEP] Locating input files")
+    print(f"{datetime.now}[STEP] Locating input files")
     if younger_uses_mcribs:
-        print("[INFO] Younger timepoint uses MCRIBS pipeline")
-        print(f"[FUNCTION] Calling get_files_mcribs dataset={pre_msm_data} subject={subject}, timepoint={younger_timepoint}")
+        print(f"{datetime.now}[INFO] Younger timepoint uses MCRIBS pipeline")
+        print(f"{datetime.now}[FUNCTION] Calling get_files_mcribs dataset={pre_msm_data} subject={subject}, timepoint={younger_timepoint}")
         younger_files = get_files_mcribs(pre_msm_data, subject, younger_timepoint)
         print()
     else:
-        print("[INFO] Younger timepoint uses standard pipeline")
-        print(f"[FUNCTION] Calling get_files dataset={pre_msm_data} subject={subject}, timepoint={younger_timepoint}")
+        print(f"{datetime.now}[INFO] Younger timepoint uses standard pipeline")
+        print(f"{datetime.now}[FUNCTION] Calling get_files dataset={pre_msm_data} subject={subject}, timepoint={younger_timepoint}")
         younger_files = get_files(pre_msm_data, subject, younger_timepoint)
         print()
     
     if older_uses_mcribs:
-        print("[INFO] Older timepoint uses MCRIBS pipeline")
-        print(f"[FUNCTION] Calling get_files_mcribs dataset={pre_msm_data} subject={subject}, timepoint={older_timepoint}")
+        print(f"{datetime.now}[INFO] Older timepoint uses MCRIBS pipeline")
+        print(f"{datetime.now}[FUNCTION] Calling get_files_mcribs dataset={pre_msm_data} subject={subject}, timepoint={older_timepoint}")
         older_files = get_files_mcribs(pre_msm_data, subject, older_timepoint)
         print()
     else:
-        print("[INFO] Older timepoint uses standard pipeline")
-        print(f"[FUNCTION] Calling get_files dataset={pre_msm_data} subject={subject}, timepoint={older_timepoint}")
+        print(f"{datetime.now}[INFO] Older timepoint uses standard pipeline")
+        print(f"{datetime.now}[FUNCTION] Calling get_files dataset={pre_msm_data} subject={subject}, timepoint={older_timepoint}")
         older_files = get_files(pre_msm_data, subject, older_timepoint)
         print()
         
@@ -1594,7 +1594,7 @@ def generate_avg_maps(pre_msm_data: str, msm_data: str, subject: str, younger_ti
     right_younger_spherical_surface = younger_files["RSS"]
     right_older_spherical_surface = older_files["RSS"]
     
-    print("[FILES] Selected spherical surfaces:")
+    print(f"{datetime.now}[FILES] Selected spherical surfaces:")
     print(f"    Younger L: {left_younger_spherical_surface}")
     print(f"    Younger R: {right_younger_spherical_surface}")
     print(f"    Older   L: {left_older_spherical_surface}")
@@ -1603,16 +1603,16 @@ def generate_avg_maps(pre_msm_data: str, msm_data: str, subject: str, younger_ti
     # -------------------------
     # MSM folders
     # -------------------------
-    print("[STEP] Defining MSM forward and reverse folders")
+    print(f"{datetime.now}[STEP] Defining MSM forward and reverse folders")
     msm_reverse_folder = path.join(msm_data, f"{subject}_{older_timepoint}_to_{younger_timepoint}")
     msm_forward_folder = path.join(msm_data, f"{subject}_{younger_timepoint}_to_{older_timepoint}")
-    print(f"[INFO] Reverse folder: {msm_reverse_folder}")
-    print(f"[INFO] Forward folder: {msm_forward_folder}")
+    print(f"{datetime.now}[INFO] Reverse folder: {msm_reverse_folder}")
+    print(f"{datetime.now}[INFO] Forward folder: {msm_forward_folder}")
     
     # -------------------------
     # Intermediary file definitions
     # -------------------------
-    print("[STEP] Defining intermediary files")
+    print(f"{datetime.now}[STEP] Defining intermediary files")
     left_base_sphere_reverse = path.join(msm_reverse_folder, f"{subject}_L_{older_timepoint}-{younger_timepoint}.sphere.reg.surf.gii")
     right_base_sphere_reverse = path.join(msm_reverse_folder, f"{subject}_R_{older_timepoint}-{younger_timepoint}.sphere.reg.surf.gii")
     left_cpgrid_sphere_reverse = path.join(msm_reverse_folder, f"{subject}_L_{older_timepoint}-{younger_timepoint}.sphere.CPgrid.reg.surf.gii")
@@ -1628,7 +1628,7 @@ def generate_avg_maps(pre_msm_data: str, msm_data: str, subject: str, younger_ti
     right_cpgrid_surfdist_reverse = path.join(msm_reverse_folder, f"{subject}_R_{older_timepoint}-{younger_timepoint}.surfdist.CPgrid.func.gii")
     right_anatgrid_surfdist_reverse = path.join(msm_reverse_folder, f"{subject}_R_{older_timepoint}-{younger_timepoint}.surfdist.ANATgrid.func.gii")
     
-    print("[FILES] Reverse registration inputs:")
+    print(f"{datetime.now}[FILES] Reverse registration inputs:")
     print(f"    L sphere: {left_base_sphere_reverse}")
     print(f"    R sphere: {right_base_sphere_reverse}")
     print(f"    L CP sphere: {left_cpgrid_sphere_reverse}")
@@ -1655,7 +1655,7 @@ def generate_avg_maps(pre_msm_data: str, msm_data: str, subject: str, younger_ti
     right_cpgrid_surfdist_forward = path.join(msm_forward_folder, f"{subject}_R_{younger_timepoint}-{older_timepoint}.surfdist.CPgrid.func.gii")
     right_anatgrid_surfdist_forward = path.join(msm_forward_folder, f"{subject}_R_{younger_timepoint}-{older_timepoint}.surfdist.ANATgrid.func.gii")
     
-    print("[FILES] Forward registration inputs:")
+    print(f"{datetime.now}[FILES] Forward registration inputs:")
     print(f"    L sphere: {left_base_sphere_forward}")
     print(f"    R sphere: {right_base_sphere_forward}")
     print(f"    L CP sphere: {left_cpgrid_sphere_forward}")
@@ -1674,7 +1674,7 @@ def generate_avg_maps(pre_msm_data: str, msm_data: str, subject: str, younger_ti
     left_revfor_anatgrid_sphere = f"{msm_avg_output}/{subject}_L_{older_timepoint}-{younger_timepoint}.revfor.sphere.ANATgrid.reg.surf.gii"
     right_revfor_anatgrid_sphere = f"{msm_avg_output}/{subject}_R_{older_timepoint}-{younger_timepoint}.revfor.sphere.ANATgrid.reg.surf.gii"
     
-    print("[FILES] RevFor outputs (spheres):")
+    print(f"{datetime.now}[FILES] RevFor outputs (spheres):")
     print(f"    L base: {left_revfor_base_sphere}")
     print(f"    R base: {right_revfor_base_sphere}")
     print(f"    L CP:   {left_revfor_cpgrid_sphere}")
@@ -1689,7 +1689,7 @@ def generate_avg_maps(pre_msm_data: str, msm_data: str, subject: str, younger_ti
     left_avgfor_anatgrid_sphere = f"{msm_avg_output}/{subject}_L_{younger_timepoint}-{older_timepoint}.avgfor.sphere.ANATgrid.reg.surf.gii"
     right_avgfor_anatgrid_sphere = f"{msm_avg_output}/{subject}_R_{younger_timepoint}-{older_timepoint}.avgfor.sphere.ANATgrid.reg.surf.gii"
     
-    print("[FILES] AvgFor outputs (spheres):")
+    print(f"{datetime.now}[FILES] AvgFor outputs (spheres):")
     print(f"    L base: {left_avgfor_base_sphere}")
     print(f"    R base: {right_avgfor_base_sphere}")
     print(f"    L CP:   {left_avgfor_cpgrid_sphere}")
@@ -1702,7 +1702,7 @@ def generate_avg_maps(pre_msm_data: str, msm_data: str, subject: str, younger_ti
     left_avgfor_anatgrid_anat = f"{msm_avg_output}/{subject}_L_{younger_timepoint}-{older_timepoint}.avgfor.anat.ANATgrid.reg.surf.gii"
     right_avgfor_anatgrid_anat = f"{msm_avg_output}/{subject}_R_{younger_timepoint}-{older_timepoint}.avgfor.anat.ANATgrid.reg.surf.gii"
     
-    print("[FILES] AvgFor anatomical outputs:")
+    print(f"{datetime.now}[FILES] AvgFor anatomical outputs:")
     print(f"    L CP:   {left_avgfor_cpgrid_anat}")
     print(f"    R CP:   {right_avgfor_cpgrid_anat}")
     print(f"    L ANAT: {left_avgfor_anatgrid_anat}")
@@ -1713,7 +1713,7 @@ def generate_avg_maps(pre_msm_data: str, msm_data: str, subject: str, younger_ti
     right_revfor_cpgrid_surfdist = f"{msm_avg_output}/{subject}_R_{older_timepoint}-{younger_timepoint}.revfor.surfdist.CPgrid.reg.func.gii"
     right_revfor_anatgrid_surfdist = f"{msm_avg_output}/{subject}_R_{older_timepoint}-{younger_timepoint}.revfor.surfdist.ANATgrid.reg.func.gii"
     
-    print("[FILES] Surface distribution maps (RevFor):")
+    print(f"{datetime.now}[FILES] Surface distribution maps (RevFor):")
     print(f"    L CP:   {left_revfor_cpgrid_surfdist}")
     print(f"    R CP:   {right_revfor_cpgrid_surfdist}")
     print(f"    L ANAT: {left_revfor_anatgrid_surfdist}")
@@ -1724,7 +1724,7 @@ def generate_avg_maps(pre_msm_data: str, msm_data: str, subject: str, younger_ti
     right_avgfor_cpgrid_surfdist = f"{msm_avg_output}/{subject}_R_{younger_timepoint}-{older_timepoint}.avgfor.surfdist.CPgrid.reg.func.gii"
     right_avgfor_anatgrid_surfdist = f"{msm_avg_output}/{subject}_R_{younger_timepoint}-{older_timepoint}.avgfor.surfdist.ANATgrid.reg.func.gii"
     
-    print("[FILES] Surface distribution maps (AvgFor):")
+    print(f"{datetime.now}[FILES] Surface distribution maps (AvgFor):")
     print(f"    L CP:   {left_avgfor_cpgrid_surfdist}")
     print(f"    R CP:   {right_avgfor_cpgrid_surfdist}")
     print(f"    L ANAT: {left_avgfor_anatgrid_surfdist}")
@@ -1734,7 +1734,7 @@ def generate_avg_maps(pre_msm_data: str, msm_data: str, subject: str, younger_ti
     # -------------------------
     # Generate RevFor spheres
     # -------------------------
-    print("[STEP] Generating revfor spheres")
+    print(f"{datetime.now}[STEP] Generating revfor spheres")
     run_logged(f"wb_command -surface-sphere-project-unproject {left_older_spherical_surface} {left_base_sphere_reverse} {left_younger_spherical_surface} {left_revfor_base_sphere}", step="REVFOR_SPHERE")
     run_logged(f"wb_command -surface-sphere-project-unproject {right_older_spherical_surface} {right_base_sphere_reverse} {right_younger_spherical_surface} {right_revfor_base_sphere}", step="REVFOR_SPHERE")
     run_logged(f"wb_command -surface-sphere-project-unproject {max_cp} {left_cpgrid_sphere_reverse} {max_cp} {left_revfor_cpgrid_sphere}", step="REVFOR_SPHERE")
@@ -1745,7 +1745,7 @@ def generate_avg_maps(pre_msm_data: str, msm_data: str, subject: str, younger_ti
     # -------------------------
     # Generate AvgFor spheres
     # -------------------------
-    print("[STEP] Generating avgfor spheres")
+    print(f"{datetime.now}[STEP] Generating avgfor spheres")
     run_logged(f"wb_command -surface-average {left_avgfor_base_sphere} -surf {left_base_sphere_forward} -surf {left_revfor_base_sphere}", step="AVGFOR_SPHERE")
     run_logged(f"wb_command -surface-average {right_avgfor_base_sphere} -surf {right_base_sphere_forward} -surf {right_revfor_base_sphere}", step="AVGFOR_SPHERE")
     run_logged(f"wb_command -surface-average {left_avgfor_cpgrid_sphere} -surf {left_cpgrid_sphere_forward} -surf {left_revfor_cpgrid_sphere}", step="AVGFOR_SPHERE")
@@ -1756,7 +1756,7 @@ def generate_avg_maps(pre_msm_data: str, msm_data: str, subject: str, younger_ti
     # -------------------------
     # Recenter spheres
     # -------------------------
-    print("[STEP] Recentering avgfor spheres")
+    print(f"{datetime.now}[STEP] Recentering avgfor spheres")
     run_logged(f"wb_command -surface-modify-sphere -recenter {left_avgfor_base_sphere} 100 {left_avgfor_base_sphere}", step="RECENTER_AVGFOR")
     run_logged(f"wb_command -surface-modify-sphere -recenter {right_avgfor_base_sphere} 100 {right_avgfor_base_sphere}", step="RECENTER_AVGFOR")
     run_logged(f"wb_command -surface-modify-sphere -recenter {left_avgfor_cpgrid_sphere} 100 {left_avgfor_cpgrid_sphere}", step="RECENTER_AVGFOR")
@@ -1767,7 +1767,7 @@ def generate_avg_maps(pre_msm_data: str, msm_data: str, subject: str, younger_ti
     # -------------------------
     # Generate avgfor anatomical surfaces
     # -------------------------
-    print("[STEP] Generating aavgfor anatomical surfaces")
+    print(f"{datetime.now}[STEP] Generating aavgfor anatomical surfaces")
     run_logged(f"wb_command -surface-resample {left_older_anatomical_surface_cpgrid} {max_cp} {left_avgfor_cpgrid_sphere} \"BARYCENTRIC\" {left_avgfor_cpgrid_anat}", step="AVGFOR_AS")
     run_logged(f"wb_command -surface-resample {right_older_anatomical_surface_cpgrid} {max_cp} {right_avgfor_cpgrid_sphere} \"BARYCENTRIC\" {right_avgfor_cpgrid_anat}", step="AVGFOR_AS")
     run_logged(f"wb_command -surface-resample {left_older_anatomical_surface_anatgrid} {max_anat} {left_avgfor_anatgrid_sphere} \"BARYCENTRIC\" {left_avgfor_anatgrid_anat}", step="AVGFOR_AS")
@@ -1776,7 +1776,7 @@ def generate_avg_maps(pre_msm_data: str, msm_data: str, subject: str, younger_ti
     # -------------------------
     # Generate revfor surfdist
     # -------------------------
-    print("[STEP] Generating revfor surface distorion maps")
+    print(f"{datetime.now}[STEP] Generating revfor surface distorion maps")
     run_logged(f"wb_command -metric-math 'X*-1' {left_revfor_cpgrid_surfdist} -var X {left_cpgrid_surfdist_reverse}", step="REVFOR_SURFDIST")
     run_logged(f"wb_command -metric-math 'X*-1' {left_revfor_anatgrid_surfdist} -var X {left_anatgrid_surfdist_reverse}", step="REVFOR_SURFDIST")
     run_logged(f"wb_command -metric-math 'X*-1' {right_revfor_cpgrid_surfdist} -var X {right_cpgrid_surfdist_reverse}", step="REVFOR_SURFDIST")
@@ -1785,7 +1785,7 @@ def generate_avg_maps(pre_msm_data: str, msm_data: str, subject: str, younger_ti
     # -------------------------
     # Average surfdist
     # -------------------------
-    print("[STEP] Computing average surface distorion maps")
+    print(f"{datetime.now}[STEP] Computing average surface distorion maps")
     run_logged(f"wb_command -metric-math '(J1+J2)/2' {left_avgfor_cpgrid_surfdist} -var J1 {left_revfor_cpgrid_surfdist} -var J2 {left_cpgrid_surfdist_forward}", step="AVGFOR_SURFDIST")
     run_logged(f"wb_command -metric-math '(J1+J2)/2' {left_avgfor_anatgrid_surfdist} -var J1 {left_revfor_anatgrid_surfdist} -var J2 {left_anatgrid_surfdist_forward}", step="AVGFOR_SURFDIST")
     run_logged(f"wb_command -metric-math '(J1+J2)/2' {right_avgfor_cpgrid_surfdist} -var J1 {right_revfor_cpgrid_surfdist} -var J2 {right_cpgrid_surfdist_forward}", step="AVGFOR_SURFDIST")
@@ -1794,13 +1794,13 @@ def generate_avg_maps(pre_msm_data: str, msm_data: str, subject: str, younger_ti
     # -------------------------
     # Set Structue Average
     # -------------------------
-    print("[STEP] Setting structure of avgfor surface distortion maps")
+    print(f"{datetime.now}[STEP] Setting structure of avgfor surface distortion maps")
     run_logged(f"wb_command -set-structure {left_avgfor_cpgrid_surfdist} CORTEX_LEFT", step="STRUCTURE")
     run_logged(f"wb_command -set-structure {left_avgfor_anatgrid_surfdist} CORTEX_LEFT", step="STRUCTURE")
     run_logged(f"wb_command -set-structure {right_avgfor_cpgrid_surfdist} CORTEX_RIGHT", step="STRUCTURE")
     run_logged(f"wb_command -set-structure {right_avgfor_anatgrid_surfdist} CORTEX_RIGHT", step="STRUCTURE")
 
-    print("[COMPLETE] Average map generation finished")
+    print(f"{datetime.now}[COMPLETE] Average map generation finished")
 
 
 # Function to run all average maps
@@ -1810,32 +1810,32 @@ def generate_avg_maps_all(pre_msm_data: str, msm_data: str, max_cp: str | None=N
     # -------------------------
     # Setup defaults
     # -------------------------
-    print("[STEP] Setting up defaults and templates")
+    print(f"{datetime.now}[STEP] Setting up defaults and templates")
 
     if max_cp == None:
         script_dir = path.dirname(path.realpath(__file__))
         max_cp = path.join(script_dir, "NeededFiles", "ico5sphere.LR.reg.surf.gii")
-        print(f"[INFO] max_cp not provided → using default: {max_cp}")
+        print(f"{datetime.now}[INFO] max_cp not provided → using default: {max_cp}")
 
     if max_anat == None:
         script_dir = path.dirname(path.realpath(__file__))
         max_anat = path.join(script_dir, "NeededFiles", "ico6sphere.LR.reg.surf.gii")
-        print(f"[INFO] max_anat not provided → using default: {max_anat}")
+        print(f"{datetime.now}[INFO] max_anat not provided → using default: {max_anat}")
 
-    print(f"[INFO] max_cp: {max_cp}")
-    print(f"[INFO] max_anat: {max_anat}")
+    print(f"{datetime.now}[INFO] max_cp: {max_cp}")
+    print(f"{datetime.now}[INFO] max_anat: {max_anat}")
 
     # -------------------------
     # Scan directories
     # -------------------------
-    print("[STEP] Scanning MSM output directories")
+    print(f"{datetime.now}[STEP] Scanning MSM output directories")
 
     directories = listdir(msm_data)
-    print(f"[INFO] Found {len(directories)} entries")
+    print(f"{datetime.now}[INFO] Found {len(directories)} entries")
 
     for directory in directories:
         print("----------------------------------------")
-        print(f"[INFO] Processing directory: {directory}")
+        print(f"{datetime.now}[INFO] Processing directory: {directory}")
 
         fields = directory.split("_")
         subject = fields[0]
@@ -1852,7 +1852,7 @@ def generate_avg_maps_all(pre_msm_data: str, msm_data: str, max_cp: str | None=N
         else:
             second_month = int(sub("[^0-9]", "", second_time))
 
-        print("[INFO] Parsing metadata from directory")
+        print(f"{datetime.now}[INFO] Parsing metadata from directory")
         print(f"    subject={subject}")
         print(f"    first_time={first_time} first_month={first_month}")
         print(f"    second_time={second_time} second_month={second_month}")
@@ -1860,41 +1860,41 @@ def generate_avg_maps_all(pre_msm_data: str, msm_data: str, max_cp: str | None=N
         # -------------------------
         # Filtering logic (unchanged)
         # -------------------------
-        print("[INFO] Evaluating processing conditions")
+        print(f"{datetime.now}[INFO] Evaluating processing conditions")
 
         if first_time == starting_time:
-            print(f"[INFO] SKIP condition met: first_time={first_time} == starting_time={starting_time}")
+            print(f"{datetime.now}[INFO] SKIP condition met: first_time={first_time} == starting_time={starting_time}")
             continue
 
         elif second_time == starting_time:
-            print(f"[INFO] MATCH condition met: second_time={second_time} == starting_time={starting_time}")
+            print(f"{datetime.now}[INFO] MATCH condition met: second_time={second_time} == starting_time={starting_time}")
 
             if uses_mcribs:
-                print(f"[FUNCTION] generate_avg_maps(pre_msm_data={pre_msm_data}, msm_data={msm_data}, subject={subject}, younger_timepoint={second_time}, older_timepoint={first_time}, max_cp={max_cp}, max_anat={max_anat}, younger_uses_mcribs=True, older_uses_mcribs=True)")
+                print(f"{datetime.now}[FUNCTION] generate_avg_maps(pre_msm_data={pre_msm_data}, msm_data={msm_data}, subject={subject}, younger_timepoint={second_time}, older_timepoint={first_time}, max_cp={max_cp}, max_anat={max_anat}, younger_uses_mcribs=True, older_uses_mcribs=True)")
                 generate_avg_maps(pre_msm_data, msm_data, subject, second_time, first_time, max_cp, max_anat, True, True)
                 print()
             else:
-                print(f"[FUNCTION] generate_avg_maps(pre_msm_data={pre_msm_data}, msm_data={msm_data}, subject={subject}, younger_timepoint={second_time}, older_timepoint={first_time}, max_cp={max_cp}, max_anat={max_anat})")
+                print(f"{datetime.now}[FUNCTION] generate_avg_maps(pre_msm_data={pre_msm_data}, msm_data={msm_data}, subject={subject}, younger_timepoint={second_time}, older_timepoint={first_time}, max_cp={max_cp}, max_anat={max_anat})")
                 generate_avg_maps(pre_msm_data, msm_data, subject, second_time, first_time, max_cp, max_anat)
                 print()
 
         elif first_month < second_month:
-            print(f"[INFO] SKIP condition met: first_month={first_month} < second_month={second_month} (already processed direction)")
+            print(f"{datetime.now}[INFO] SKIP condition met: first_month={first_month} < second_month={second_month} (already processed direction)")
             continue
 
         elif second_month < first_month:
-            print(f"[INFO] MATCH condition met: second_month={second_month} < first_month={first_month}")
+            print(f"{datetime.now}[INFO] MATCH condition met: second_month={second_month} < first_month={first_month}")
 
             if uses_mcribs:
-                print(f"[FUNCTION] generate_avg_maps(pre_msm_data={pre_msm_data}, msm_data={msm_data}, subject={subject}, younger_timepoint={second_time}, older_timepoint={first_time}, max_cp={max_cp}, max_anat={max_anat}, younger_uses_mcribs=True, older_uses_mcribs=True)")
+                print(f"{datetime.now}[FUNCTION] generate_avg_maps(pre_msm_data={pre_msm_data}, msm_data={msm_data}, subject={subject}, younger_timepoint={second_time}, older_timepoint={first_time}, max_cp={max_cp}, max_anat={max_anat}, younger_uses_mcribs=True, older_uses_mcribs=True)")
                 generate_avg_maps(pre_msm_data, msm_data, subject, second_time, first_time, max_cp, max_anat, True, True)
                 print()
             else:
-                print(f"[FUNCTION] generate_avg_maps(pre_msm_data={pre_msm_data}, msm_data={msm_data}, subject={subject}, younger_timepoint={second_time}, older_timepoint={first_time}, max_cp={max_cp}, max_anat={max_anat})")
+                print(f"{datetime.now}[FUNCTION] generate_avg_maps(pre_msm_data={pre_msm_data}, msm_data={msm_data}, subject={subject}, younger_timepoint={second_time}, older_timepoint={first_time}, max_cp={max_cp}, max_anat={max_anat})")
                 generate_avg_maps(pre_msm_data, msm_data, subject, second_time, first_time, max_cp, max_anat)
                 print()
 
-    print("[COMPLETE] Finished generating all average maps")
+    print(f"{datetime.now}[COMPLETE] Finished generating all average maps")
 
 
 # Rescale mcribs surface
@@ -1907,13 +1907,13 @@ def rescale_surfaces(dataset: str,  subject: str, time_point: str, uses_mcribs: 
     # ----------------
     # Retrieve Files
     # ----------------
-    print("Retriving subject files")
+    print(f"{datetime.now}[STEP]Retriving subject files")
     if uses_mcribs:
-        print("[FUNCTION] get_files_mcribs(dataset=dataset, subject=subject, time_point=time_point)")
+        print(f"{datetime.now}[FUNCTION] get_files_mcribs(dataset=dataset, subject=subject, time_point=time_point)")
         subject_files = get_files_mcribs(dataset=dataset, subject=subject, time_point=time_point)
         print()
     else:
-        print("[FUNCTION] get_files(dataset=dataset, subject=subject, time_point=time_point)")
+        print(f"{datetime.now}[FUNCTION] get_files(dataset=dataset, subject=subject, time_point=time_point)")
         subject_files = get_files(dataset=dataset, subject=subject, time_point=time_point)
         print()
     
@@ -1924,7 +1924,7 @@ def rescale_surfaces(dataset: str,  subject: str, time_point: str, uses_mcribs: 
     script_dir = path.dirname(path.realpath(__file__))
     max_anat = path.join(script_dir, "NeededFiles", "ico6sphere.LR.reg.surf.gii")
     max_cp = path.join(script_dir, "NeededFiles", "ico5sphere.LR.reg.surf.gii")
-    print("[INFO] Files found:")
+    print(f"{datetime.now}[INFO] Files found:")
     print(f"    Subject directory: {subject_dir}")
     print(f"    Subject prefix: {subject_prefix}")
     print(f"    Left midthickness file: {left_midthickness_file}")
@@ -1947,14 +1947,14 @@ def rescale_surfaces(dataset: str,  subject: str, time_point: str, uses_mcribs: 
     # -------------------
     # Create shape files
     # -------------------
-    print("[STEP] Creating shape files")
+    print(f"{datetime.now}[STEP] Creating shape files")
     run_logged(f"wb_command -surface-vertex-areas {left_midthickness_file} {left_shape_file}")
     run_logged(f"wb_command -surface-vertex-areas {left_midthickness_file} {right_shape_file}")
     
     # ------------------------
     # Calculate Surface area
     # ------------------------
-    print("[STEP] Calculating surface areas")
+    print(f"{datetime.now}[STEP] Calculating surface areas")
     run_logged(f"wb_command -metric-stats {left_shape_file} -reduce SUM")
     command_output = run(f"wb_command -metric-stats {left_shape_file} -reduce SUM", shell=True, capture_output=True, text=True, check=True)
     left_surface_area = float(command_output.stdout.strip())
@@ -1962,22 +1962,22 @@ def rescale_surfaces(dataset: str,  subject: str, time_point: str, uses_mcribs: 
     run_logged(f"wb_command -metric-stats {right_shape_file} -reduce SUM")
     command_output = run(f"wb_command -metric-stats {right_shape_file} -reduce SUM", shell=True, capture_output=True, text=True, check=True)
     right_surface_area = float(command_output.stdout.strip())
-    print(f"[INFO] Left Surface Area: {left_surface_area}")
-    print(f"[INFO] Right Surface Area: {right_surface_area}")
+    print(f"{datetime.now}[INFO] Left Surface Area: {left_surface_area}")
+    print(f"{datetime.now}[INFO] Right Surface Area: {right_surface_area}")
     
     # -------------------------
     # Calculate Rescale Value
     # -------------------------
-    print("[STEP] Calculating rescale values")
+    print(f"{datetime.now}[STEP] Calculating rescale values")
     left_rescale_value = sqrt(10000 / left_surface_area)
     right_rescale_value = sqrt(10000 / right_surface_area)
-    print(f"[INFO] Left Rescale Value: {left_rescale_value}")
-    print(f"[INFO] Right Rescale Value: {right_rescale_value}")
+    print(f"{datetime.now}[INFO] Left Rescale Value: {left_rescale_value}")
+    print(f"{datetime.now}[INFO] Right Rescale Value: {right_rescale_value}")
     
     # ---------------------
     # Apply affine rescale
     # ----------------------
-    print("[STEP] Creating affine matrices")
+    print(f"{datetime.now}[STEP] Creating affine matrices")
     with open(left_affine_matrix, "w+") as f:
         f.writelines([f"{left_rescale_value} 0 0 0\n",
                      f"0 {left_rescale_value} 0 0\n",
@@ -1991,29 +1991,29 @@ def rescale_surfaces(dataset: str,  subject: str, time_point: str, uses_mcribs: 
                      "0 0 0 1"])
         
     
-    print("[STEP] Applying affine matrices to surfaces")
+    print(f"{datetime.now}[STEP] Applying affine matrices to surfaces")
     run_logged(f"wb_command -surface-apply-affine {left_midthickness_file} {left_affine_matrix} {left_rescaled_surface}")
     run_logged(f"wb_command -surface-apply-affine {right_midthickness_file} {right_affine_matrix} {right_rescaled_surface}")
     
     # ------------------
     # Generate Spheres
     # ------------------
-    print("[STEP] Generating new spheres for rescaled surfaces")
-    print("[INFO] Input files and options:")
+    print(f"{datetime.now}[STEP] Generating new spheres for rescaled surfaces")
+    print(f"{datetime.now}[INFO] Input files and options:")
     print(f"    SUBJECT DIR: {subject_dir}")
     print(f"    SUBJECT PREFIX: {subject_prefix}")
     print(f"    LEFT MIDTHICKNESS: {left_midthickness_file}")
     print(f"    RIGHT MIDTHICKNESS: {right_midthickness_file}")
     print(f"    MAX ANAT: {max_anat}")
-    print("[FUNCTION] generate_sphere(subject_dir=subject_dir, subject_prefix=subject_prefix, left_midthickness=left_midthickness_file, right_midthickness=right_midthickness_file, max_anat=max_anat)")
+    print(f"{datetime.now}[FUNCTION] generate_sphere(subject_dir=subject_dir, subject_prefix=subject_prefix, left_midthickness=left_midthickness_file, right_midthickness=right_midthickness_file, max_anat=max_anat)")
     left_spherical_surface, right_spherical_surface = generate_sphere(subject_dir=subject_dir, subject_prefix=subject_prefix, left_midthickness=left_midthickness_file, right_midthickness=right_midthickness_file, max_anat=max_anat)
     print()
     
     # -----------------------
     # Resample to anat grid
     # -----------------------
-    print("[STEP] Resampling rescaled surfaces")
-    print("[INFO] Input Files:")
+    print(f"{datetime.now}[STEP] Resampling rescaled surfaces")
+    print(f"{datetime.now}[INFO] Input Files:")
     print(f"    LEFT RESCALED SURFACE: {left_rescaled_surface}")
     print(f"    RIGHT RESCALED SURFACE: {right_rescaled_surface}")
     print(f"    LEFT SPHERE: {left_spherical_surface}")
@@ -2021,25 +2021,25 @@ def rescale_surfaces(dataset: str,  subject: str, time_point: str, uses_mcribs: 
     print(f"    MAX ANAT: {max_anat}")
     print(f"    MAX CP: {max_cp}")
     
-    print("[INFO] Output Files:")
+    print(f"{datetime.now}[INFO] Output Files:")
     print(f"    LEFT RESAMLPED SURFACE ANATGRID: {left_resampled_surface_anatgrid}")
     print(f"    RIGHT RESAMLPED SURFACE ANATGRID: {right_resampled_surface_anatgrid}")
     print(f"    LEFT RESAMLPED SURFACE CPGRID: {left_resampled_surface_cpgrid}")
     print(f"    RIGHT RESAMLPED SURFACE CPGRID: {right_resampled_surface_cpgrid}")
     
-    print("[INFO] Start resample to ANATgrid")
+    print(f"{datetime.now}[INFO] Start resample to ANATgrid")
     run_logged(f'wb_command -metric-resample {left_rescaled_surface} {left_spherical_surface} {max_anat} "BARYCENTRIC" {left_resampled_surface_anatgrid}', step="RESAMPLE ANAT")
-    print("[INFO] Left hemisphere complete")
+    print(f"{datetime.now}[INFO] Left hemisphere complete")
     run_logged(f'wb_command -metric-resample {right_rescaled_surface} {right_spherical_surface} {max_anat} "BARYCENTRIC" {right_resampled_surface_anatgrid}', step="RESAMPLE ANAT")
-    print("[INFO] Right hemisphere complete")
+    print(f"{datetime.now}[INFO] Right hemisphere complete")
     
-    print("[INFO] Start resample to CPgrid")
+    print(f"{datetime.now}[INFO] Start resample to CPgrid")
     run_logged(f'wb_command -metric-resample {left_rescaled_surface} {left_spherical_surface} {max_cp} "BARYCENTRIC" {left_resampled_surface_anatgrid}', step="RESAMPLE CP")
-    print("[INFO] Left hemisphere complete")
+    print(f"{datetime.now}[INFO] Left hemisphere complete")
     run_logged(f'wb_command -metric-resample {right_rescaled_surface} {right_spherical_surface} {max_cp} "BARYCENTRIC" {right_resampled_surface_anatgrid}', step="RESAMPLE CP")
-    print("[INFO] Right hemispher complete")
+    print(f"{datetime.now}[INFO] Right hemispher complete")
     
-    print("[COMPLETE] Rescaling complete")
+    print(f"{datetime.now}[COMPLETE] Rescaling complete")
 
 
 # Rescale surfaces for all subjects
@@ -2051,8 +2051,8 @@ def rescale_surfaces_all(dataset: str, uses_mcribs: bool=True):
             fields = subject_folder.split("_")
             subject = fields[1]
             time_point = fields[2]
-            print(f"[INFO] Rescale subject {subject} at time point {time_point}")
-            print("[FUNCTION] rescale_surfaces(dataset=dataset, subject=subject, time_point=time_point, uses_mcribs=uses_mcribs)")
+            print(f"{datetime.now}[INFO] Rescale subject {subject} at time point {time_point}")
+            print(f"{datetime.now}[FUNCTION] rescale_surfaces(dataset=dataset, subject=subject, time_point=time_point, uses_mcribs=uses_mcribs)")
             rescale_surfaces(dataset=dataset, subject=subject, time_point=time_point, uses_mcribs=uses_mcribs)
             print()
             
@@ -2065,41 +2065,41 @@ def get_files_mcribs(dataset: str, subject: str, time_point: str, is_rescaled=Fa
     # Set up variables
     # -------------------------
     subject_dir = path.join(dataset, f"Subject_{subject}_{time_point}")
-    print(f"[STEP] Searching for files in {subject_dir}")
+    print(f"{datetime.now}[STEP] Searching for files in {subject_dir}")
     
     # --------------------------
     # Search for files
     # --------------------------
     
-    print('[FUNCTION] find(patterns="lh.midthickness.surf.gii", search_path=subject_dir)')
+    print(f'{datetime.now}[FUNCTION] find(patterns="lh.midthickness.surf.gii", search_path=subject_dir)')
     left_anatomical_surface = find(patterns=[f"lh.{subject}{time_point}_midthickness_711_rot-2B.surf.gii", f"lh.{subject}{time_point}_midthickness_711-2B.surf.gii"], search_path=subject_dir)
     print()
     
-    print('[FUNCTION] find(patterns="rh.midthickness.surf.gii", search_path=subject_dir)')
+    print(f'{datetime.now}[FUNCTION] find(patterns="rh.midthickness.surf.gii", search_path=subject_dir)')
     right_anatomical_surface = find(patterns="rh.midthickness.surf.gii", search_path=subject_dir)
     print()
     
-    print('[FUNCTION] find(patterns="lh.sphere.reg2.surf.gii", search_path=subject_dir)')
+    print(f'{datetime.now}[FUNCTION] find(patterns="lh.sphere.reg2.surf.gii", search_path=subject_dir)')
     left_spherical_surface = find(patterns="lh.sphere.reg2.surf.gii", search_path=subject_dir)
     print()
     
-    print('[FUNCTION] find(patterns="rh.sphere.reg2.surf.gii", search_path=subject_dir)')
+    print(f'{datetime.now}[FUNCTION] find(patterns="rh.sphere.reg2.surf.gii", search_path=subject_dir)')
     right_spherical_surface = find(patterns="rh.sphere.reg2.surf.gii", search_path=subject_dir)
     print()
     
-    print('[FUNCTION] find(patterns="lh.curv.shape.gii", search_path=subject_dir)')
+    print(f'{datetime.now}[FUNCTION] find(patterns="lh.curv.shape.gii", search_path=subject_dir)')
     left_curvature = find(patterns="lh.curv.shape.gii", search_path=subject_dir)
     print()
     
-    print('[FUNCTION] find(patterns="rh.curv.shape.gii", search_path=subject_dir)')
+    print(f'{datetime.now}[FUNCTION] find(patterns="rh.curv.shape.gii", search_path=subject_dir)')
     right_curvature = find(patterns="rh.curv.shape.gii", search_path=subject_dir)
     print()
     
-    print('[FUNCTION] find(patterns="lh.mean.thickness", search_path=subject_dir)')
+    print(f'{datetime.now}[FUNCTION] find(patterns="lh.mean.thickness", search_path=subject_dir)')
     left_cortex = find(patterns="lh.mean.thickness", search_path=subject_dir) # TODO Figure out what this should be
     print()
     
-    print('[FUNCTION] find(patterns="rh.mean.thickness", search_path=subject_dir)')
+    print(f'{datetime.now}[FUNCTION] find(patterns="rh.mean.thickness", search_path=subject_dir)')
     right_cortex = find(patterns="rh.mean.thickness", search_path=subject_dir) # TODO Figure out what this should be
     print()
     
@@ -2107,35 +2107,35 @@ def get_files_mcribs(dataset: str, subject: str, time_point: str, is_rescaled=Fa
     # Grab rescaled and resampled files if needed
     #----------------------------------------------
     if is_rescaled:
-        print('[FUNCTION] find(patterns="*.L.rescaled.surf.gii", search_path=subject_dir)')
+        print(f'{datetime.now}[FUNCTION] find(patterns="*.L.rescaled.surf.gii", search_path=subject_dir)')
         left_rescaled_surface = find(patterns="*.L.rescaled.surf.gii", search_path=subject_dir)
         print()
         
-        print('[FUNCTION] find(patterns="*.R.rescaled.surf.gii", search_path=subject_dir)')
+        print(f'{datetime.now}[FUNCTION] find(patterns="*.R.rescaled.surf.gii", search_path=subject_dir)')
         right_rescaled_surface = find(patterns="*.R.rescaled.surf.gii", search_path=subject_dir)
         print()
         
-        print('[FUNCTION] find(patterns="*.L.generated.sphere.surf.gii", search_path=subject_dir)')
+        print(f'{datetime.now}[FUNCTION] find(patterns="*.L.generated.sphere.surf.gii", search_path=subject_dir)')
         left_generated_sphere = find(patterns="*.L.generated.sphere.surf.gii", search_path=subject_dir)
         print()
         
-        print('[FUNCTION] find(patterns="*.R.generated.sphere.surf.gii", search_path=subject_dir)')
+        print(f'{datetime.now}[FUNCTION] find(patterns="*.R.generated.sphere.surf.gii", search_path=subject_dir)')
         right_generated_sphere = find(patterns="*.R.generated.sphere.surf.gii", search_path=subject_dir)
         print()
         
-        print(f'[FUNCTION] find(patterns="*.L.rescaled.ANATgrid.surf.gii", search_path=subject_dir)')
+        print(f'{datetime.now}[FUNCTION] find(patterns="*.L.rescaled.ANATgrid.surf.gii", search_path=subject_dir)')
         left_resampled_anatgrid=find(patterns="*.L.rescaled.ANATgrid.surf.gii", search_path=subject_dir)
         print()
         
-        print(f'[FUNCTION] find(patterns="*.L.rescaled.CPgrid.surf.gii", search_path=subject_dir)')
+        print(f'{datetime.now}[FUNCTION] find(patterns="*.L.rescaled.CPgrid.surf.gii", search_path=subject_dir)')
         left_resampled_cpgrid=find(patterns="*.L.rescaled.CPgrid.surf.gii", search_path=subject_dir)
         print()
         
-        print(f'[FUNCTION] find(patterns="*.L=R.rescaled.ANATgrid.surf.gii", search_path=subject_dir)')
+        print(f'{datetime.now}[FUNCTION] find(patterns="*.L=R.rescaled.ANATgrid.surf.gii", search_path=subject_dir)')
         right_resampled_anatgrid=find(patterns="*.R.rescaled.ANATgrid.surf.gii", search_path=subject_dir)
         print()
         
-        print(f'[FUNCTION] find(patterns="*.R.rescaled.CPgrid.surf.gii", search_path=subject_dir)')
+        print(f'{datetime.now}[FUNCTION] find(patterns="*.R.rescaled.CPgrid.surf.gii", search_path=subject_dir)')
         right_resampled_cpgrid=find(patterns="*.R.rescaled.CPgrid.surf.gii", search_path=subject_dir)
         print()
     else:
@@ -2165,11 +2165,11 @@ def get_files_mcribs(dataset: str, subject: str, time_point: str, is_rescaled=Fa
         "RIGHT GEN SPHERE": right_generated_sphere,
     }
     
-    print("[INFO] Returniing these files:")
+    print(f"{datetime.now}[INFO] Returniing these files:")
     for k,v in subject_files.items():
         print(f"    {k}: {v}")
         
-    print(f"[COMPLETE] Found all files for subject {subject}, at time point {time_point}, in {dataset}. Returning dictonary of files")
+    print(f"{datetime.now}[COMPLETE] Found all files for subject {subject}, at time point {time_point}, in {dataset}. Returning dictonary of files")
     return subject_files    
 
 
