@@ -502,10 +502,10 @@ def generate_qc_image(dataset: str, subject: str, younger_timepoint: str, older_
         older_files = get_files(dataset, subject, older_timepoint)
         print()
 
-    left_younger_surface = younger_files["LAS"]
-    right_younger_surface = younger_files["RAS"]
-    left_older_surface = older_files["LAS"]
-    right_older_surface = older_files["RAS"]
+    left_younger_surface = younger_files["LEFT RESCALE ANAT"]
+    right_younger_surface = younger_files["LEFT RESCALE ANAT"]
+    left_older_surface = older_files["LEFT RESCALE ANAT"]
+    right_older_surface = older_files["LEFT RESCALE ANAT"]
 
     print("[FILES] Selected surfaces:")
     print(f"    Younger L: {left_younger_surface}")
