@@ -4,7 +4,7 @@ import argparse
 import sys
 from os import listdir, path, makedirs, remove, walk
 from re import compile, sub
-from subprocess import check_output, Popen, PIPE, STDOUT
+from subprocess import check_output, Popen, PIPE, STDOUT, run
 from time import sleep
 from string import Template
 from typing import Literal
@@ -399,7 +399,7 @@ def get_files(dataset: str, subject: str, time_point: str, is_rescaled=False):
     print(f"[INFO] Curvature Directory: {subject_curvature_dir}")
     print(f"[INFO] Left Curvature Output: {left_curvature}")
     print(f"[INFO] Right Curvature Output: {right_curvature}")
-    run_logged(fr"wb_command -cifti-separate {base_curvature} -metric CORTEX_LEFT {left_curvature} -metric CORTEX_RIGHT {right_curvature}", step="SEP CURV")
+    run_logged(fr"wb_command -cifti-separate {base_curvature} COLUMN -metric CORTEX_LEFT {left_curvature} -metric CORTEX_RIGHT {right_curvature}", step="SEP CURV")
 
     # ---------------------------------------------
     # Grab rescaled and resampled files if needed
@@ -1956,11 +1956,11 @@ def rescale_surfaces(dataset: str,  subject: str, time_point: str, uses_mcribs: 
     # ------------------------
     print("[STEP] Calculating surface areas")
     run_logged(f"wb_command -metric-stats {left_shape_file} -reduce SUM")
-    command_output = run_logged(f"wb_command -metric-stats {left_shape_file} -reduce SUM", shell=True, capture_output=True, text=True, check=True)
+    command_output = run(f"wb_command -metric-stats {left_shape_file} -reduce SUM", shell=True, capture_output=True, text=True, check=True)
     left_surface_area = float(command_output.stdout.strip())
     
     run_logged(f"wb_command -metric-stats {right_shape_file} -reduce SUM")
-    command_output = run_logged(f"wb_command -metric-stats {right_shape_file} -reduce SUM", shell=True, capture_output=True, text=True, check=True)
+    command_output = run(f"wb_command -metric-stats {right_shape_file} -reduce SUM", shell=True, capture_output=True, text=True, check=True)
     right_surface_area = float(command_output.stdout.strip())
     print(f"[INFO] Left Surface Area: {left_surface_area}")
     print(f"[INFO] Right Surface Area: {right_surface_area}")
