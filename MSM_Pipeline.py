@@ -52,7 +52,7 @@ print(f"{datetime.now()}[INFO] Pipeline Version: {PIPELINE_VERSION}")
 # makes sure all commands log properly
 def run_logged(cmd, step=None):
     header = f"[RUN]" if not step else f"[RUN:{step}]"
-    print(f"\n{header} {cmd}\n")
+    print(f"\n{datetime.now()}{header} {cmd}\n")
 
     with open(log_path, "a") as log_file:
         process = Popen(cmd, shell=True, stdout=PIPE, stderr=STDOUT, text=True, bufsize=1)
@@ -109,7 +109,7 @@ def is_slurm_queue_open(slurm_user: str, slurm_job_limit: int=500):
     # ---------------------------------
     # Check slurm queue against limit
     # ---------------------------------
-    print(f"\n[SLURM QUEUE CHECK] Checking slurm queue for {slurm_user} with job limit of {slurm_job_limit}")
+    print(f"\n{datetime.now()}[SLURM QUEUE CHECK] Checking slurm queue for {slurm_user} with job limit of {slurm_job_limit}")
     
     print(f"{datetime.now()}[STEP] Creating output folder")
     user_home = path.expanduser('~')
@@ -198,7 +198,7 @@ def run_ciftify(dataset: str, delimiter: str, subject_index: int, time_index: in
 
 # Helper function for sorting time points
 def sort_time_points(time_points: list, number_start_character: int, starting_time=None):
-    print(f"\n[SORT TIME POINTS] Starting custom alphanumeric sort function")
+    print(f"\n{datetime.now()}[SORT TIME POINTS] Starting custom alphanumeric sort function")
     print(f"{datetime.now()}[INFO] Time point list to sort:")
     print("\n".join(f"    {time_point}" for time_point in time_points))
     
@@ -232,7 +232,7 @@ def sort_time_points(time_points: list, number_start_character: int, starting_ti
 
 # Function to get all time points for a subject
 def get_subject_time_points(dataset: str, subject: str, alphanumeric_timepoints: bool=False, time_point_number_start_character: int | None=None, starting_time=None):
-    print(f"\n[GET TIME POINTS] Getting time points for subject {subject} with these options:")
+    print(f"\n{datetime.now()}[GET TIME POINTS] Getting time points for subject {subject} with these options:")
     print(f"    Dataset: {dataset}")
     print(f"    Alphanumeric Timepoints: {alphanumeric_timepoints}")
     print(f"    Time Point Number Start Character: {time_point_number_start_character}")
@@ -296,7 +296,7 @@ def find(patterns, search_path, required_dirs=None):
     if isinstance(patterns, str):
         patterns = [patterns]
 
-    print(f'\n[FIND] Finding file matching patterns {patterns} starting at {search_path}')
+    print(f'\n{datetime.now()}[FIND] Finding file matching patterns {patterns} starting at {search_path}')
 
     for pattern in patterns:
         print(f"{datetime.now()}[INFO] Trying pattern: {pattern}")
@@ -322,7 +322,7 @@ def find(patterns, search_path, required_dirs=None):
 
 # Helper function for retriving MSM files
 def get_files(dataset: str, subject: str, time_point: str, is_rescaled=False):
-    print(f"\n[GET FILES] Getting files for Subject {subject} at time point {time_point} in dataset {dataset}")
+    print(f"\n{datetime.now()}[GET FILES] Getting files for Subject {subject} at time point {time_point} in dataset {dataset}")
     
     # -------------------------
     # Set up variables
@@ -474,7 +474,7 @@ def get_files(dataset: str, subject: str, time_point: str, is_rescaled=False):
 # Generate pre-MSM qc image
 def generate_qc_image(dataset: str, subject: str, younger_timepoint: str, older_timepoint: str, output: str, younger_uses_mcribs: bool=False, older_uses_mcribs: bool=False):
     
-    print(f"\n[QC] Generating QC image for subject={subject} ({younger_timepoint} → {older_timepoint})\n")
+    print(f"\n{datetime.now()}[QC] Generating QC image for subject={subject} ({younger_timepoint} → {older_timepoint})\n")
     # -------------------------
     # Locate surfaces
     # -------------------------
@@ -596,7 +596,7 @@ def qc_all(dataset: str, output: str,  alphanumeric_timepoints: bool=False, time
     
 # Generate post processing images
 def generate_post_processing_image(subject_directory: str, resolution: str, mode: Mode, output: str):
-    print(f"\n[POST PROCESSING] Starting post processing")
+    print(f"\n{datetime.now()}[POST PROCESSING] Starting post processing")
     
     # ---------------------
     # Extracting metadata
@@ -848,7 +848,7 @@ def get_subjects(dataset: str):
     # ----------------------
     # Get Subjects Dataset
     # ----------------------
-    print(f"\n[GET SUBJECTS] Getting subjects from dataset {dataset}")
+    print(f"\n{datetime.now()}[GET SUBJECTS] Getting subjects from dataset {dataset}")
     subjects = []
     for directory in listdir(dataset):
         full_path = path.join(dataset, directory)
@@ -871,7 +871,7 @@ def generate_sphere(subject_dir, subject_prefix, left_midthickness, right_midthi
     # --------------------------------------------
     # Generate sphere based on rescaled surfaces
     # --------------------------------------------
-    print(f"\n[GENERATE SPHERE] Generating sphere for rescaled surface")
+    print(f"\n{datetime.now()}[GENERATE SPHERE] Generating sphere for rescaled surface")
     print(f"{datetime.now()}[INFO] USing the following settings:")
     print(f"    LEFT MIDTHICKNESS: {left_midthickness}")
     print(f"    RIGHT MIDTHICKNESS: {right_midthickness}")
@@ -939,7 +939,7 @@ def generate_sphere(subject_dir, subject_prefix, left_midthickness, right_midthi
 
 # Helper Function for template replacement
 def generate_from_template(template_path, output_path, template_dict):
-    print(f"\n[TEMPLATE] Generating script at {output_path} from template located at {template_path}")
+    print(f"\n{datetime.now()}[TEMPLATE] Generating script at {output_path} from template located at {template_path}")
     print(f"{datetime.now()}[STEP] Reading template")
     with open(template_path, "r") as f:
         template_read = f.read()
@@ -965,7 +965,7 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
             max_anat: str | None=None, max_cp: str | None=None, slurm_email: str | None=None, slurm_account: str | None=None,
             slurm_user: str | None=None, slurm_job_limit: int | None=None, use_rescaled: bool=False):
     
-    print(f"\n[MSM] Starting MSM run for subject {subject} from time point {younger_timepoint} to {older_timepoint} in {mode} mode")
+    print(f"\n{datetime.now()}[MSM] Starting MSM run for subject {subject} from time point {younger_timepoint} to {older_timepoint} in {mode} mode")
     for name, value in locals().items():
         print(f"    {name}: {value}")
 
@@ -1461,7 +1461,7 @@ def run_msm_bl_to_all(dataset: str, output: str, starting_time: str, slurm_accou
     # --------------------------
     # Batch Run MSM BL to All
     # --------------------------
-    print(f"\n[MSM BL TO ALL] Beginning batch run for subjects in dataset {dataset} starting from time point {starting_time}")
+    print(f"\n{datetime.now()}[MSM BL TO ALL] Beginning batch run for subjects in dataset {dataset} starting from time point {starting_time}")
     print(f"{datetime.now()}[INFO] Arguments passed:")
     for name, value in locals().items():
         print(f"    {name}: {value}")
@@ -1505,7 +1505,7 @@ def run_msm_short_time_windows(dataset: str, output: str, slurm_account: str, sl
     # ----------------------------------
     # Batch Run MSM Short Time Windows
     # ----------------------------------
-    print(f"\n[Run MSM Short Time Windows] Batch running MSM with short time windows from dataset {dataset}")
+    print(f"\n{datetime.now()}[Run MSM Short Time Windows] Batch running MSM with short time windows from dataset {dataset}")
     for name, value in locals().items():
         print(f"    {name}: {value}")
         
@@ -1542,7 +1542,7 @@ def run_msm_short_time_windows(dataset: str, output: str, slurm_account: str, sl
 
 # Function to generate average maps
 def generate_avg_maps(pre_msm_data: str, msm_data: str, subject: str, younger_timepoint: str, older_timepoint: str, max_cp: str | None=None, max_anat: str | None=None, younger_uses_mcribs: bool=False, older_uses_mcribs: bool=False):
-    print(f"\n[AVG MAPS] Generating average maps for subject={subject} ({younger_timepoint} → {older_timepoint})\n")
+    print(f"\n{datetime.now()}[AVG MAPS] Generating average maps for subject={subject} ({younger_timepoint} → {older_timepoint})\n")
     
     # -------------------------
     # Setup defaults
@@ -1805,7 +1805,7 @@ def generate_avg_maps(pre_msm_data: str, msm_data: str, subject: str, younger_ti
 
 # Function to run all average maps
 def generate_avg_maps_all(pre_msm_data: str, msm_data: str, max_cp: str | None=None, max_anat: str | None=None, starting_time: str | None=None, uses_mcribs: bool=False):
-    print(f"\n[AVG MAPS ALL] Scanning MSM directory: {msm_data}\n")
+    print(f"\n{datetime.now()}[AVG MAPS ALL] Scanning MSM directory: {msm_data}\n")
     
     # -------------------------
     # Setup defaults
@@ -1902,7 +1902,7 @@ def rescale_surfaces(dataset: str,  subject: str, time_point: str, uses_mcribs: 
     # ------------------
     # Rescale Surfaces
     # ------------------
-    print(f"\n[RESCALE] Begin rescaling for subject {subject} at time point {time_point}")
+    print(f"\n{datetime.now()}[RESCALE] Begin rescaling for subject {subject} at time point {time_point}")
     
     # ----------------
     # Retrieve Files
@@ -2044,7 +2044,7 @@ def rescale_surfaces(dataset: str,  subject: str, time_point: str, uses_mcribs: 
 
 # Rescale surfaces for all subjects
 def rescale_surfaces_all(dataset: str, uses_mcribs: bool=True):
-    print(f"\n[RESCALE ALL] Rescaling all surfaces in dataset {dataset}")
+    print(f"\n{datetime.now()}[RESCALE ALL] Rescaling all surfaces in dataset {dataset}")
     for subject_folder in listdir(dataset):
         subject_path = path.join(dataset, subject_folder)
         if path.isdir(subject_path):
@@ -2059,7 +2059,7 @@ def rescale_surfaces_all(dataset: str, uses_mcribs: bool=True):
             
 # function to retrieve files for mcribs subject
 def get_files_mcribs(dataset: str, subject: str, time_point: str, is_rescaled=False):
-    print(f"\n[GET FILES] Getting files for Subject {subject} at time point {time_point} in {dataset}, using M-CRIB-S naming conventions")
+    print(f"\n{datetime.now()}[GET FILES] Getting files for Subject {subject} at time point {time_point} in {dataset}, using M-CRIB-S naming conventions")
     
     # -------------------------
     # Set up variables
