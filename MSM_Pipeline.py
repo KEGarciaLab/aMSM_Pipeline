@@ -2095,13 +2095,13 @@ def get_files_mcribs(dataset: str, subject: str, time_point: str, is_rescaled=Fa
     right_curvature = find(patterns="rh.curv.shape.gii", search_path=subject_dir)
     print()
     
-    print(f'{datetime.now()}[FUNCTION] find(patterns="lh.mean.thickness", search_path=subject_dir)')
-    left_cortex = find(patterns="lh.mean.thickness", search_path=subject_dir) # TODO Figure out what this should be
-    print()
+    #print(f'{datetime.now()}[FUNCTION] find(patterns="lh.mean.thickness", search_path=subject_dir)')
+    left_cortex = None # TODO Figure out what this should be
+    #print()
     
-    print(f'{datetime.now()}[FUNCTION] find(patterns="rh.mean.thickness", search_path=subject_dir)')
-    right_cortex = find(patterns="rh.mean.thickness", search_path=subject_dir) # TODO Figure out what this should be
-    print()
+    #print(f'{datetime.now()}[FUNCTION] find(patterns="rh.mean.thickness", search_path=subject_dir)')
+    right_cortex = None # TODO Figure out what this should be
+    #print()
     
     # ---------------------------------------------
     # Grab rescaled and resampled files if needed
