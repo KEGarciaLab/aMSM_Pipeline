@@ -2072,11 +2072,11 @@ def get_files_mcribs(dataset: str, subject: str, time_point: str, is_rescaled=Fa
     # --------------------------
     
     print(f'{datetime.now()}[FUNCTION] find(patterns="lh.midthickness.surf.gii", search_path=subject_dir)')
-    left_anatomical_surface = find(patterns=[f"lh.{subject}{time_point}_midthickness_711-2N_rot.surf.gii", f"lh.{subject}{time_point}_midthickness_711-2N.surf.gii"], search_path=subject_dir)
+    left_anatomical_surface = find(patterns=[f"lh.{subject}{time_point}_midthickness_711-2N_rot.surf.gii", f"lh.{subject}{time_point}_midthickness_711-2N.surf.gii", "lh.midthickness.surf.gii"], search_path=subject_dir)
     print()
     
     print(f'{datetime.now()}[FUNCTION] find(patterns="rh.midthickness.surf.gii", search_path=subject_dir)')
-    right_anatomical_surface = find(patterns=[f"rh.{subject}{time_point}_midthickness_711-2N_rot.surf.gii", f"rh.{subject}{time_point}_midthickness_711-2N.surf.gii"], search_path=subject_dir)
+    right_anatomical_surface = find(patterns=[f"rh.{subject}{time_point}_midthickness_711-2N_rot.surf.gii", f"rh.{subject}{time_point}_midthickness_711-2N.surf.gii", "rh.midthickness.surf.gii"], search_path=subject_dir)
     print()
     
     print(f'{datetime.now()}[FUNCTION] find(patterns="lh.sphere.reg2.surf.gii", search_path=subject_dir)')
