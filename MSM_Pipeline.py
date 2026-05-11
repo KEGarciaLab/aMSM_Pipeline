@@ -358,12 +358,12 @@ def get_files(dataset: str, subject: str, time_point: str, is_rescaled=False):
     right_spherical_surface = find(patterns="*.R.sphere.32k_fs_LR.surf.gii", search_path=subject_dir, required_dirs=["T1w"])
     print()
     
-    print(f'[FUNCTION] find(patterns="*.L.atlasroi.32k_fs_LR.shape.gii", search_path=subject_dir), required_dirs=["T1w"]')
-    left_cortex = find(patterns="*.L.atlasroi.32k_fs_LR.shape.gii", search_path=subject_dir, required_dirs=["T1w"])
+    print(f'[FUNCTION] find(patterns="*.L.atlasroi.32k_fs_LR.shape.gii", search_path=subject_dir)')
+    left_cortex = find(patterns="*.L.atlasroi.32k_fs_LR.shape.gii", search_path=subject_dir)
     print()
     
-    print(f'[FUNCTION] find(patterns="*.R.atlasroi.32k_fs_LR.shape.gii", search_path=subject_dir), required_dirs=["T1w"]')
-    right_cortex = find(patterns="*.R.atlasroi.32k_fs_LR.shape.gii", search_path=subject_dir, required_dirs=["T1w"])
+    print(f'[FUNCTION] find(patterns="*.R.atlasroi.32k_fs_LR.shape.gii", search_path=subject_dir)')
+    right_cortex = find(patterns="*.R.atlasroi.32k_fs_LR.shape.gii", search_path=subject_dir)
     print()
     
     
