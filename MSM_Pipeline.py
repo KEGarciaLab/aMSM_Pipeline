@@ -2044,9 +2044,9 @@ def rescale_surfaces(dataset: str,  subject: str, time_point: str, uses_mcribs: 
     print(f"{datetime.now()}[INFO] Right hemisphere complete")
     
     print(f"{datetime.now()}[INFO] Start resample to CPgrid")
-    run_logged(f'wb_command -surface-resample {left_rescaled_surface} {left_spherical_surface} {max_cp} "BARYCENTRIC" {left_resampled_surface_anatgrid}', step="RESAMPLE CP")
+    run_logged(f'wb_command -surface-resample {left_rescaled_surface} {left_spherical_surface} {max_cp} "BARYCENTRIC" {left_resampled_surface_cpgrid}', step="RESAMPLE CP")
     print(f"{datetime.now()}[INFO] Left hemisphere complete")
-    run_logged(f'wb_command -surface-resample {right_rescaled_surface} {right_spherical_surface} {max_cp} "BARYCENTRIC" {right_resampled_surface_anatgrid}', step="RESAMPLE CP")
+    run_logged(f'wb_command -surface-resample {right_rescaled_surface} {right_spherical_surface} {max_cp} "BARYCENTRIC" {right_resampled_surface_cpgrid}', step="RESAMPLE CP")
     print(f"{datetime.now()}[INFO] Right hemispher complete")
     
     print(f"{datetime.now()}[COMPLETE] Rescaling complete")
