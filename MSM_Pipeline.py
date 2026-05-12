@@ -480,26 +480,36 @@ def generate_qc_image(dataset: str, subject: str, younger_timepoint: str, older_
     # -------------------------
     print(f"{datetime.now()}[STEP] Locating surfaces")
 
-    if younger_uses_mcribs:
+    if younger_uses_mcribs and older_uses_mcribs:
+        print(f"{datetime.now()}[INFO] Both timepoints use MCRIBS pipeline")
+        print(f"{datetime.now()}[FUNCTION] get_files_mcribs(dataset=dataset, subject=subject, timepoint=younger_timepoint, is_rescaled=True)")
+        younger_files = get_files_mcribs(dataset=dataset, subject=subject, timepoint=younger_timepoint, is_rescaled=True)
+        print()
+        print(f"{datetime.now()}[FUNCTION] get_files_mcribs(dataset=dataset, subject=subject, timepoint=older_timepoint, is_rescaled=True)")
+        older_files = get_files_mcribs(dataset=dataset, subject=subject, timepoint=older_timepoint, is_rescaled=True)
+        print()
+    elif younger_uses_mcribs and not older_uses_mcribs:
         print(f"{datetime.now()}[INFO] Younger timepoint uses MCRIBS pipeline")
-        print(f"{datetime.now()}[FUNCTION] Calling get_files_mcribs dataset={dataset} subject={subject}, timepoint={younger_timepoint}")
-        younger_files = get_files_mcribs(dataset, subject, younger_timepoint)
+        print(f"{datetime.now()}[FUNCTION] get_files_mcribs(dataset=dataset, subject=subject, timepoint=younger_timepoint, is_rescaled=True)")
+        younger_files = get_files_mcribs(dataset=dataset, subject=subject, timepoint=younger_timepoint, is_rescaled=True)
         print()
-    else:
-        print(f"{datetime.now()}[INFO] Younger timepoint uses standard pipeline")
-        print(f"{datetime.now()}[FUNCTION] Calling get_files dataset={dataset} subject={subject}, timepoint={younger_timepoint}")
-        younger_files = get_files(dataset, subject, younger_timepoint)
+        print(f"{datetime.now()}[FUNCTION] get_files(dataset=dataset, subject=subject, timepoint=older_timepoint, is_rescaled=True)")
+        older_files = get_files(dataset=dataset, subject=subject, timepoint=older_timepoint, is_rescaled=True)
         print()
-        
-    if older_uses_mcribs:
+    elif not younger_uses_mcribs and older_uses_mcribs:
         print(f"{datetime.now()}[INFO] Older timepoint uses MCRIBS pipeline")
-        print(f"{datetime.now()}[FUNCTION] Calling get_files_mcribs dataset={dataset} subject={subject}, timepoint={older_timepoint}")
-        older_files = get_files_mcribs(dataset, subject, older_timepoint)
+        print(f"{datetime.now()}[FUNCTION] get_files(dataset=dataset, subject=subject, timepoint=younger_timepoint, is_rescaled=True)")
+        younger_files = get_files(dataset=dataset, subject=subject, timepoint=younger_timepoint, is_rescaled=True)
+        print()
+        print(f"{datetime.now()}[FUNCTION] get_files_mcribs(dataset=dataset, subject=subject, timepoint=older_timepoint, is_rescaled=True)")
+        older_files = get_files_mcribs(dataset=dataset, subject=subject, timepoint=older_timepoint, is_rescaled=True)
         print()
     else:
-        print(f"{datetime.now()}[INFO] Older timepoint uses standard pipeline")
-        print(f"{datetime.now()}[FUNCTION] Calling get_files dataset={dataset} subject={subject}, timepoint={older_timepoint}")
-        older_files = get_files(dataset, subject, older_timepoint)
+        print(f"{datetime.now()}[FUNCTION] get_files(dataset=dataset, subject=subject, timepoint=younger_timepoint)")
+        younger_files = get_files(dataset=dataset, subject=subject, timepoint=younger_timepoint)
+        print()
+        print(f"{datetime.now()}[FUNCTION] get_files(dataset=dataset, subject=subject, timepoint=older_timepoint)")
+        older_files = get_files(dataset=dataset, subject=subject, timepoint=older_timepoint)
         print()
 
     if younger_uses_mcribs or older_uses_mcribs:
