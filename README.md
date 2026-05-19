@@ -446,7 +446,7 @@ Project Link: [https://github.com/KEGarciaLab/aMSM_AD](https://github.com/KEGarc
 
 Project Lead: [Dr. Kara Garcia](mailto:karagarc@?subject=[GitHub]aMSM_AD)
 
-Script Manager: [Sammy Rigdon IV](mailto:srigdon5@?subject=[GitHub]aMSM_AD)
+Script Manager: [Amber Rigdon](mailto:srigdon5@?subject=[GitHub]aMSM_AD)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
