@@ -613,7 +613,7 @@ def qc_all(dataset: str, output: str,  alphanumeric_timepoints: bool=False, time
         for i in range(len(time_points)-1):
             younger_time = time_points[i]
             older_time = time_points[i+1]
-            print(f"{datetime.noe()}[INFO] Generating QC image for subject {subject} from time point {younger_time} to {older_time}")
+            print(f"{datetime.now()}[INFO] Generating QC image for subject {subject} from time point {younger_time} to {older_time}")
             if uses_mcribs:
                 print(f"{datetime.now()}[INFO] Dataset uses M-CRIB-S naming conventions")
                 print(f"{datetime.now()}[FUNCTION] generate_qc_image(dataset=dataset, subject=subject, younger_timepoint=younger_time, older_timepoint=older_time, output=output, uses_mcribs=True)")
