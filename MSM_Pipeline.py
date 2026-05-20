@@ -215,11 +215,10 @@ def sort_time_points(time_points: list, number_start_character: int, starting_ti
     # Sorting based on number start
     # --------------------------------
     print(f"{datetime.now()}[INFO] sorting by number which starts at character index {number_start_character}")
-    copy.sort(key=lambda time_point: int(
-        time_point[number_start_character:]))
+    copy.sort(key=lambda time_point: int(time_point[number_start_character:]))
 
     # ---------------------
-    # Readd starting time
+    # Read starting time
     # ---------------------
     if starting_time is not None and starting_time in time_points:
         print(f"{datetime.now()}[INFO] Insterting starting time {starting_time} to the beginning of list")
@@ -282,7 +281,7 @@ def get_subject_time_points(dataset: str, subject: str, alphanumeric_timepoints:
         print(f"{datetime.now()}[INFO] Numeric time points detected, using interger sort")
         time_points.sort(key=int)
     else:
-        print(f"{datetime.now()}[INFO] Using lexicograpic sort")
+        print(f"{datetime.now()}[INFO] Using lexicographic sort")
         time_points.sort()
     
     print(f"{datetime.now()}[INFO] Sorted time points:")
@@ -578,31 +577,53 @@ def generate_qc_image(dataset: str, subject: str, younger_timepoint: str, older_
     
 # Generate all pre-MSM qc images
 def qc_all(dataset: str, output: str,  alphanumeric_timepoints: bool=False, time_point_number_start_character: int | None=None, starting_time=None, uses_mcribs: bool=False):
-    print("\nStarting pre-MSM QC image generation")
-    print('*' * 50)
+    print(f"\n{datetime.now()}[QC ALL] Begin qc for all pairs in dataset {dataset}")
+    print(f"{datetime.now()}[INFO] Selected options:")
+    print(f"     DATASET: {dataset}")
+    print(f"     OUTPUT: {output}")
+    print(f"     ALPHANUMERIC TIME POINTS: {alphanumeric_timepoints}")
+    print(f"     TIME POINT NUMBER START CHARACTER: {time_point_number_start_character}")
+    print(f"     STARTING TIME: {starting_time}")
+    print(f"     USES M-CRIB-S: {uses_mcribs}")
+    
     subjects = []
+    print(f"{datetime.now()}[STEP] Retrieving subjects from directories")
     for directory in listdir(dataset):
         full_path = path.join(dataset, directory)
         fields = directory.split("_")
         subject = fields[1]
         if subject not in subjects:
+            print(f"{datetime.now()}[INFO] Adding subject {subject} to list")
             subjects.append(subject)
-    
+    print(f"{datetime.now()}[INFO] FOund the following subjects")
     for subject in subjects:
-        time_points = get_subject_time_points(dataset, subject, alphanumeric_timepoints, time_point_number_start_character, starting_time)
-        if starting_time is not None and starting_time in time_points:
-            time_points.remove(starting_time)
-            time_points = time_points.sort()
-            time_points.insert(0, starting_time)
+        print(f"    {subject}")
+    
+    print(f"{datetime.now()}[STEP] Retrieve subject time points")
+    for subject in subjects:
+        print(f"{datetime.now()}[INFO] Current subject: {subject}")
+        print(f"{datetime.now()}[FUNCTION] get_subject_time_points(dataset=dataset, subject=subject, alphanumeric_timepoints=alphanumeric_timepoints, time_point_number_start_character=time_point_number_start_character, starting_time=starting_time)")
+        time_points = get_subject_time_points(dataset=dataset, subject=subject, alphanumeric_timepoints=alphanumeric_timepoints, time_point_number_start_character=time_point_number_start_character, starting_time=starting_time)
+        print()
+        print(f"{datetime.now()}[INFO] Found the following time points")
+        for time_point in time_points:
+            print(f"    {time_point}")
+        
+        print(f"{datetime.now()}[STEP] Begin image generation")
         for i in range(len(time_points)-1):
             younger_time = time_points[i]
             older_time = time_points[i+1]
-            print(f"\nGenerating QC image for subject {subject} from time point {younger_time} to {older_time}")
+            print(f"{datetime.noe()}[INFO] Generating QC image for subject {subject} from time point {younger_time} to {older_time}")
             if uses_mcribs:
-                generate_qc_image(dataset, subject, younger_time, older_time, output, uses_mcribs=True)
+                print(f"{datetime.now()}[INFO] Dataset uses M-CRIB-S naming conventions")
+                print(f"{datetime.now()}[FUNCTION] generate_qc_image(dataset=dataset, subject=subject, younger_timepoint=younger_time, older_timepoint=older_time, output=output, uses_mcribs=True)")
+                generate_qc_image(dataset=dataset, subject=subject, younger_timepoint=younger_time, older_timepoint=older_time, output=output, uses_mcribs=True)
             else:
-                generate_qc_image(dataset, subject, younger_time, older_time, output)
-        
+                print(f"{datetime.now()}[INFO] Dataset uses ciftify naming conventions")
+                print(f"{datetime.now()}[FUNCTION] generate_qc_image(dataset=dataset, subject=subject, younger_timepoint=younger_time, older_timepoint=older_time, output=output)")
+                generate_qc_image(dataset=dataset, subject=subject, younger_timepoint=younger_time, older_timepoint=older_time, output=output)
+    
+    print(f"{datetime.now()}[COMPLETE] Finished genreating QC images")
     
 # Generate post processing images
 def generate_post_processing_image(subject_directory: str, resolution: str, mode: Mode, output: str):
