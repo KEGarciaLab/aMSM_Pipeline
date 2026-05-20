@@ -2185,29 +2185,64 @@ def get_files_mcribs(dataset: str, subject: str, time_point: str, is_rescaled=Fa
 
 # function to convert .curv files to .gii files
 def convert_curvature(dataset: str, subject: str, time_point: str):
+    print(f"\n{datetime.now()}[CONVERT CURVATURE] Begin converting curvature for subject {subject} at time point {time_point}")
+    
     subject_dir = path.join(dataset, f"Subject_{subject}_{time_point}")
-    left_curv = path.join(subject_dir, "lh.curv")
-    right_curv = path.join(subject_dir, "rh.curv")
+    print(f"{datetime.now()}[INFO] Subject data located at {subject_dir}")
+    
+    print(f"{datetime.now()}[STEP] Retrieve orginal curv and white matter files")
+    
+    print(f'{datetime.now()}[FUNCTION]find(patterns="lh.curv", search_path=subject_dir)')
+    left_curv = find(patterns="lh.curv", search_path=subject_dir)
+    print()
+
+    print(f'{datetime.now()}[FUNCTION]find(patterns="rh.curv", search_path=subject_dir)')
+    right_curv = find(patterns="rh.curv", search_path=subject_dir)
+    print()
+
+    print(f'{datetime.now()}[FUNCTION]find(patterns="lh.white", search_path=subject_dir)')
+    left_white_matter = find(patterns="lh.white", search_path=subject_dir)
+    print()
+
+    print(f'{datetime.now()}[FUNCTION]find(patterns="rh.white", search_path=subject_dir)')
+    right_white_matter = find(patterns="rh.white", search_path=subject_dir)
+    print()
+   
+    print(f"{datetime.now()}[FILES] Found the following files")
+    print(f"    LEFT CURVATURE: {left_curv}")
+    print(f"    RIGHT CURVATURE: {right_curv}")
+    print(f"    LEFT WHITE MATTER: {left_white_matter}")
+    print(f"    RIGHT WHITE MATTER: {right_white_matter}")
+
     left_output = path.join(subject_dir, "lh.curv.shape.gii")
     right_output = path.join(subject_dir, "rh.curv.shape.gii")
-    left_white_matter = path.join(subject_dir, "lh.white")
-    right_white_matter = path.join(subject_dir, "rh.white")
+    print(f"{datetime.now()}[FILES]Output files set to the following")
+    print(f"    LEFT OUT: {left_output}")
+    print(f"    RIGHT OUT: {right_output}")
     
+    print(f"{datetime.now()}[STEP]Run convert commands")
     run_logged(f"mris_convert -c {left_curv} {left_white_matter} {left_output}")
     run_logged(f"mris_convert -c {right_curv} {right_white_matter} {right_output}")
+    
+    print(f"{datetime.now()}[COMPLETE]Finished converting curvate for subject {subject} at time point {time_point}")
     
 
 # function for batch conversion of .curv files to .gii files
 def convert_curvature_all(dataset: str):
+    print(f"\n{datetime.now()}[CONVERT CURVATURE ALL] Begin converting curvature for all subjects in dataset {dataset}")
     for subject_folder in listdir(dataset):
         subject_path = path.join(dataset, subject_folder)
         if path.isdir(subject_path):
+            print(f"{datetime.now()}[STEP]Current subejct directory: {subject_path}")
             fields = subject_folder.split("_")
             subject = fields[1]
             time_point = fields[2]
-            print(f"Converting curvature files for subject {subject} at time point {time_point}")
-            convert_curvature(dataset, subject, time_point)
-    print("Curvature conversion complete\n")    
+            print(f"{datetime.now()}[INFO]Subject id: {subject}")
+            print(f"{datetime.now()}[INFO]Time point: {time_point}")
+            print(f"{datetime.now()}[FUNCTION]convert_curvature(dataset=dataset, subject=subject, time_point=time_point)")
+            convert_curvature(dataset=dataset, subject=subject, time_point=time_point)
+            print()
+    print(f"{datetime.now()}[COMPLETE]Curvature conversion complete")    
 
 
 # Function for concatenating registrations
