@@ -45,7 +45,7 @@ sys.stdout = Tee(sys.__stdout__, log_file)
 sys.stderr = Tee(sys.__stderr__, log_file)
 Mode = Literal["forward", "reverse", "average"]
 Hemisphere = Literal["L", "R"]
-PIPELINE_VERSION = '1.5.3-indev'
+PIPELINE_VERSION = '1.6.0'
 
 print(f"{datetime.now()}[START] Begin pipeline execution")
 print(f"{datetime.now()}[INFO] Pipeline Version: {PIPELINE_VERSION}")
@@ -625,6 +625,7 @@ def qc_all(dataset: str, output: str,  alphanumeric_timepoints: bool=False, time
     
     print(f"{datetime.now()}[COMPLETE] Finished genreating QC images")
     
+
 # Generate post processing images
 def generate_post_processing_image(subject_directory: str, resolution: str, mode: Mode, output: str):
     print(f"\n{datetime.now()}[POST PROCESSING] Starting post processing")
@@ -638,241 +639,251 @@ def generate_post_processing_image(subject_directory: str, resolution: str, mode
     subject = subject_basename_list[0]
     starting_time = subject_basename_list[1]
     ending_time = subject_basename_list[3]
-    print("")
-    
-    # get base subject dir for average mode
+    print(f"{datetime.now()}[INFO]post processing subject {subject} with a {mode} registration between time points {starting_time} and {ending_time} at {resolution} resolution")
     if mode == "average":
         subject_directory_base = subject_directory.replace("_avg", "")
         
-    # get all files for for post processing
-    print("Locating Surfaces")
+    # ----------------
+    # Locating files
+    # ----------------
+    print(f"{datetime.now()}[STEP] Locating Surfaces")
     if mode == "forward":
-        left_younger_surface = path.join(
-            subject_directory, f"{subject}_L_{starting_time}-{ending_time}.LYAS.{resolution}.surf.gii")
-        right_younger_surface = path.join(
-            subject_directory, f"{subject}_R_{starting_time}-{ending_time}.RYAS.{resolution}.surf.gii")
-        left_older_surface = path.join(
-            subject_directory, f"{subject}_L_{starting_time}-{ending_time}.anat.{resolution}.reg.surf.gii")
-        right_older_surface = path.join(
-            subject_directory, f"{subject}_R_{starting_time}-{ending_time}.anat.{resolution}.reg.surf.gii")
+        print(f"{datetime.now}[INFO] Mode is forward using forward naming conventions")
+        left_younger_surface = path.join(subject_directory, f"{subject}_L_{starting_time}-{ending_time}.LYAS.{resolution}.surf.gii")
+        right_younger_surface = path.join(subject_directory, f"{subject}_R_{starting_time}-{ending_time}.RYAS.{resolution}.surf.gii")
+        left_older_surface = path.join(subject_directory, f"{subject}_L_{starting_time}-{ending_time}.anat.{resolution}.reg.surf.gii")
+        right_older_surface = path.join(subject_directory, f"{subject}_R_{starting_time}-{ending_time}.anat.{resolution}.reg.surf.gii")
     elif mode == "reverse":
-        left_younger_surface = path.join(
-            subject_directory, f"{subject}_L_{starting_time}-{ending_time}.anat.{resolution}.reg.surf.gii")
-        right_younger_surface = path.join(
-            subject_directory, f"{subject}_R_{starting_time}-{ending_time}.anat.{resolution}.reg.surf.gii")
-        left_older_surface = path.join(
-            subject_directory, f"{subject}_L_{starting_time}-{ending_time}.LOAS.{resolution}.surf.gii")
-        right_older_surface = path.join(
-            subject_directory, f"{subject}_R_{starting_time}-{ending_time}.ROAS.{resolution}.surf.gii")
+        print(f"{datetime.now}[INFO] Mode is reverse using reverse naming conventions")
+        left_younger_surface = path.join(subject_directory, f"{subject}_L_{starting_time}-{ending_time}.anat.{resolution}.reg.surf.gii")
+        right_younger_surface = path.join(subject_directory, f"{subject}_R_{starting_time}-{ending_time}.anat.{resolution}.reg.surf.gii")
+        left_older_surface = path.join(subject_directory, f"{subject}_L_{starting_time}-{ending_time}.LOAS.{resolution}.surf.gii")
+        right_older_surface = path.join(subject_directory, f"{subject}_R_{starting_time}-{ending_time}.ROAS.{resolution}.surf.gii")
     elif mode == "average":
-        left_younger_surface = path.join(
-            subject_directory_base, f"{subject}_L_{starting_time}-{ending_time}.LYAS.{resolution}.surf.gii")
-        right_younger_surface = path.join(
-            subject_directory_base, f"{subject}_R_{starting_time}-{ending_time}.RYAS.{resolution}.surf.gii")
-        left_older_surface = path.join(
-            subject_directory, f"{subject}_L_{starting_time}-{ending_time}.avgfor.anat.{resolution}.reg.surf.gii")
-        right_older_surface = path.join(
-            subject_directory, f"{subject}_R_{starting_time}-{ending_time}.avgfor.anat.{resolution}.reg.surf.gii")
+        print(f"{datetime.now}[INFO] Mode is average using average naming conventions")
+        left_younger_surface = path.join(subject_directory_base, f"{subject}_L_{starting_time}-{ending_time}.LYAS.{resolution}.surf.gii")
+        right_younger_surface = path.join(subject_directory_base, f"{subject}_R_{starting_time}-{ending_time}.RYAS.{resolution}.surf.gii")
+        left_older_surface = path.join(subject_directory, f"{subject}_L_{starting_time}-{ending_time}.avgfor.anat.{resolution}.reg.surf.gii")
+        right_older_surface = path.join(subject_directory, f"{subject}_R_{starting_time}-{ending_time}.avgfor.anat.{resolution}.reg.surf.gii")
         
     
     print("Locating Maps")
     if mode == "average":
-        left_surface_map = path.join(
-            subject_directory, f"{subject}_L_{starting_time}-{ending_time}.avgfor.surfdist.{resolution}.reg.func.gii")
-        right_surface_map = path.join(
-            subject_directory, f"{subject}_R_{starting_time}-{ending_time}.avgfor.surfdist.{resolution}.reg.func.gii")
+        left_surface_map = path.join(subject_directory, f"{subject}_L_{starting_time}-{ending_time}.avgfor.surfdist.{resolution}.reg.func.gii")
+        right_surface_map = path.join(subject_directory, f"{subject}_R_{starting_time}-{ending_time}.avgfor.surfdist.{resolution}.reg.func.gii")
     else:
-        left_surface_map = path.join(
-            subject_directory, f"{subject}_L_{starting_time}-{ending_time}.surfdist.{resolution}.func.gii")
-        right_surface_map = path.join(
-            subject_directory, f"{subject}_R_{starting_time}-{ending_time}.surfdist.{resolution}.func.gii")
-    spec_file = path.join(
-        subject_directory, f"{subject}_{starting_time}-{ending_time}_{resolution}.spec")
+        left_surface_map = path.join(subject_directory, f"{subject}_L_{starting_time}-{ending_time}.surfdist.{resolution}.func.gii")
+        right_surface_map = path.join(subject_directory, f"{subject}_R_{starting_time}-{ending_time}.surfdist.{resolution}.func.gii")
+    spec_file = path.join(subject_directory, f"{subject}_{starting_time}-{ending_time}_{resolution}.spec")
+    print(f"{datetime.now()}[INFO] Using the following files:")
+    print(f"    LEFT YOUNGER SURFACE: {left_younger_surface}")
+    print(f"    RIGHT YOUNGER SURFACE: {right_younger_surface}")
+    print(f"    LEFT OLDER SURFACE: {left_older_surface}")
+    print(f"    RIGHT OLDER SURFACE: {right_older_surface}")
+    print(f"    LEFT SURFACE MAP: {left_surface_map}")
+    print(f"    RIGHT SURFACE MAP: {right_surface_map}")
     
-    # set palette
-    print("Setting Palette")
-    run_logged(f"wb_command -metric-palette {left_surface_map} MODE_AUTO_SCALE -palette-name raich6_clrmid")
-    run_logged(f"wb_command -metric-palette {right_surface_map} MODE_AUTO_SCALE -palette-name raich6_clrmid")
-
-    # add to spec file
-    print("Adding to Spec File")
-    run_logged(f"wb_command -add-to-spec-file {spec_file} CORTEX_LEFT {left_younger_surface}")
-    run_logged(f"wb_command -add-to-spec-file {spec_file} CORTEX_LEFT {left_older_surface}")
-    run_logged(f"wb_command -add-to-spec-file {spec_file} CORTEX_LEFT {left_surface_map}")
-    run_logged(f"wb_command -add-to-spec-file {spec_file} CORTEX_RIGHT {right_younger_surface}")
-    run_logged(f"wb_command -add-to-spec-file {spec_file} CORTEX_RIGHT {right_older_surface}")
-    run_logged(f"wb_command -add-to-spec-file {spec_file} CORTEX_RIGHT {right_surface_map}")
-
-    # create scene file for auto scale
-    print("Creating Auto Scale Scene")
-    script_dir = path.dirname(path.realpath(__file__))
-    if mode == "forward" or mode == "average":
-        template_path_auto_scale = path.join(
-            script_dir, "Templates", "post_processing_template_forward.scene")
-        template_path_set_scale = path.join(
-            script_dir, "Templates", "post_processing_set_scale_template_forward.scene")
-    elif mode == "reverse":
-        template_path_auto_scale = path.join(
-            script_dir, "Templates", "post_processing_template_reverse.scene")
-        template_path_set_scale = path.join(
-            script_dir, "Templates", "post_processing_set_scale_template_forward.scene")
-    
-
-    with open(template_path_auto_scale, "r") as f:
-        template_read_auto_scale = f.read()
-    template_auto_scale = Template(template_read_auto_scale)
-    to_write_auto_scale = template_auto_scale.substitute(
-        left_younger_surface=left_younger_surface,
-        left_older_surface=left_older_surface,
-        left_surface_map=left_surface_map,
-        right_younger_surface=right_younger_surface,
-        right_older_surface=right_older_surface,
-        right_surface_map=right_surface_map
-    )
-    if mode == "average":
-        template_auto_scale_output = path.join(
-            subject_directory, f"{subject}_{starting_time}-{ending_time}_avg_{resolution}.scene")
-    else:
-        template_auto_scale_output = path.join(
-            subject_directory, f"{subject}_{starting_time}-{ending_time}_{resolution}.scene")
-    with open(template_auto_scale_output, "w+") as f:
-        f.write(to_write_auto_scale)
-
-    # create scene file for set scale
-    print("Creating Set Scale Scene")
-    with open(template_path_set_scale, "r") as f:
-        template_read_set_scale = f.read()
-    template_set_scale = Template(template_read_set_scale)
-    to_write_set_scale = template_set_scale.substitute(
-        left_younger_surface=left_younger_surface,
-        left_older_surface=left_older_surface,
-        left_surface_map=left_surface_map,
-        right_younger_surface=right_younger_surface,
-        right_older_surface=right_older_surface,
-        right_surface_map=right_surface_map
-    )
-    if mode == "average":
-        template_set_scale_output = path.join(
-            subject_directory, f"{subject}_{starting_time}-{ending_time}_avg_{resolution}_SET-SCALE.scene")
-    else:
-        template_set_scale_output = path.join(
-            subject_directory, f"{subject}_{starting_time}-{ending_time}_{resolution}_SET-SCALE.scene")
-    with open(template_set_scale_output, "w+") as f:
-        f.write(to_write_set_scale)
-
-    # create post processing folder
+    # -------------------------------
+    # Creating output folder
+    #--------------------------------
     post_processing_dir = path.join(subject_directory, "post_processing")
     makedirs(post_processing_dir, exist_ok=True)
     
-    # generate images
-    print("Generating Images")
+    # ---------------------------
+    # Setting palette for maps
+    # ---------------------------
+    print(f"{datetime.now()}[STEP] Setting Palette")
+    run_logged(f"wb_command -metric-palette {left_surface_map} MODE_AUTO_SCALE -palette-name raich6_clrmid", step="SET PALLETE")
+    run_logged(f"wb_command -metric-palette {right_surface_map} MODE_AUTO_SCALE -palette-name raich6_clrmid", step="SET PALLETE")
+
+    # ----------------------------------------
+    # Adding surfaces and maps to spec file
+    # ----------------------------------------
+    print(f"{datetime.now()}[STEP] Adding surfaces and maps to spec file")
+    run_logged(f"wb_command -add-to-spec-file {spec_file} CORTEX_LEFT {left_younger_surface}", step="ADD TO SPEC")
+    run_logged(f"wb_command -add-to-spec-file {spec_file} CORTEX_LEFT {left_older_surface}", step="ADD TO SPEC")
+    run_logged(f"wb_command -add-to-spec-file {spec_file} CORTEX_LEFT {left_surface_map}", step="ADD TO SPEC")
+    run_logged(f"wb_command -add-to-spec-file {spec_file} CORTEX_RIGHT {right_younger_surface}", step="ADD TO SPEC")
+    run_logged(f"wb_command -add-to-spec-file {spec_file} CORTEX_RIGHT {right_older_surface}", step="ADD TO SPEC")
+    run_logged(f"wb_command -add-to-spec-file {spec_file} CORTEX_RIGHT {right_surface_map}", step="ADD TO SPEC")
+
+    # ------------------------
+    # Generating scene files
+    # ------------------------
+    print(f"{datetime.now()}[STEP] Selecting templates to use and output path")
+    script_dir = path.dirname(path.realpath(__file__))
+    if mode == "forward" or mode == "average":
+        print(f"{datetime.now()}[INFO] Mode is set to Forward or Average, using forward templates.")
+        template_auto_scale = path.join(script_dir, "Templates", "post_processing_template_forward.scene")
+        template_set_scale = path.join(script_dir, "Templates", "post_processing_set_scale_template_forward.scene")
+    elif mode == "reverse":
+        print(f"{datetime.now()}[INFO] Mode is set to Reverse, using reverse templates.")
+        template_auto_scale = path.join(script_dir, "Templates", "post_processing_template_reverse.scene")
+        template_set_scale = path.join(script_dir, "Templates", "post_processing_set_scale_template_forward.scene")
+    
+    if mode == "average":
+        print(f"{datetime.now()}[INFO] Mode set to average, using avg output")
+        scene_auto_scale = path.join(subject_directory, f"{subject}_{starting_time}-{ending_time}_avg_{resolution}.scene")
+        scene_set_scale = path.join(subject_directory, f"{subject}_{starting_time}-{ending_time}_avg_{resolution}_SET-SCALE.scene")
+    else:
+        print(f"{datetime.noe()}[INFO] Mode not set to average, using standard output")
+        scene_auto_scale = path.join(subject_directory, f"{subject}_{starting_time}-{ending_time}_{resolution}.scene")    
+        scene_set_scale = path.join(subject_directory, f"{subject}_{starting_time}-{ending_time}_{resolution}_SET-SCALE.scene")
+
+    print(f"{datetime.now()}[INFO] Selected the following templates:")
+    print(f"    AUTO SCALE TEMPLATE: {template_auto_scale}")
+    print(f"    AUTO SCALE OUTPUT: {scene_auto_scale}")
+    print(f"    SET SCALE TEMPLATE: {template_set_scale}")
+    print(f"    SET SCALE TEMPLATE: {scene_set_scale}")
+    
+    print(f"{datetime.now()}[STEP] Gathering variables")
+    template_dict = {
+        "left_younger_surface":left_younger_surface,
+        "left_older_surface":left_older_surface,
+        "left_surface_map":left_surface_map,
+        "right_younger_surface":right_younger_surface,
+        "right_older_surface":right_older_surface,
+        "right_surface_map":right_surface_map}
+    
+    print(f"{datetime.now()}[INFO] Using the following substitutions")
+    for k,v in template_dict.items():
+        print(f"    {k}: {v}")
+    
+    # ---------------------------
+    # Generate auto scale scene
+    # ---------------------------
+    print(f"{datetime.now()}[STEP]Creating the auto scale scene")
+    print(f"{datetime.now()}[FUNCTION] generate_from_template(template_path=template_auto_scale, output_path=template_auto_scale_output, template_dict=template_dict)")
+    generate_from_template(template_path=template_auto_scale, output_path=scene_auto_scale, template_dict=template_dict)
+    print()
+    
+    # --------------------------
+    # Generate set scale scene
+    # --------------------------
+    print(f"{datetime.now()}[STEP]Creating the set scale scene")
+    print(f"{datetime.now()}[FUNCTION] generate_from_template(template_path=template_set_scale, output_path=template_set_scale_output, template_dict=template_dict)")
+    generate_from_template(template_path=template_set_scale, output_path=scene_set_scale, template_dict=template_dict)
+    print()
+    
+    # -----------------
+    # Generate Images
+    # -----------------
+    print(f"{datetime.now()}[STEP] Creating Images from scene files")
+    
     if mode=="average":
-        scene_auto_scale = path.join(
-            subject_directory, f"{subject}_{starting_time}-{ending_time}_avg_{resolution}.scene")
-        scene_set_scale = path.join(
-            subject_directory, f"{subject}_{starting_time}-{ending_time}_avg_{resolution}_SET-SCALE.scene")
-        image_auto_scale = path.join(
-            post_processing_dir, f"{subject}_{starting_time}-{ending_time}_avg_{resolution}.png")
-        image_set_scale = path.join(
-            post_processing_dir, f"{subject}_{starting_time}-{ending_time}_avg_{resolution}SET-SCALE.png")
-    else:    
-        scene_auto_scale = path.join(
-            subject_directory, f"{subject}_{starting_time}-{ending_time}_{resolution}.scene")
-        scene_set_scale = path.join(
-            subject_directory, f"{subject}_{starting_time}-{ending_time}_{resolution}_SET-SCALE.scene")
-        image_auto_scale = path.join(
-            post_processing_dir, f"{subject}_{starting_time}-{ending_time}_{resolution}.png")
-        image_set_scale = path.join(
-            post_processing_dir, f"{subject}_{starting_time}-{ending_time}_{resolution}SET-SCALE.png")
+        print(f"{datetime.now()}[INFO] Mode set to Average, using average outputs")
+        image_auto_scale = path.join(post_processing_dir, f"{subject}_{starting_time}-{ending_time}_avg_{resolution}.png")
+        image_set_scale = path.join(post_processing_dir, f"{subject}_{starting_time}-{ending_time}_avg_{resolution}SET-SCALE.png")
+    else:
+        print(f"{datetime.now()}[INFO] Mode not set to Average, using standard outputs")
+        image_auto_scale = path.join(post_processing_dir, f"{subject}_{starting_time}-{ending_time}_{resolution}.png")
+        image_set_scale = path.join(post_processing_dir, f"{subject}_{starting_time}-{ending_time}_{resolution}SET-SCALE.png")
         
     run_logged(f"wb_command -show-scene {scene_auto_scale} 1 {image_auto_scale} 1024 512")
     run_logged(f"wb_command -show-scene {scene_set_scale} 1 {image_set_scale} 1024 512")
 
-    # ensure output exists
+    # ---------------------------
+    # Copy to output directory
+    # ---------------------------
+    print(f"{datetime.now()}[STEP] Copy images to output directory")
+    print(f"{datetime.now()}[INFO] Checking for or creating output folder at {output}")
     makedirs(output, exist_ok=True)
     
-    # copy images to output
-    print("Copying Images to Output")
+    print(f"{datetime.now()}[INFO] Begin copying")
     copy2(image_auto_scale, output)
     copy2(image_set_scale, output)
+    print(f"{datetime.now()}[COMPLETE] Finished creating post processing images ")
 
 
 # Function to run post processing on all subjects
 def post_process_all(dataset: str, starting_time: str, resolution: str, output: str):
+    print(f"{datetime.now()}[POST PROCESS ALL] Begin batch post processing")
     for directory in listdir(dataset):
+        # ------------------
+        # Extract Metadata
+        # ------------------
+        print(f"{datetime.now()}[STEP] Extracting metadata from directory {directory}")
         full_path = path.join(dataset, directory)
         fields = directory.split("_")
         subject = fields[0]
         first_time = fields[1]
         second_time = fields[3]
+        print(f"{datetime.now()}[INFO] Exxtracted following information:")
+        print(f"    SUBJECT: {subject}")
+        print(f"    FIRST TIME: {first_time}")
+        print(f"    SECOND TIME: {second_time}")
+        
         if first_time.isalpha():
+            print(f"{datetime.now()}[INFO] First time is alpha using full time for comparisons")
             first_month = first_time
         else:
+            print(f"{datetime.now()}[INFO] First time is not alpha extracting only numeric portion for comparison")
             first_month = int(sub("[^0-9]", "", first_time))
+            print(f"{datetime.now()}[INFO] using {first_month} as comparison value")
         if second_time.isalpha():
+            print(f"{datetime.now()}[INFO] Second time is alpha using full time for comparisons")
             second_month = second_time
         else:
+            print(f"{datetime.now()}[INFO] Second time is not alpha extracting only numeric portion for comparison")
             second_month = int(sub("[^0-9]", "", second_time))
-        is_avg = True if "avg" in directory else False
-       
-        subject_output = path.join(output, subject)
-        makedirs(subject_output, exist_ok=True)
-        print("*" * 50)
-        print(f"Begin Post Processing at {resolution} resolution")
-        print("*" * 50)
-        print(
-            f"Path: {full_path}\nSubject: {subject}\nStarting Time: {starting_time}\nTime1: {first_time}\nTime2: {second_time}\nAverage: {is_avg}\nOutput: {subject_output}")
-        if "avg" in directory:
-            print("Mode: Average")
-            generate_post_processing_image(full_path,
-                                           resolution,
-                                           "average",
-                                           subject_output)
+            print(f"{datetime.now()}[INFO] using {second_month} as comparison value")
         
+        # ----------------------
+        # Create output folder
+        # ----------------------
+        subject_output = path.join(output, subject)
+        print(f"{datetime.now()}[STEP] Create output folder at {subject_output}")
+        makedirs(subject_output, exist_ok=True)
+        
+        # --------------------------------
+        # determine post processing mode
+        # --------------------------------
+        print(f"{datetime.now()}[STEP] Run post processing in correct mode")
+        if "_avg" in directory:
+            print(f"{datetime.now()}[INFO] Average registration detected, using average mode")
+            print(f'{datetime.now()}[FUNCTION] generate_post_processing_image(dataset=full_path, resolution=resolution, mode="average", output=subject_output)')
+            generate_post_processing_image(dataset=full_path, resolution=resolution, mode="average", output=subject_output)
+            print()
+            
         elif first_time == starting_time:
-            print("Mode: Forward")
-            generate_post_processing_image(full_path,
-                                           resolution,
-                                           "forward",
-                                           subject_output)
+            print(f"{datetime.now()}[INFO] Starting time is the same as first time, using forward mode")
+            print(f'{datetime.now()}[FUNCTION] generate_post_processing_image(dataset=full_path, resolution=resolution, mode="forward", output=subject_output)')
+            generate_post_processing_image(dataset=full_path, resolution=resolution, mode="forward", output=subject_output)
+            print()
 
         elif second_time == starting_time:
-            print("Mode: Reverse")
-            generate_post_processing_image(full_path,
-                                           resolution,
-                                           "reverse",
-                                           subject_output)
+            print(f"{datetime.now()}[INFO] Starting time is the same as second time, using reverse mode")
+            print(f'{datetime.now()}[FUNCTION] generate_post_processing_image(dataset=full_path, resolution=resolution, mode="reverse", output=subject_output)')
+            generate_post_processing_image(dataset=full_path, resolution=resolution, mode="reverse", output=subject_output)
+            print()
 
         if first_month.isdigit() and second_month.isdigit():
             if int(first_month) < int(second_month):
-                print("Mode: Forward")
-                generate_post_processing_image(full_path,
-                                            resolution,
-                                            "forward",
-                                            subject_output)
+                print(f"{datetime.now()}[INFO] First time is before second time, using forward mode")
+                print(f'{datetime.now()}[FUNCTION] generate_post_processing_image(dataset=full_path, resolution=resolution, mode="forward", output=subject_output)')
+                generate_post_processing_image(dataset=full_path, resolution=resolution, mode="forward", output=subject_output)
+                print()
 
             elif int(first_month) > int(second_month):
-                print("Mode: Reverse")
-                generate_post_processing_image(full_path,
-                                            resolution,
-                                            "reverse",
-                                            subject_output)
+                print(f"{datetime.now()}[INFO] First time is after second time, using reverse mode")
+                print(f'{datetime.now()}[FUNCTION] generate_post_processing_image(dataset=full_path, resolution=resolution, mode="reverse", output=subject_output)')
+                generate_post_processing_image(dataset=full_path, resolution=resolution, mode="reverse", output=subject_output)
+                print()
         
         else:
             if first_month < second_month:
                 print("Mode: Forward")
-                generate_post_processing_image(full_path,
-                                            resolution,
-                                            "forward",
-                                            subject_output)
+                print(f"{datetime.now()}[INFO] First time is before second time, using forward mode")
+                print(f'{datetime.now()}[FUNCTION] generate_post_processing_image(dataset=full_path, resolution=resolution, mode="forward", output=subject_output)')
+                generate_post_processing_image(dataset=full_path, resolution=resolution, mode="forward", output=subject_output)
+                print()
 
             elif first_month > second_month:
-                print("Mode: Reverse")
-                generate_post_processing_image(full_path,
-                                            resolution,
-                                            "reverse",
-                                            subject_output)
-
+                print(f"{datetime.now()}[INFO] First time is after second time, using reverse mode")
+                print(f'{datetime.now()}[FUNCTION] generate_post_processing_image(dataset=full_path, resolution=resolution, mode="reverse", output=subject_output)')
+                generate_post_processing_image(dataset=full_path, resolution=resolution, mode="reverse", output=subject_output)
+                print()
+    print(f"{datetime.now()}[COMPLETE] Finished batch post processing")
 
 # helper function for retriving subjects
 def get_subjects(dataset: str):
@@ -970,7 +981,7 @@ def generate_sphere(subject_dir, subject_prefix, left_midthickness, right_midthi
 
 # Helper Function for template replacement
 def generate_from_template(template_path, output_path, template_dict):
-    print(f"\n{datetime.now()}[TEMPLATE] Generating script at {output_path} from template located at {template_path}")
+    print(f"\n{datetime.now()}[TEMPLATE] Generating file at {output_path} from template located at {template_path}")
     print(f"{datetime.now()}[STEP] Reading template")
     with open(template_path, "r") as f:
         template_read = f.read()
@@ -986,7 +997,7 @@ def generate_from_template(template_path, output_path, template_dict):
     with open(output_path, "w+") as f:
         print(f"{datetime.now()}[INFO] Writng substituded template to {output_path}")
         f.write(to_write)
-    print(f"{datetime.now()}[COMPLETE] Finished generating script from template")
+    print(f"{datetime.now()}[COMPLETE] Finished generating file from template")
 
 
 # Function for running MSM commands
