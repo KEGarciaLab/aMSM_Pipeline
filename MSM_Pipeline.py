@@ -841,49 +841,50 @@ def post_process_all(dataset: str, starting_time: str, resolution: str, output: 
         print(f"{datetime.now()}[STEP] Run post processing in correct mode")
         if "_avg" in directory:
             print(f"{datetime.now()}[INFO] Average registration detected, using average mode")
-            print(f'{datetime.now()}[FUNCTION] generate_post_processing_image(dataset=full_path, resolution=resolution, mode="average", output=subject_output)')
-            generate_post_processing_image(dataset=full_path, resolution=resolution, mode="average", output=subject_output)
+            print(f'{datetime.now()}[FUNCTION] generate_post_processing_image(subject_directory=full_path, resolution=resolution, mode="average", output=subject_output)')
+            generate_post_processing_image(subject_directory=full_path, resolution=resolution, mode="average", output=subject_output)
             print()
             
         elif first_time == starting_time:
             print(f"{datetime.now()}[INFO] Starting time is the same as first time, using forward mode")
-            print(f'{datetime.now()}[FUNCTION] generate_post_processing_image(dataset=full_path, resolution=resolution, mode="forward", output=subject_output)')
-            generate_post_processing_image(dataset=full_path, resolution=resolution, mode="forward", output=subject_output)
+            print(f'{datetime.now()}[FUNCTION] generate_post_processing_image(subject_directory=full_path, resolution=resolution, mode="forward", output=subject_output)')
+            generate_post_processing_image(subject_directory=full_path, resolution=resolution, mode="forward", output=subject_output)
             print()
 
         elif second_time == starting_time:
             print(f"{datetime.now()}[INFO] Starting time is the same as second time, using reverse mode")
-            print(f'{datetime.now()}[FUNCTION] generate_post_processing_image(dataset=full_path, resolution=resolution, mode="reverse", output=subject_output)')
-            generate_post_processing_image(dataset=full_path, resolution=resolution, mode="reverse", output=subject_output)
+            print(f'{datetime.now()}[FUNCTION] generate_post_processing_image(subject_directory=full_path, resolution=resolution, mode="reverse", output=subject_output)')
+            generate_post_processing_image(subject_directory=full_path, resolution=resolution, mode="reverse", output=subject_output)
             print()
 
         if first_month.isdigit() and second_month.isdigit():
             if int(first_month) < int(second_month):
                 print(f"{datetime.now()}[INFO] First time is before second time, using forward mode")
-                print(f'{datetime.now()}[FUNCTION] generate_post_processing_image(dataset=full_path, resolution=resolution, mode="forward", output=subject_output)')
-                generate_post_processing_image(dataset=full_path, resolution=resolution, mode="forward", output=subject_output)
+                print(f'{datetime.now()}[FUNCTION] generate_post_processing_image(subject_directory=full_path, resolution=resolution, mode="forward", output=subject_output)')
+                generate_post_processing_image(subject_directory=full_path, resolution=resolution, mode="forward", output=subject_output)
                 print()
 
             elif int(first_month) > int(second_month):
                 print(f"{datetime.now()}[INFO] First time is after second time, using reverse mode")
-                print(f'{datetime.now()}[FUNCTION] generate_post_processing_image(dataset=full_path, resolution=resolution, mode="reverse", output=subject_output)')
-                generate_post_processing_image(dataset=full_path, resolution=resolution, mode="reverse", output=subject_output)
+                print(f'{datetime.now()}[FUNCTION] generate_post_processing_image(subject_directory=full_path, resolution=resolution, mode="reverse", output=subject_output)')
+                generate_post_processing_image(subject_directory=full_path, resolution=resolution, mode="reverse", output=subject_output)
                 print()
         
         else:
             if first_month < second_month:
                 print("Mode: Forward")
                 print(f"{datetime.now()}[INFO] First time is before second time, using forward mode")
-                print(f'{datetime.now()}[FUNCTION] generate_post_processing_image(dataset=full_path, resolution=resolution, mode="forward", output=subject_output)')
-                generate_post_processing_image(dataset=full_path, resolution=resolution, mode="forward", output=subject_output)
+                print(f'{datetime.now()}[FUNCTION] generate_post_processing_image(subject_directory=full_path, resolution=resolution, mode="forward", output=subject_output)')
+                generate_post_processing_image(subject_directory=full_path, resolution=resolution, mode="forward", output=subject_output)
                 print()
 
             elif first_month > second_month:
                 print(f"{datetime.now()}[INFO] First time is after second time, using reverse mode")
-                print(f'{datetime.now()}[FUNCTION] generate_post_processing_image(dataset=full_path, resolution=resolution, mode="reverse", output=subject_output)')
-                generate_post_processing_image(dataset=full_path, resolution=resolution, mode="reverse", output=subject_output)
+                print(f'{datetime.now()}[FUNCTION] generate_post_processing_image(subject_directory=full_path, resolution=resolution, mode="reverse", output=subject_output)')
+                generate_post_processing_image(subject_directory=full_path, resolution=resolution, mode="reverse", output=subject_output)
                 print()
     print(f"{datetime.now()}[COMPLETE] Finished batch post processing")
+
 
 # helper function for retriving subjects
 def get_subjects(dataset: str):
