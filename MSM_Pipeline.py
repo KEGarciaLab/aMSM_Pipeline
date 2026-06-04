@@ -726,7 +726,7 @@ def generate_post_processing_image(subject_directory: str, resolution: str, mode
         scene_auto_scale = path.join(subject_directory, f"{subject}_{starting_time}-{ending_time}_avg_{resolution}.scene")
         scene_set_scale = path.join(subject_directory, f"{subject}_{starting_time}-{ending_time}_avg_{resolution}_SET-SCALE.scene")
     else:
-        print(f"{datetime.noe()}[INFO] Mode not set to average, using standard output")
+        print(f"{datetime.now()}[INFO] Mode not set to average, using standard output")
         scene_auto_scale = path.join(subject_directory, f"{subject}_{starting_time}-{ending_time}_{resolution}.scene")    
         scene_set_scale = path.join(subject_directory, f"{subject}_{starting_time}-{ending_time}_{resolution}_SET-SCALE.scene")
 
