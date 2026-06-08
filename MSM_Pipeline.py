@@ -1612,24 +1612,24 @@ def generate_avg_maps(pre_msm_data: str, msm_data: str, subject: str, younger_ti
     print(f"{datetime.now()}[STEP] Locating input files")
     if younger_uses_mcribs:
         print(f"{datetime.now()}[INFO] Younger timepoint uses MCRIBS pipeline")
-        print(f"{datetime.now()}[FUNCTION] Calling get_files_mcribs dataset=pre_msm_data subject=subject, timepoint=younger_timepoint")
-        younger_files = get_files_mcribs(pre_msm_data, subject, younger_timepoint)
+        print(f"{datetime.now()}[FUNCTION] Calling get_files_mcribs(dataset=pre_msm_data subject=subject, timepoint=younger_timepoint, is_rescaled=True)")
+        younger_files = get_files_mcribs(dataset=pre_msm_data subject=subject, timepoint=younger_timepoint, is_rescaled=True)
         print()
     else:
         print(f"{datetime.now()}[INFO] Younger timepoint uses standard pipeline")
-        print(f"{datetime.now()}[FUNCTION] Calling get_files dataset={pre_msm_data} subject={subject}, timepoint={younger_timepoint}")
-        younger_files = get_files(pre_msm_data, subject, younger_timepoint)
+        print(f"{datetime.now()}[FUNCTION] Calling get_files(dataset=pre_msm_data subject=subject, timepoint=younger_timepoint)")
+        younger_files = get_files(dataset=pre_msm_data subject=subject, timepoint=younger_timepoint)
         print()
     
     if older_uses_mcribs:
         print(f"{datetime.now()}[INFO] Older timepoint uses MCRIBS pipeline")
-        print(f"{datetime.now()}[FUNCTION] Calling get_files_mcribs dataset={pre_msm_data} subject={subject}, timepoint={older_timepoint}")
-        older_files = get_files_mcribs(pre_msm_data, subject, older_timepoint)
+        print(f"{datetime.now()}[FUNCTION] Calling get_files_mcribs(dataset=pre_msm_data subject=subject, timepoint=older_timepoint, is_rescaled=True)")
+        older_files = get_files_mcribs(dataset=pre_msm_data subject=subject, timepoint=older_timepoint, is_rescaled=True)
         print()
     else:
         print(f"{datetime.now()}[INFO] Older timepoint uses standard pipeline")
-        print(f"{datetime.now()}[FUNCTION] Calling get_files dataset={pre_msm_data} subject={subject}, timepoint={older_timepoint}")
-        older_files = get_files(pre_msm_data, subject, older_timepoint)
+        print(f"{datetime.now()}[FUNCTION] Calling get_files(dataset=pre_msm_data subject=subject, timepoint=older_timepoint)")
+        older_files = get_files(dataset=pre_msm_data subject=subject, timepoint=older_timepoint)
         print()
         
     left_younger_spherical_surface = younger_files["LEFT GEN SPHERE"]
