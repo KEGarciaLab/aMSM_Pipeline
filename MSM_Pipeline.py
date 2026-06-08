@@ -1618,7 +1618,7 @@ def generate_avg_maps(pre_msm_data: str, msm_data: str, subject: str, younger_ti
     else:
         print(f"{datetime.now()}[INFO] Younger timepoint uses standard pipeline")
         print(f"{datetime.now()}[FUNCTION] Calling get_files(dataset=pre_msm_data, subject=subject, timepoint=younger_timepoint)")
-        younger_files = get_files(dataset=pre_msm_data subject=subject, timepoint=younger_timepoint)
+        younger_files = get_files(dataset=pre_msm_data, subject=subject, timepoint=younger_timepoint)
         print()
     
     if older_uses_mcribs:
