@@ -13,7 +13,7 @@
 #SBATCH -A ${account}
 
 ########## RUN MSM
-msm --levels=${levels} --conf=${config} --inmesh=${maxanat} --refmesh=${maxanat} --indata=${oc} --refdata=${yc} --inanat=${oas} --refanat=${yas} --out=${r_out} --verbose
+msm --levels=${levels} --conf=${config} --inmesh=${oss} --refmesh=${yss} --indata=${oc} --refdata=${yc} --inanat=${oas} --refanat=${yas} --out=${r_out} --verbose
 
 ########## SURFACE DISTORTION
 wb_command -surface-resample ${oas} ${oss} $maxanat "BARYCENTRIC" ${r_out}LOAS.ANATgrid.surf.gii
