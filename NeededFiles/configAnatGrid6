@@ -6,7 +6,7 @@
 --CPgrid=2,2,3,3,4,5
 --SGgrid=4,4,5,5,6,6
 --datagrid=4,4,5,5,6,6
---anatgrid=5,6,6,6,6,6
+--anatgrid=5,5,5,5,5,5
 --regoption=5
 --regexp=1
 --dopt=HOCR
