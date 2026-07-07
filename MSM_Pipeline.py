@@ -1962,6 +1962,10 @@ def rescale_surfaces(dataset: str,  subject: str, time_point: str, uses_mcribs: 
     
     left_midthickness_file = subject_files["LAS"]
     right_midthickness_file = subject_files["RAS"]
+    left_cortex = subject_files["LEFT CORTEX"]
+    right_cortex = subject_files["RIGHT CORTEX"]
+    left_curvature = subject_files["LEFT CURVATURE"]
+    right_curvature = subject_files["RIGHT CURVATURE"]
     subject_dir = subject_files["SUBJECT DIR"]
     subject_prefix = subject_files["SUBJECT PREFIX"]
     script_dir = path.dirname(path.realpath(__file__))
@@ -1972,8 +1976,10 @@ def rescale_surfaces(dataset: str,  subject: str, time_point: str, uses_mcribs: 
     print(f"    Subject prefix: {subject_prefix}")
     print(f"    Left midthickness file: {left_midthickness_file}")
     print(f"    Right midthickness file: {right_midthickness_file}")
-    # left_cortex = subject_files["LEFT CORTEX"]
-    # right_cortex = subject_files["RIGHT CORTEX"]
+    print(f"    Left cortex file: {left_cortex}")
+    print(f"    Right cortex file: {right_cortex}")
+    print(f"    Left curvature file: {left_curvature}")
+    print(f"    Right curvature file: {right_curvature}")
     
     
     left_shape_file = path.join(subject_dir, f"{subject_prefix}.L.areas.shape.gii")
@@ -1986,6 +1992,18 @@ def rescale_surfaces(dataset: str,  subject: str, time_point: str, uses_mcribs: 
     right_resampled_surface_anatgrid = path.join(subject_dir, f"{subject_prefix}.R.rescaled.ANATgrid.surf.gii")
     left_resampled_surface_cpgrid = path.join(subject_dir, f"{subject_prefix}.L.rescaled.CPgrid.surf.gii")
     right_resampled_surface_cpgrid = path.join(subject_dir, f"{subject_prefix}.R.rescaled.CPgrid.surf.gii")
+    left_resampled_curvature_anatgrid = path.join(subject_dir,f"{subject_prefix}.L.curv.ANATgrid.shape.gii")
+    right_resampled_curvature_anatgrid = path.join(subject_dir,f"{subject_prefix}.R.curv.ANATgrid.shape.gii")
+    left_resampled_curvature_cpgrid = path.join(subject_dir,f"{subject_prefix}.L.curv.CPgrid.shape.gii")
+    right_resampled_curvature_cpgrid = path.join(subject_dir,f"{subject_prefix}.R.curv.CPgrid.shape.gii")
+    left_resampled_cortex_anatgrid = path.join(subject_dir,f"{subject_prefix}.L.cortex_roi.ANATgrid.shape.gii")
+    right_resampled_cortex_anatgrid = path.join(subject_dir,f"{subject_prefix}.R.cortex_roi.ANATgrid.shape.gii")
+    left_resampled_cortex_cpgrid = path.join(subject_dir,f"{subject_prefix}.L.cortex_roi.CPgrid.shape.gii")
+    right_resampled_cortex_cpgrid = path.join(subject_dir,f"{subject_prefix}.R.cortex_roi.CPgrid.shape.gii")
+    left_medial_wall_anatgrid = path.join(subject_dir,f"{subject_prefix}.L.MW.ANATgrid.shape.gii")
+    right_medial_wall_anatgrid = path.join(subject_dir,f"{subject_prefix}.R.MW.ANATgrid.shape.gii")
+    left_medial_wall_cpgrid = path.join(subject_dir,f"{subject_prefix}.L.MW.CPgrid.shape.gii")
+    right_medial_wall_cpgrid = path.join(subject_dir,f"{subject_prefix}.R.MW.CPgrid.shape.gii")
     
     # -------------------
     # Create shape files
@@ -2055,12 +2073,16 @@ def rescale_surfaces(dataset: str,  subject: str, time_point: str, uses_mcribs: 
     # -----------------------
     # Resample to anat grid
     # -----------------------
-    print(f"{datetime.now()}[STEP] Resampling rescaled surfaces")
+    print(f"{datetime.now()}[STEP] Resampling rescaled surfaces, curvature, and cortex")
     print(f"{datetime.now()}[INFO] Input Files:")
     print(f"    LEFT RESCALED SURFACE: {left_rescaled_surface}")
     print(f"    RIGHT RESCALED SURFACE: {right_rescaled_surface}")
     print(f"    LEFT SPHERE: {left_spherical_surface}")
     print(f"    RIGHT SPHERE: {right_spherical_surface}")
+    print(f"    LEFT CURVATURE: {left_curvature}")
+    print(f"    RIGHT CURVATURE: {right_curvature}")
+    print(f"    LEFT CORTEX: {left_cortex}")
+    print(f"    RIGHT CORTEX: {right_cortex}")
     print(f"    MAX ANAT: {max_anat}")
     print(f"    MAX CP: {max_cp}")
     
@@ -2069,18 +2091,64 @@ def rescale_surfaces(dataset: str,  subject: str, time_point: str, uses_mcribs: 
     print(f"    RIGHT RESAMLPED SURFACE ANATGRID: {right_resampled_surface_anatgrid}")
     print(f"    LEFT RESAMLPED SURFACE CPGRID: {left_resampled_surface_cpgrid}")
     print(f"    RIGHT RESAMLPED SURFACE CPGRID: {right_resampled_surface_cpgrid}")
+    print(f"    LEFT RESAMLPED CURVATURE ANATGRID: {left_resampled_curvature_anatgrid}")
+    print(f"    RIGHT RESAMLPED CURVATURE ANATGRID: {right_resampled_curvature_anatgrid}")
+    print(f"    LEFT RESAMLPED CURVATURE CPGRID: {left_resampled_curvature_cpgrid}")
+    print(f"    RIGHT RESAMLPED CURVATURE CPGRID: {right_resampled_curvature_cpgrid}")
+    print(f"    LEFT RESAMLPED CORTEX ANATGRID: {left_resampled_cortex_anatgrid}")
+    print(f"    RIGHT RESAMLPED CORTEX ANATGRID: {right_resampled_cortex_anatgrid}")
+    print(f"    LEFT RESAMLPED CORTEX CPGRID: {left_resampled_cortex_cpgrid}")
+    print(f"    RIGHT RESAMLPED CORTEX CPGRID: {right_resampled_cortex_cpgrid}")
     
     print(f"{datetime.now()}[INFO] Start resample to ANATgrid")
-    run_logged(f'wb_command -surface-resample {left_rescaled_surface} {left_spherical_surface} {max_anat} "BARYCENTRIC" {left_resampled_surface_anatgrid}', step="RESAMPLE ANAT")
+    run_logged(f'wb_command -surface-resample {left_rescaled_surface} {left_spherical_surface} {max_anat} "BARYCENTRIC" {left_resampled_surface_anatgrid}', step="RESAMPLE LEFT SURFACE ANAT")
+    run_logged(f'wb_command -metric-resample {left_curvature} {left_spherical_surface} {max_anat} "BARYCENTRIC" {left_resampled_curvature_anatgrid}', step="RESAMPLE LEFT CURVATURE ANAT")
+    run_logged(f'wb_command -metric-resample {left_cortex} {left_spherical_surface} {max_anat} "BARYCENTRIC" {left_resampled_cortex_anatgrid}', step="RESAMPLE LEFT CORTEX ANAT")
     print(f"{datetime.now()}[INFO] Left hemisphere complete")
-    run_logged(f'wb_command -surface-resample {right_rescaled_surface} {right_spherical_surface} {max_anat} "BARYCENTRIC" {right_resampled_surface_anatgrid}', step="RESAMPLE ANAT")
+    
+    run_logged(f'wb_command -surface-resample {right_rescaled_surface} {right_spherical_surface} {max_anat} "BARYCENTRIC" {right_resampled_surface_anatgrid}', step="RESAMPLE RIGHT SURFACE ANAT")
+    run_logged(f'wb_command -metric-resample {right_curvature} {right_spherical_surface} {max_anat} "BARYCENTRIC" {right_resampled_curvature_anatgrid}', step="RESAMPLE RIGHT CURVATURE ANAT")
+    run_logged(f'wb_command -metric-resample {right_cortex} {right_spherical_surface} {max_anat} "BARYCENTRIC" {right_resampled_cortex_anatgrid}', step="RESAMPLE RIGHT CORTEX ANAT")
     print(f"{datetime.now()}[INFO] Right hemisphere complete")
     
     print(f"{datetime.now()}[INFO] Start resample to CPgrid")
-    run_logged(f'wb_command -surface-resample {left_rescaled_surface} {left_spherical_surface} {max_cp} "BARYCENTRIC" {left_resampled_surface_cpgrid}', step="RESAMPLE CP")
+    run_logged(f'wb_command -surface-resample {left_rescaled_surface} {left_spherical_surface} {max_cp} "BARYCENTRIC" {left_resampled_surface_cpgrid}', step="RESAMPLE LEFT SURFACE CP")
+    run_logged(f'wb_command -metric-resample {left_curvature} {left_spherical_surface} {max_cp} "BARYCENTRIC" {left_resampled_curvature_cpgrid}', step="RESAMPLE LEFT CURVATURE CP")
+    run_logged(f'wb_command -metric-resample {left_cortex} {left_spherical_surface} {max_cp} "BARYCENTRIC" {left_resampled_cortex_cpgrid}', step="RESAMPLE LEFT CORTEX CP")
     print(f"{datetime.now()}[INFO] Left hemisphere complete")
-    run_logged(f'wb_command -surface-resample {right_rescaled_surface} {right_spherical_surface} {max_cp} "BARYCENTRIC" {right_resampled_surface_cpgrid}', step="RESAMPLE CP")
-    print(f"{datetime.now()}[INFO] Right hemispher complete")
+    
+    run_logged(f'wb_command -surface-resample {right_rescaled_surface} {right_spherical_surface} {max_cp} "BARYCENTRIC" {right_resampled_surface_cpgrid}', step="RESAMPLE RIGHT SURFACE CP")
+    run_logged(f'wb_command -metric-resample {right_curvature} {right_spherical_surface} {max_cp} "BARYCENTRIC" {right_resampled_curvature_cpgrid}', step="RESAMPLE RIGHT CURVATURE CP")
+    run_logged(f'wb_command -metric-resample {right_cortex} {right_spherical_surface} {max_cp} "BARYCENTRIC" {right_resampled_cortex_cpgrid}', step="RESAMPLE RIGHT CORTEX CP")
+    print(f"{datetime.now()}[INFO] Right hemisphere complete")
+    
+    # -----------------
+    # MASK MEDIAL WALL
+    # -----------------
+    print(f"{datetime.now()}[STEP] MAsking medial wall on resampled curvatures")
+    print(f"{datetime.now()}[INFO] Creating left medial wall files")
+    run_logged(f'wb_command -metric-math "1-M" {left_medial_wall_anatgrid} -var M {(left_resampled_cortex_anatgrid)}', step="LEFT MEDIAL WALL")
+    run_logged(f'wb_command set-structure {left_medial_wall_anatgrid} "CORTEX_LEFT"', step="LEFT MEDIAL WALL")
+    run_logged(f'wb_command -metric-math "1-M" {left_medial_wall_cpgrid} -var M {(left_resampled_cortex_cpgrid)}', step="LEFT MEDIAL WALL")
+    run_logged(f'wb_command set-structure {left_medial_wall_cpgrid} "CORTEX_LEFT"', step="LEFT MEDIAL WALL")
+    print(f"{datetime.now()}[INFO] Left hemisphere complete")
+    
+    print(f"{datetime.now()}[INFO] Creating right medial wall files")
+    run_logged(f'wb_command -metric-math "1-M" {right_medial_wall_anatgrid} -var M {(right_resampled_cortex_anatgrid)}', step="RIGHT MEDIAL WALL")
+    run_logged(f'wb_command set-structure {right_medial_wall_anatgrid} "CORTEX_RIGHT"', step="RIGHT MEDIAL WALL")
+    run_logged(f'wb_command -metric-math "1-M" {right_medial_wall_cpgrid} -var M {(right_resampled_cortex_cpgrid)}', step="RIGHT MEDIAL WALL")
+    run_logged(f'wb_command set-structure {right_medial_wall_cpgrid} "CORTEX_RIGHT"', step="RIGHT MEDIAL WALL")
+    print(f"{datetime.now()}[INFO] Right hemisphere complete")
+    
+    print(f"{datetime.now()}[INFO] Masking left curvature using metric merge")
+    run_logged(f'wb_command -metric-merge {left_resampled_curvature_anatgrid} -metric {left_resampled_curvature_anatgrid} -metric {left_medial_wall_anatgrid}')
+    run_logged(f'wb_command -metric-merge {left_resampled_curvature_cpgrid} -metric {left_resampled_curvature_cpgrid} -metric {left_medial_wall_cpgrid}')
+    print(f"{datetime.now()}[INFO] Left hemisphere complete")
+    
+    print(f"{datetime.now()}[INFO] Masking right curvature using metric merge")
+    run_logged(f'wb_command -metric-merge {right_resampled_curvature_anatgrid} -metric {right_resampled_curvature_anatgrid} -metric {right_medial_wall_anatgrid}')
+    run_logged(f'wb_command -metric-merge {right_resampled_curvature_cpgrid} -metric {right_resampled_curvature_cpgrid} -metric {right_medial_wall_cpgrid}')
+    print(f"{datetime.now()}[INFO] Right hemisphere complete")
     
     print(f"{datetime.now()}[COMPLETE] Rescaling complete")
 
@@ -2138,13 +2206,13 @@ def get_files_mcribs(dataset: str, subject: str, time_point: str, is_rescaled=Fa
     right_curvature = find(patterns="rh.curv.shape.gii", search_path=subject_dir)
     print()
     
-    #print(f'{datetime.now()}[FUNCTION] find(patterns="lh.mean.thickness", search_path=subject_dir)')
-    left_cortex = None # TODO Figure out what this should be
-    #print()
+    print(f'{datetime.now()}[FUNCTION] find(patterns=f"lh.{subject}{time_point}_cortex_roi.shape.gii", search_path=subject_dir)')
+    left_cortex = find(patterns=f"lh.{subject}{time_point}_cortex_roi.shape.gii", search_path=subject_dir)
+    print()
     
-    #print(f'{datetime.now()}[FUNCTION] find(patterns="rh.mean.thickness", search_path=subject_dir)')
-    right_cortex = None # TODO Figure out what this should be
-    #print()
+    print(f'{datetime.now()}[FUNCTION] find(patterns=f"rh.{subject}{time_point}_cortex_roi.shape.gii", search_path=subject_dir)')
+    right_cortex = find(patterns=f"rh.{subject}{time_point}_cortex_roi.shape.gii", search_path=subject_dir)
+    print()
     
     # ---------------------------------------------
     # Grab rescaled and resampled files if needed
