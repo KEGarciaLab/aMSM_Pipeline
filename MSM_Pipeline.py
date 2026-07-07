@@ -1064,8 +1064,8 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
         print()
         
         print(f"{datetime.now()}[INFO] M-CRIB-S Surfaces must be rescaled. Using rescaled surfaces")
-        left_younger_anatomical_surface = younger_files["LEFT RESCALE"]
-        right_younger_anatomical_surface = younger_files["RIGHT RESCALE"]
+        left_younger_anatomical_surface = younger_files["LEFT RESCALE ANAT"]
+        right_younger_anatomical_surface = younger_files["RIGHT RESCALE ANAT"]
         left_younger_spherical_surface = younger_files["LEFT GEN SPHERE"]
         right_younger_spherical_surface = younger_files["RIGHT GEN SPHERE"]
     else:
@@ -1075,8 +1075,8 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
             print(f"{datetime.now()}[FUNCTION] get_files(dataset=dataset, subject=subject, time_point=younger_timepoint, is_rescaled=True)")
             younger_files = get_files(dataset=dataset, subject=subject, time_point=younger_timepoint, is_rescaled=True)
             print()
-            left_younger_anatomical_surface = younger_files["LEFT RESCALE"]
-            right_younger_anatomical_surface = younger_files["RIGHT RESCALE"]
+            left_younger_anatomical_surface = younger_files["LEFT RESCALE ANAT"]
+            right_younger_anatomical_surface = younger_files["RIGHT RESCALE ANAT"]
             left_younger_spherical_surface = younger_files["LEFT GEN SPHERE"]
             right_younger_spherical_surface = younger_files["RIGHT GEN SPHERE"]
             
@@ -1111,8 +1111,8 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
         print()
         
         print(f"{datetime.now()}[INFO] M-CRIB-S Surfaces must be rescaled. Using rescaled surfaces")
-        left_older_anatomical_surface = older_files["LEFT RESCALE"]
-        right_older_anatomical_surface = older_files["RIGHT RESCALE"]
+        left_older_anatomical_surface = older_files["LEFT RESCALE ANAT"]
+        right_older_anatomical_surface = older_files["RIGHT RESCALE ANAT"]
         left_older_spherical_surface = older_files["LEFT GEN SPHERE"]
         right_older_spherical_surface = older_files["RIGHT GEN SPHERE"]
     else:
@@ -1122,8 +1122,8 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
             print(f"{datetime.now()}[FUNCTION] get_files(dataset=dataset, subject=subject, time_point=older_timepoint, is_rescaled=True)")
             older_files = get_files(dataset=dataset, subject=subject, time_point=older_timepoint, is_rescaled=True)
             print()
-            left_older_anatomical_surface = older_files["LEFT RESCALE"]
-            right_older_anatomical_surface = older_files["RIGHT RESCALE"]
+            left_older_anatomical_surface = older_files["LEFT RESCALE ANAT"]
+            right_older_anatomical_surface = older_files["RIGHT RESCALE ANAT"]
             left_older_spherical_surface = older_files["LEFT GEN SPHERE"]
             right_older_spherical_surface = older_files["RIGHT GEN SPHERE"]
         else:
