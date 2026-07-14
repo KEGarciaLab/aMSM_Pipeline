@@ -1068,6 +1068,8 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
         right_younger_anatomical_surface = younger_files["RIGHT RESCALE ANAT"]
         left_younger_spherical_surface = younger_files["LEFT GEN SPHERE"]
         right_younger_spherical_surface = younger_files["RIGHT GEN SPHERE"]
+        left_older_curvature = older_files["LEFT RESCALE CURVATURE"]
+        right_older_curvature = older_files["RIGHT RESCALE CURVATURE"]
     else:
         print(f"{datetime.now()}[INFO] Younger timepoint uses Ciftify/Freesurfer naming conventiions")
         if use_rescaled:
@@ -1079,6 +1081,8 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
             right_younger_anatomical_surface = younger_files["RIGHT RESCALE ANAT"]
             left_younger_spherical_surface = younger_files["LEFT GEN SPHERE"]
             right_younger_spherical_surface = younger_files["RIGHT GEN SPHERE"]
+            left_older_curvature = older_files["LEFT RESCALE CURVATURE"]
+            right_older_curvature = older_files["RIGHT RESCALE CURVATURE"]
             
         else:
             print(f"{datetime.now()}[INFO] Rescale option set to False for Freesurfer subjects")
@@ -1089,9 +1093,10 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
             right_younger_anatomical_surface = younger_files["RAS"]
             left_younger_spherical_surface = younger_files["LSS"]
             right_younger_spherical_surface = younger_files["RSS"]
+            left_younger_curvature = younger_files["LEFT CURVATURE"]
+            right_younger_curvature = younger_files["RIGHT CURVATURE"]
     
-    left_younger_curvature = younger_files["LEFT CURVATURE"]
-    right_younger_curvature = younger_files["RIGHT CURVATURE"]
+    
     print(f"{datetime.now()}[FILES] Younger files retrieved")
     print(f"    LYAS: {left_younger_anatomical_surface}")
     print(f"    RYAS: {right_younger_anatomical_surface}")
@@ -1115,6 +1120,8 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
         right_older_anatomical_surface = older_files["RIGHT RESCALE ANAT"]
         left_older_spherical_surface = older_files["LEFT GEN SPHERE"]
         right_older_spherical_surface = older_files["RIGHT GEN SPHERE"]
+        left_older_curvature = older_files["LEFT RESCALE CURVATURE"]
+        right_older_curvature = older_files["RIGHT RESCALE CURVATURE"]
     else:
         print(f"{datetime.now()}[INFO] Older timepoint uses Ciftify/Freesurfer naming conventiions")
         if use_rescaled:
@@ -1126,6 +1133,8 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
             right_older_anatomical_surface = older_files["RIGHT RESCALE ANAT"]
             left_older_spherical_surface = older_files["LEFT GEN SPHERE"]
             right_older_spherical_surface = older_files["RIGHT GEN SPHERE"]
+            left_older_curvature = older_files["LEFT RESCALE CURVATURE"]
+            right_older_curvature = older_files["RIGHT RESCALE CURVATURE"]
         else:
             print(f"{datetime.now()}[INFO] Rescale option set to False for Freesurfer subjects")
             print(f"{datetime.now()}[FUNCTION] get_files(dataset=dataset, subject=subject, time_point=older_timepoint)")
@@ -1135,6 +1144,8 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
             right_older_anatomical_surface = older_files["RAS"]
             left_older_spherical_surface = older_files["LSS"]
             right_older_spherical_surface = older_files["RSS"]
+            left_older_curvature = older_files["LEFT CURVATURE"]
+            right_older_curvature = older_files["RIGHT CURVATURE"]
 
     left_older_curvature = older_files["LEFT CURVATURE"]
     right_older_curvature = older_files["RIGHT CURVATURE"]
@@ -2249,8 +2260,13 @@ def get_files_mcribs(dataset: str, subject: str, time_point: str, is_rescaled=Fa
         print(f'{datetime.now()}[FUNCTION] find(patterns="*.R.rescaled.CPgrid.surf.gii", search_path=subject_dir)')
         right_resampled_cpgrid=find(patterns="*.R.rescaled.CPgrid.surf.gii", search_path=subject_dir)
         print()
-    else:
-        left_rescaled_surface = right_rescaled_surface = left_generated_sphere = right_generated_sphere = left_resampled_anatgrid = right_resampled_anatgrid = left_resampled_cpgrid = right_resampled_cpgrid = None
+        
+        left_resampled_curvature_anatgrid = find(patterns=f"*.L.curv.ANATgrid.shape.gii", search_path=subject_dir)
+        print()
+        
+        right_resampled_curvature_anatgrid = find(patterns=f"*.R.curv.ANATgrid.shape.gii", search_path=subject_dir)
+        print()
+    
     
     #-----------------
     # Return Files
@@ -2274,6 +2290,8 @@ def get_files_mcribs(dataset: str, subject: str, time_point: str, is_rescaled=Fa
         "RIGHT RESCALE CP": right_resampled_cpgrid,
         "LEFT GEN SPHERE": left_generated_sphere,
         "RIGHT GEN SPHERE": right_generated_sphere,
+        "LEFT RESCALE CURVATURE": left_resampled_curvature_anatgrid,
+        "RIGHT RESCALE CURVATURE": right_resampled_curvature_anatgrid
     }
     
     print(f"{datetime.now()}[INFO] Returniing these files:")
