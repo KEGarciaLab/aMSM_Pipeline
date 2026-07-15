@@ -2269,7 +2269,7 @@ def get_files_mcribs(dataset: str, subject: str, time_point: str, is_rescaled=Fa
         right_resampled_curvature_anatgrid = find(patterns=f"*.R.curv.ANATgrid.shape.gii", search_path=subject_dir)
         print()
     else:
-        left_rescaled_surface = right_rescaled_surface = left_generated_sphere = right_generated_sphere = left_resampled_anatgrid = right_resampled_anatgrid = left_resampled_cpgrid = right_resampled_cpgrid = None
+        left_rescaled_surface = right_rescaled_surface = left_generated_sphere = right_generated_sphere = left_resampled_anatgrid = right_resampled_anatgrid = left_resampled_cpgrid = right_resampled_cpgrid = left_resampled_curvature_anatgrid = right_resampled_curvature_anatgrid = None
     
     
     #-----------------
