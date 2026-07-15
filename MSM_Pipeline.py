@@ -1146,9 +1146,7 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
             right_older_spherical_surface = older_files["RSS"]
             left_older_curvature = older_files["LEFT CURVATURE"]
             right_older_curvature = older_files["RIGHT CURVATURE"]
-
-    left_older_curvature = older_files["LEFT CURVATURE"]
-    right_older_curvature = older_files["RIGHT CURVATURE"]
+            
     print(f"{datetime.now()}[FILES] Older files retrieved")
     print(f"    LOAS: {left_older_anatomical_surface}")
     print(f"    ROAS: {right_older_anatomical_surface}")
