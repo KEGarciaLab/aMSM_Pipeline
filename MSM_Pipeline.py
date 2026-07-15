@@ -2114,22 +2114,26 @@ def rescale_surfaces(dataset: str,  subject: str, time_point: str, uses_mcribs: 
     print(f"{datetime.now()}[INFO] Start resample to ANATgrid")
     run_logged(f'wb_command -surface-resample {left_rescaled_surface} {left_spherical_surface} {max_anat} "BARYCENTRIC" {left_resampled_surface_anatgrid}', step="RESAMPLE LEFT SURFACE ANAT")
     run_logged(f'wb_command -metric-resample {left_curvature} {left_spherical_surface} {max_anat} "BARYCENTRIC" {left_resampled_curvature_anatgrid}', step="RESAMPLE LEFT CURVATURE ANAT")
+    run_logged(f'wb_command -set-structure {left_resampled_curvature_anatgrid} "CORTEX_LEFT"', step="RESAMPLE LEFT CURVATURE ANAT")
     run_logged(f'wb_command -metric-resample {left_cortex} {left_spherical_surface} {max_anat} "BARYCENTRIC" {left_resampled_cortex_anatgrid}', step="RESAMPLE LEFT CORTEX ANAT")
     print(f"{datetime.now()}[INFO] Left hemisphere complete")
     
     run_logged(f'wb_command -surface-resample {right_rescaled_surface} {right_spherical_surface} {max_anat} "BARYCENTRIC" {right_resampled_surface_anatgrid}', step="RESAMPLE RIGHT SURFACE ANAT")
     run_logged(f'wb_command -metric-resample {right_curvature} {right_spherical_surface} {max_anat} "BARYCENTRIC" {right_resampled_curvature_anatgrid}', step="RESAMPLE RIGHT CURVATURE ANAT")
+    run_logged(f'wb_command -set-structure {right_resampled_curvature_anatgrid} "CORTEX_RIGHT"', step="RESAMPLE RIGHT CURVATURE ANAT")
     run_logged(f'wb_command -metric-resample {right_cortex} {right_spherical_surface} {max_anat} "BARYCENTRIC" {right_resampled_cortex_anatgrid}', step="RESAMPLE RIGHT CORTEX ANAT")
     print(f"{datetime.now()}[INFO] Right hemisphere complete")
     
     print(f"{datetime.now()}[INFO] Start resample to CPgrid")
     run_logged(f'wb_command -surface-resample {left_rescaled_surface} {left_spherical_surface} {max_cp} "BARYCENTRIC" {left_resampled_surface_cpgrid}', step="RESAMPLE LEFT SURFACE CP")
     run_logged(f'wb_command -metric-resample {left_curvature} {left_spherical_surface} {max_cp} "BARYCENTRIC" {left_resampled_curvature_cpgrid}', step="RESAMPLE LEFT CURVATURE CP")
+    run_logged(f'wb_command -set-structure {left_resampled_curvature_cpgrid} "CORTEX_LEFT"', step="RESAMPLE LEFT CURVATURE CP")
     run_logged(f'wb_command -metric-resample {left_cortex} {left_spherical_surface} {max_cp} "BARYCENTRIC" {left_resampled_cortex_cpgrid}', step="RESAMPLE LEFT CORTEX CP")
     print(f"{datetime.now()}[INFO] Left hemisphere complete")
     
     run_logged(f'wb_command -surface-resample {right_rescaled_surface} {right_spherical_surface} {max_cp} "BARYCENTRIC" {right_resampled_surface_cpgrid}', step="RESAMPLE RIGHT SURFACE CP")
     run_logged(f'wb_command -metric-resample {right_curvature} {right_spherical_surface} {max_cp} "BARYCENTRIC" {right_resampled_curvature_cpgrid}', step="RESAMPLE RIGHT CURVATURE CP")
+    run_logged(f'wb_command -set-structure {right_resampled_curvature_cpgrid} "CORTEX_RIGHT"', step="RESAMPLE RIGHT CURVATURE CP")
     run_logged(f'wb_command -metric-resample {right_cortex} {right_spherical_surface} {max_cp} "BARYCENTRIC" {right_resampled_cortex_cpgrid}', step="RESAMPLE RIGHT CORTEX CP")
     print(f"{datetime.now()}[INFO] Right hemisphere complete")
     
