@@ -1068,8 +1068,8 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
         right_younger_anatomical_surface = younger_files["RIGHT RESCALE ANAT"]
         left_younger_spherical_surface = younger_files["LEFT GEN SPHERE"]
         right_younger_spherical_surface = younger_files["RIGHT GEN SPHERE"]
-        left_older_curvature = older_files["LEFT RESCALE CURVATURE"]
-        right_older_curvature = older_files["RIGHT RESCALE CURVATURE"]
+        left_younger_curvature = younger_files["LEFT RESCALE CURVATURE"]
+        right_younger_curvature = younger_files["RIGHT RESCALE CURVATURE"]
     else:
         print(f"{datetime.now()}[INFO] Younger timepoint uses Ciftify/Freesurfer naming conventiions")
         if use_rescaled:
@@ -1081,8 +1081,8 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
             right_younger_anatomical_surface = younger_files["RIGHT RESCALE ANAT"]
             left_younger_spherical_surface = younger_files["LEFT GEN SPHERE"]
             right_younger_spherical_surface = younger_files["RIGHT GEN SPHERE"]
-            left_older_curvature = older_files["LEFT RESCALE CURVATURE"]
-            right_older_curvature = older_files["RIGHT RESCALE CURVATURE"]
+            left_younger_curvature = younger_files["LEFT RESCALE CURVATURE"]
+            right_younger_curvature = younger_files["RIGHT RESCALE CURVATURE"]
             
         else:
             print(f"{datetime.now()}[INFO] Rescale option set to False for Freesurfer subjects")
