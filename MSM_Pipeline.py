@@ -1971,6 +1971,8 @@ def rescale_surfaces(dataset: str,  subject: str, time_point: str, uses_mcribs: 
     
     left_midthickness_file = subject_files["LAS"]
     right_midthickness_file = subject_files["RAS"]
+    left_spherical_surface = subject_files["LSS"]
+    right_spherical_surface = subject_files["RSS"]
     left_cortex = subject_files["LEFT CORTEX"]
     right_cortex = subject_files["RIGHT CORTEX"]
     left_curvature = subject_files["LEFT CURVATURE"]
@@ -1985,6 +1987,8 @@ def rescale_surfaces(dataset: str,  subject: str, time_point: str, uses_mcribs: 
     print(f"    Subject prefix: {subject_prefix}")
     print(f"    Left midthickness file: {left_midthickness_file}")
     print(f"    Right midthickness file: {right_midthickness_file}")
+    print(f"    Left spherical surface: {left_spherical_surface}")
+    print(f"    Right spherical surface: {right_spherical_surface}")
     print(f"    Left cortex file: {left_cortex}")
     print(f"    Right cortex file: {right_cortex}")
     print(f"    Left curvature file: {left_curvature}")
@@ -2009,6 +2013,10 @@ def rescale_surfaces(dataset: str,  subject: str, time_point: str, uses_mcribs: 
     right_resampled_cortex_anatgrid = path.join(subject_dir,f"{subject_prefix}.R.cortex_roi.ANATgrid.shape.gii")
     left_resampled_cortex_cpgrid = path.join(subject_dir,f"{subject_prefix}.L.cortex_roi.CPgrid.shape.gii")
     right_resampled_cortex_cpgrid = path.join(subject_dir,f"{subject_prefix}.R.cortex_roi.CPgrid.shape.gii")
+    left_resampled_native_surface_anatgrid = path.join(subject_dir,f"{subject_prefix}.L.midthickness.ANATgrid.surf.gii")
+    left_resampled_native_surface_cpgrid = path.join(subject_dir,f"{subject_prefix}.L.midthickness.CPgrid.surf.gii")
+    right_resampled_native_surface_anatgrid = path.join(subject_dir,f"{subject_prefix}.R.midthickness.ANATgrid.surf.gii")
+    right_resampled_native_surface_cpgrid = path.join(subject_dir,f"{subject_prefix}.R.midthickness.CPgrid.surf.gii")
     left_medial_wall_anatgrid = path.join(subject_dir,f"{subject_prefix}.L.MW.ANATgrid.shape.gii")
     right_medial_wall_anatgrid = path.join(subject_dir,f"{subject_prefix}.R.MW.ANATgrid.shape.gii")
     left_medial_wall_cpgrid = path.join(subject_dir,f"{subject_prefix}.L.MW.CPgrid.shape.gii")
@@ -2138,7 +2146,7 @@ def rescale_surfaces(dataset: str,  subject: str, time_point: str, uses_mcribs: 
     # -----------------
     # MASK MEDIAL WALL
     # -----------------
-    print(f"{datetime.now()}[STEP] MAsking medial wall on resampled curvatures")
+    print(f"{datetime.now()}[STEP] Masking medial wall on resampled curvatures")
     print(f"{datetime.now()}[INFO] Creating left medial wall files")
     run_logged(f'wb_command -metric-math "1-M" {left_medial_wall_anatgrid} -var M {(left_resampled_cortex_anatgrid)}', step="LEFT MEDIAL WALL")
     run_logged(f'wb_command -set-structure {left_medial_wall_anatgrid} "CORTEX_LEFT"', step="LEFT MEDIAL WALL")
@@ -2162,6 +2170,21 @@ def rescale_surfaces(dataset: str,  subject: str, time_point: str, uses_mcribs: 
     run_logged(f'wb_command -metric-merge {right_resampled_curvature_anatgrid} -metric {right_resampled_curvature_anatgrid} -metric {right_medial_wall_anatgrid}')
     run_logged(f'wb_command -metric-merge {right_resampled_curvature_cpgrid} -metric {right_resampled_curvature_cpgrid} -metric {right_medial_wall_cpgrid}')
     print(f"{datetime.now()}[INFO] Right hemisphere complete")
+    
+    # --------------------------
+    # Rescale Native Surfaces
+    # --------------------------
+    print(f"{datetime.now()}[STEP] Rescampling native surface")
+    print(f"{datetime.now()}[INFO] Resampling to ANATgrid resolution")
+    run_logged(f'wb_command -surface-resample {left_midthickness_file} {left_spherical_surface} {max_anat} "BARYCENTRIC" {left_resampled_native_surface_anatgrid}',step="RESAMPLE NATIVE ANAT")
+    run_logged(f'wb_command -surface-resample {right_midthickness_file} {right_spherical_surface} {max_anat} "BARYCENTRIC" {right_resampled_native_surface_anatgrid}',step="RESAMPLE NATIVE ANAT")
+    print(f"{datetime.now()}[INFO] Resampling to ANATgrid resolution complete")
+    
+    print(f"{datetime.now()}[INFO] Resampling to CPgrid resolution")
+    run_logged(f'wb_command -surface-resample {left_midthickness_file} {left_spherical_surface} {max_cp} "BARYCENTRIC" {left_resampled_native_surface_cpgrid}',step="RESAMPLE NATIVE CP")
+    run_logged(f'wb_command -surface-resample {right_midthickness_file} {right_spherical_surface} {max_cp} "BARYCENTRIC" {right_resampled_native_surface_cpgrid}',step="RESAMPLE NATIVE CP")
+    print(f"{datetime.now()}[INFO] Resampling to CPgrid resolution complete")
+    
     
     print(f"{datetime.now()}[COMPLETE] Rescaling complete")
 
