@@ -2286,15 +2286,35 @@ def get_files_mcribs(dataset: str, subject: str, time_point: str, is_rescaled=Fa
         right_resampled_cpgrid=find(patterns="*.R.rescaled.CPgrid.surf.gii", search_path=subject_dir)
         print()
         
-        print(f'{datetime.now()}[FUNCTION] find(patterns=f"*.L.curv.ANATgrid.shape.gii", search_path=subject_dir)')
-        left_resampled_curvature_anatgrid = find(patterns=f"*.L.curv.ANATgrid.shape.gii", search_path=subject_dir)
+        print(f'{datetime.now()}[FUNCTION] find(patterns="*.L.curv.ANATgrid.shape.gii", search_path=subject_dir)')
+        left_resampled_curvature_anatgrid = find(patterns="*.L.curv.ANATgrid.shape.gii", search_path=subject_dir)
         print()
         
-        print(f'{datetime.now()}[FUNCTION] find(patterns=f"*.R.curv.ANATgrid.shape.gii", search_path=subject_dir)')
-        right_resampled_curvature_anatgrid = find(patterns=f"*.R.curv.ANATgrid.shape.gii", search_path=subject_dir)
+        print(f'{datetime.now()}[FUNCTION] find(patterns="*.R.curv.ANATgrid.shape.gii", search_path=subject_dir)')
+        right_resampled_curvature_anatgrid = find(patterns="*.R.curv.ANATgrid.shape.gii", search_path=subject_dir)
         print()
+        
+        print(f'{datetime.now()}[FUNCTION] find(patterns="*.L.midthickness.ANATgrid.surf.gii", search_path=subject_dir)')
+        left_resampled_native_anatgrid = find(patterns="*.L.midthickness.ANATgrid.surf.gii", search_path=subject_dir)
+        print()
+        
+        print(f'{datetime.now()}[FUNCTION] find(patterns="*.L.midthickness.CPgrid.surf.gii", search_path=subject_dir)')
+        left_resampled_native_cpgrid = find(patterns="*.L.midthickness.CPgrid.surf.gii", search_path=subject_dir)
+        print()
+        
+        print(f'{datetime.now()}[FUNCTION] find(patterns="*.R.midthickness.ANATgrid.surf.gii", search_path=subject_dir)')
+        right_resampled_native_anatgrid = find(patterns="*.R.midthickness.ANATgrid.surf.gii", search_path=subject_dir)
+        print()
+        
+        print(f'{datetime.now()}[FUNCTION] find(patterns="*.R.midthickness.CPgrid.surf.gii", search_path=subject_dir)')
+        right_resampled_native_cpgrid = find(patterns="*.R.midthickness.CPgrid.surf.gii", search_path=subject_dir)
+        print()
+        
+        
+        
+        
     else:
-        left_rescaled_surface = right_rescaled_surface = left_generated_sphere = right_generated_sphere = left_resampled_anatgrid = right_resampled_anatgrid = left_resampled_cpgrid = right_resampled_cpgrid = left_resampled_curvature_anatgrid = right_resampled_curvature_anatgrid = None
+        left_rescaled_surface = right_rescaled_surface = left_generated_sphere = right_generated_sphere = left_resampled_anatgrid = right_resampled_anatgrid = left_resampled_cpgrid = right_resampled_cpgrid = left_resampled_curvature_anatgrid = right_resampled_curvature_anatgrid = left_resampled_native_anatgrid = left_resampled_native_cpgrid = right_resampled_native_anatgrid = right_resampled_native_cpgrid =  None
     
     
     #-----------------
@@ -2320,7 +2340,9 @@ def get_files_mcribs(dataset: str, subject: str, time_point: str, is_rescaled=Fa
         "LEFT GEN SPHERE": left_generated_sphere,
         "RIGHT GEN SPHERE": right_generated_sphere,
         "LEFT RESCALE CURVATURE": left_resampled_curvature_anatgrid,
-        "RIGHT RESCALE CURVATURE": right_resampled_curvature_anatgrid
+        "RIGHT RESCALE CURVATURE": right_resampled_curvature_anatgrid,
+        "LEFT NATIVE RESAMPLE": left_resampled_native_anatgrid,
+        "RIGHT NATIVE RESAMPLE": right_resampled_native_anatgrid,
     }
     
     print(f"{datetime.now()}[INFO] Returniing these files:")
