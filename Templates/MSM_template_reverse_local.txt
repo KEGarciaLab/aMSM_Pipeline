@@ -6,7 +6,7 @@ msm --levels=${levels} --conf=${config} --inmesh=${maxanat} --refmesh=${maxanat}
 ########## RESAMPLE INPUT SURFACES
 wb_command -surface-resample ${ons} ${maxanat} ${maxanat} "BARYCENTRIC" ${f_out}${hemisphere}OAS.ANATgrid.surf.gii
 wb_command -set-structure ${f_out}${hemisphere}OAS.ANATgrid.surf.gii ${structure}
-wb_command -surface-resample ${Ons} ${maxanat} ${maxcp} "BARYCENTRIC" ${f_out}${hemisphere}OAS.CPgrid.surf.gii
+wb_command -surface-resample ${ons} ${maxanat} ${maxcp} "BARYCENTRIC" ${f_out}${hemisphere}OAS.CPgrid.surf.gii
 wb_command -set-structure ${f_out}${hemisphere}OAS.CPgrid.surf.gii ${structure}
 
 ########### CREATE TRUE REG SURFDIST
