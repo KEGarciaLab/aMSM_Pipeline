@@ -1,0 +1,37 @@
+#!/bin/bash
+
+#SBATCH -J MSM.${subject}.L.${starting_time}-${ending_time}
+#SBATCH -p general
+#SBATCH -o ${user_home}/Scripts/MyScripts/logs/Slurm/%j_MSM_${subject}_${starting_time}-${ending_time}.txt
+#SBATCH -e ${user_home}/Scripts/MyScripts/logs/Slurm/%j_MSM_${subject}_${starting_time}-${ending_time}_error.txt
+#SBATCH --mail-type=fail
+#SBATCH --mail-user=${email}
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --time=49:00:00
+#SBATCH --mem=16G
+#SBATCH -A ${account}
+
+########## RUN MSM
+msm --levels=${levels} --conf=${config} --inmesh=${maxanat} --refmesh=${maxanat} --indata=${yc} --refdata=${oc} --inanat=${yas} --refanat=${oas} --out=${f_out} --verbose
+
+########## RESAMPLE INPUT SURFACES
+wb_command -surface-resample ${yns} ${maxanat} ${maxanat} "BARYCENTRIC" ${f_out}${hemisphere}YAS.ANATgrid.surf.gii
+wb_command -set-structure ${f_out}${hemisphere}YAS.ANATgrid.surf.gii ${structure}
+wb_command -surface-resample ${yns} ${maxant} ${maxcp} "BARYCENTRIC" ${f_out}${hemisphere}YAS.CPgrid.surf.gii
+wb_command -set-structure ${f_out}${hemisphere}YAS.CPgrid.surf.gii ${structure}
+
+########### CREATE TRUE REG SURFDIST
+wb_command -surface-resample ${ons} ${maxanat} ${f_out}sphere.reg.surf.gii "BARYCENTRIC" ${f_out}anat.true.reg.surf.gii
+wb_command -surface-distortion ${yns} ${f_out}anat.true.reg.surf.gii ${f_out}surfdist.func.gii
+
+########### MAXCP SURFDIST
+wb_command -surface-sphere-project-unproject ${maxcp} ${maxanat} ${f_out}sphere.reg.surf.gii ${f_out}sphere.CPgrid.reg.surf.gii
+wb_command -surface-resample ${ons} ${maxanat} ${f_out}sphere.CPgrid.reg.surf.gii "BARYCENTRIC" ${f_out}anat.CPgrid.reg.surf.gii
+wb_command -surface-distortion ${f_out}${hemisphere}YAS.CPgrid.surf.gii ${f_out}anat.CPgrid.reg.surf.gii ${f_out}surfdist.CPgrid.func.gii
+
+########### MAXANAT SURFDIST
+wb_command -surface-sphere-project-unproject ${maxanat} ${maxanat} ${f_out}sphere.reg.surf.gii ${f_out}sphere.ANATgrid.reg.surf.gii
+wb_command -surface-resample ${ons} ${maxanat} ${f_out}sphere.ANATgrid.reg.surf.gii "BARYCENTRIC" ${f_out}anat.ANATgrid.reg.surf.gii
+wb_command -surface-distortion ${f_out}${hemisphere}YAS.ANATgrid.surf.gii ${f_out}anat.ANATgrid.reg.surf.gii ${f_out}surfdist.ANATgrid.func.gii
+

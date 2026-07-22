@@ -1070,6 +1070,8 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
         right_younger_spherical_surface = younger_files["RIGHT GEN SPHERE"]
         left_younger_curvature = younger_files["LEFT RESCALE CURVATURE"]
         right_younger_curvature = younger_files["RIGHT RESCALE CURVATURE"]
+        left_younger_resampled_native = younger_files["LEFT NATIVE RESAMPLE"]
+        right_younger_resampled_native = younger_files["RIGHT NATIVE RESAMPLE"]
     else:
         print(f"{datetime.now()}[INFO] Younger timepoint uses Ciftify/Freesurfer naming conventiions")
         if use_rescaled:
@@ -1083,6 +1085,8 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
             right_younger_spherical_surface = younger_files["RIGHT GEN SPHERE"]
             left_younger_curvature = younger_files["LEFT RESCALE CURVATURE"]
             right_younger_curvature = younger_files["RIGHT RESCALE CURVATURE"]
+            left_younger_resampled_native = younger_files["LEFT NATIVE RESAMPLE"]
+            right_younger_resampled_native = younger_files["RIGHT NATIVE RESAMPLE"]
             
         else:
             print(f"{datetime.now()}[INFO] Rescale option set to False for Freesurfer subjects")
@@ -1122,6 +1126,8 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
         right_older_spherical_surface = older_files["RIGHT GEN SPHERE"]
         left_older_curvature = older_files["LEFT RESCALE CURVATURE"]
         right_older_curvature = older_files["RIGHT RESCALE CURVATURE"]
+        left_older_resampled_native = older_files["LEFT NATIVE RESAMPLE"]
+        right_older_resampled_native = older_files["RIGHT NATIVE RESAMPLE"]
     else:
         print(f"{datetime.now()}[INFO] Older timepoint uses Ciftify/Freesurfer naming conventiions")
         if use_rescaled:
@@ -1135,6 +1141,9 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
             right_older_spherical_surface = older_files["RIGHT GEN SPHERE"]
             left_older_curvature = older_files["LEFT RESCALE CURVATURE"]
             right_older_curvature = older_files["RIGHT RESCALE CURVATURE"]
+            left_older_resampled_native = older_files["LEFT NATIVE RESAMPLE"]
+            right_older_resampled_native = older_files["RIGHT NATIVE RESAMPLE"]
+            
         else:
             print(f"{datetime.now()}[INFO] Rescale option set to False for Freesurfer subjects")
             print(f"{datetime.now()}[FUNCTION] get_files(dataset=dataset, subject=subject, time_point=older_timepoint)")
@@ -1181,20 +1190,21 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
         
         if is_local:
             print(f"{datetime.now()}[INFO] Local flag used. Using local run templates")
-            template_path_l = path.join(template_dir, "MSM_template_forward_L_local.txt")
-            template_path_r = path.join(template_dir, "MSM_template_forward_R_local.txt")
+            template_path = path.join(template_dir, "MSM_template_forward_local.txt")
             template_dict_l = {
                 "levels": levels,
                 "config": config,
-                "yss": left_younger_spherical_surface,
-                "oss": left_older_spherical_surface,
                 "yc": left_younger_curvature,
                 "oc": left_older_curvature,
                 "yas": left_younger_anatomical_surface,
                 "oas": left_older_anatomical_surface,
                 "f_out": left_file_prefix,
                 "maxanat": max_anat,
-                "maxcp": max_cp
+                "maxcp": max_cp,
+                "hemisphere": "L",
+                "structure": "CORTEX_LEFT",
+                "yns": left_younger_resampled_native,
+                "ons": left_older_resampled_native,
             }
             template_dict_r = {
                 "levels": levels,
@@ -1207,14 +1217,17 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
                 "oas": right_older_anatomical_surface,
                 "f_out": right_file_prefix,
                 "maxanat": max_anat,
-                "maxcp": max_cp
+                "maxcp": max_cp,
+                "hemisphere": "R",
+                "structure": "CORTEX_RIGHT",
+                "yns": right_younger_resampled_native,
+                "ons": right_older_resampled_native,
             }
             
             
         else:
             print(f"{datetime.now()}[INFO] Local flag not used, using remote templates")
-            template_path_l = path.join(template_dir, "MSM_template_forward_L.txt")
-            template_path_r = path.join(template_dir, "MSM_template_forward_R.txt")
+            template_path = path.join(template_dir, "MSM_template_forward.txt")
             template_dict_l = {
                 "subject": subject,
                 "starting_time": younger_timepoint,
@@ -1224,15 +1237,17 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
                 "account": slurm_account,
                 "levels": levels,
                 "config": config,
-                "yss": left_younger_spherical_surface,
-                "oss": left_older_spherical_surface,
                 "yc": left_younger_curvature,
                 "oc": left_older_curvature,
                 "yas": left_younger_anatomical_surface,
                 "oas": left_older_anatomical_surface,
                 "f_out": left_file_prefix,
                 "maxanat": max_anat,
-                "maxcp": max_cp
+                "maxcp": max_cp,
+                "hemisphere": "L",
+                "structure": "CORTEX_LEFT",
+                "yns": left_younger_resampled_native,
+                "ons": left_older_resampled_native,
             }
             template_dict_r = {
                 "subject": subject,
@@ -1251,7 +1266,11 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
                 "oas": right_older_anatomical_surface,
                 "f_out": right_file_prefix,
                 "maxanat": max_anat,
-                "maxcp": max_cp
+                "maxcp": max_cp,
+                "hemisphere": "R",
+                "structure": "CORTEX_RIGHT",
+                "yns": right_younger_resampled_native,
+                "ons": right_older_resampled_native,
             }
     
     elif mode == "reverse":
@@ -1273,13 +1292,10 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
         
         if is_local:
             print(f"{datetime.now()}[INFO] Local flag used. Using local run templates")
-            template_path_l = path.join(template_dir, "MSM_template_reverse_L_local.txt")
-            template_path_r = path.join(template_dir, "MSM_template_reverse_R_local.txt")
+            template_path = path.join(template_dir, "MSM_template_reverse_local.txt")
             template_dict_l = {
                 "levels": levels,
                 "config": config,
-                "yss": left_younger_spherical_surface,
-                "oss": left_older_spherical_surface,
                 "yc": left_younger_curvature,
                 "oc": left_older_curvature,
                 "yas": left_younger_anatomical_surface,
@@ -1287,12 +1303,14 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
                 "r_out": left_file_prefix,
                 "maxanat": max_anat,
                 "maxcp": max_cp,
+                "hemisphere": "L",
+                "structure": "CORTEX_LEFT",
+                "yns": left_younger_resampled_native,
+                "ons": left_older_resampled_native,
             }
             template_dict_r = {
                 "levels": levels,
                 "config": config,
-                "yss": right_younger_spherical_surface,
-                "oss": right_older_spherical_surface,
                 "yc": right_younger_curvature,
                 "oc": right_older_curvature,
                 "yas": right_younger_anatomical_surface,
@@ -1300,11 +1318,14 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
                 "r_out": right_file_prefix,
                 "maxanat": max_anat,
                 "maxcp": max_cp,
+                "hemisphere": "R",
+                "structure": "CORTEX_RIGHT",
+                "yns": right_younger_resampled_native,
+                "ons": right_older_resampled_native,
             }
         else:
             print(f"{datetime.now()}[INFO] Local flag not used, using remote templates")
-            template_path_l = path.join(template_dir, "MSM_template_reverse_L.txt")
-            template_path_r = path.join(template_dir, "MSM_template_reverse_R.txt")
+            template_path = path.join(template_dir, "MSM_template_reverse.txt")
             template_dict_l = {
                 "subject": subject,
                 "starting_time": older_timepoint,
@@ -1314,8 +1335,6 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
                 "account": slurm_account,
                 "levels": levels,
                 "config": config,
-                "yss": left_younger_spherical_surface,
-                "oss": left_older_spherical_surface,
                 "yc": left_younger_curvature,
                 "oc": left_older_curvature,
                 "yas": left_younger_anatomical_surface,
@@ -1323,6 +1342,10 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
                 "r_out": left_file_prefix,
                 "maxanat": max_anat,
                 "maxcp": max_cp,
+                "hemisphere": "L",
+                "structure": "CORTEX_LEFT",
+                "yns": left_younger_resampled_native,
+                "ons": left_older_resampled_native,
             }
             template_dict_r = {
                 "subject": subject,
@@ -1333,8 +1356,6 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
                 "account": slurm_account,
                 "levels": levels,
                 "config": config,
-                "yss": right_younger_spherical_surface,
-                "oss": right_older_spherical_surface,
                 "yc": right_younger_curvature,
                 "oc": right_older_curvature,
                 "yas": right_younger_anatomical_surface,
@@ -1342,14 +1363,17 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
                 "r_out": right_file_prefix,
                 "maxanat": max_anat,
                 "maxcp": max_cp,
+                "hemisphere": "R",
+                "structure": "CORTEX_RIGHT",
+                "yns": right_younger_resampled_native,
+                "ons": right_older_resampled_native,
             }
             
         
     print(f"{datetime.now()}[INFO] left file prefix is: {left_file_prefix}")
     print(f"{datetime.now()}[INFO] right file prefix is: {right_file_prefix}")
     print(f"{datetime.now()}[INFO] Scripts will be generated at {script_output_l} and {script_output_r}")
-    print(f"{datetime.now()}[INFO] Left template: {template_path_l}")
-    print(f"{datetime.now()}[INFO] Right template: {template_path_r}")
+    print(f"{datetime.now()}[INFO] Ttemplate: {template_path}")
     
     # ------------------
     # Remote Templates
@@ -1360,12 +1384,12 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
         # ------------------------
         print(f"{datetime.now()}[STEP] Generateing left hemisphere script")
         print(f"{datetime.now()}[INFO] Using the following info for template")
-        print(f"    Template: {template_path_l}")
+        print(f"    Template: {template_path}")
         for k,v in template_dict_l.items():
             print(f"    {k}: {v}")
         
-        print(f"{datetime.now()}[FUNCTION] generate_from_template(template_path=template_path_l, output_path=script_output_l, template_dict=template_dict_l)")
-        generate_from_template(template_path=template_path_l, output_path=script_output_l, template_dict=template_dict_l)
+        print(f"{datetime.now()}[FUNCTION] generate_from_template(template_path=template_path, output_path=script_output_l, template_dict=template_dict_l)")
+        generate_from_template(template_path=template_path, output_path=script_output_l, template_dict=template_dict_l)
         print()
         
         # -------------------------
@@ -1373,12 +1397,12 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
         # -------------------------
         print(f"{datetime.now()}[STEP] Generateing right hemisphere script")
         print(f"{datetime.now()}[INFO] Using the following info for template")
-        print(f"    Template: {template_path_r}")
+        print(f"    Template: {template_path}")
         for k,v in template_dict_r.items():
             print(f"    {k}: {v}")
         
-        print(f"{datetime.now()}[FUNCTION] generate_from_template(template_path=template_path_r, output_path=script_output_r, template_dict=template_dict_r)")
-        generate_from_template(template_path=template_path_r, output_path=script_output_r, template_dict=template_dict_r)
+        print(f"{datetime.now()}[FUNCTION] generate_from_template(template_path=template_path, output_path=script_output_r, template_dict=template_dict_r)")
+        generate_from_template(template_path=template_path, output_path=script_output_r, template_dict=template_dict_r)
         print()
                             
     # -----------------
@@ -1393,12 +1417,12 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
             # -----------------------
             
             print(f"{datetime.now()}[INFO] Using the following info for template")
-            print(f"    Template: {template_path_l}")
+            print(f"    Template: {template_path}")
             for k,v in template_dict_l.items():
                 print(f"    {k}: {v}")
             
-            print(f"{datetime.now()}[FUNCTION] generate_from_template(template_path=template_path_l, output_path=script_output_l, template_dict=template_dict_l)")
-            generate_from_template(template_path=template_path_l, output_path=script_output_l, template_dict=template_dict_l)
+            print(f"{datetime.now()}[FUNCTION] generate_from_template(template_path=template_path, output_path=script_output_l, template_dict=template_dict_l)")
+            generate_from_template(template_path=template_path, output_path=script_output_l, template_dict=template_dict_l)
             print()
             
                 
@@ -1407,12 +1431,12 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
             # Right Hemisphere Local
             # -----------------------            
             print(f"{datetime.now()}[INFO] Using the following info for template")
-            print(f"    Template: {template_path_r}")
+            print(f"    Template: {template_path}")
             for k,v in template_dict_r.items():
                 print(f"    {k}: {v}")
             
-            print(f"{datetime.now()}[FUNCTION] generate_from_template(template_path=template_path_r, output_path=script_output_r, template_dict=template_dict_r)")
-            generate_from_template(template_path=template_path_r, output_path=script_output_r, template_dict=template_dict_r)
+            print(f"{datetime.now()}[FUNCTION] generate_from_template(template_path=template_path, output_path=script_output_r, template_dict=template_dict_r)")
+            generate_from_template(template_path=template_path, output_path=script_output_r, template_dict=template_dict_r)
             print()
 
     # ------------------------
