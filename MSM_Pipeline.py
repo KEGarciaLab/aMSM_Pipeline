@@ -2266,12 +2266,12 @@ def get_files_mcribs(dataset: str, subject: str, time_point: str, is_rescaled=Fa
     right_curvature = find(patterns="rh.curv.shape.gii", search_path=subject_dir)
     print()
     
-    print(f'{datetime.now()}[FUNCTION] find(patterns=f"lh.{subject}{time_point}_cortex_roi.shape.gii", search_path=subject_dir)')
-    left_cortex = find(patterns=f"lh.{subject}{time_point}_cortex_roi.shape.gii", search_path=subject_dir)
+    print(f'{datetime.now()}[FUNCTION] find(patterns=f"lh.*_cortex_roi.shape.gii", search_path=subject_dir)')
+    left_cortex = find(patterns=f"lh.*_cortex_roi.shape.gii", search_path=subject_dir)
     print()
     
-    print(f'{datetime.now()}[FUNCTION] find(patterns=f"rh.{subject}{time_point}_cortex_roi.shape.gii", search_path=subject_dir)')
-    right_cortex = find(patterns=f"rh.{subject}{time_point}_cortex_roi.shape.gii", search_path=subject_dir)
+    print(f'{datetime.now()}[FUNCTION] find(patterns=f"rh.*_cortex_roi.shape.gii", search_path=subject_dir)')
+    right_cortex = find(patterns=f"rh.*_cortex_roi.shape.gii", search_path=subject_dir)
     print()
     
     # ---------------------------------------------
@@ -2384,29 +2384,29 @@ def convert_curvature(dataset: str, subject: str, time_point: str):
     subject_dir = path.join(dataset, f"Subject_{subject}_{time_point}")
     print(f"{datetime.now()}[INFO] Subject data located at {subject_dir}")
     
-    print(f"{datetime.now()}[STEP] Retrieve orginal curv and white matter files")
+    print(f"{datetime.now()}[STEP] Retrieve midthickness and cortex files files")
     
-    print(f'{datetime.now()}[FUNCTION]find(patterns="lh.curv", search_path=subject_dir)')
-    left_curv = find(patterns="lh.curv", search_path=subject_dir)
+    print(f'{datetime.now()}[FUNCTION]find(patterns="lh.midthickness.surf.gii", search_path=subject_dir)')
+    left_midthickness = find(patterns="lh.midthickness.surf.gii", search_path=subject_dir)
     print()
-
-    print(f'{datetime.now()}[FUNCTION]find(patterns="rh.curv", search_path=subject_dir)')
-    right_curv = find(patterns="rh.curv", search_path=subject_dir)
+    
+    print(f'{datetime.now()}[FUNCTION]find(patterns="rh.midthickness.surf.gii", search_path=subject_dir)')
+    right_midthickness = find(patterns="rh.midthickness.surf.gii", search_path=subject_dir)
     print()
-
-    print(f'{datetime.now()}[FUNCTION]find(patterns="lh.white", search_path=subject_dir)')
-    left_white_matter = find(patterns="lh.white", search_path=subject_dir)
+    
+    print(f'{datetime.now()}[FUNCTION]find(patterns="lh.*_cortex_roi.shape.gii", search_path=subject_dir)')
+    left_cortex = find(patterns="lh.*_cortex_roi.shape.gii", search_path=subject_dir)
     print()
-
-    print(f'{datetime.now()}[FUNCTION]find(patterns="rh.white", search_path=subject_dir)')
-    right_white_matter = find(patterns="rh.white", search_path=subject_dir)
+    
+    print(f'{datetime.now()}[FUNCTION]find(patterns="rh.*_cortex_roi.shape.gii", search_path=subject_dir)')
+    right_cortex = find(patterns="rh.*_cortex_roi.shape.gii", search_path=subject_dir)
     print()
-   
+       
     print(f"{datetime.now()}[FILES] Found the following files")
-    print(f"    LEFT CURVATURE: {left_curv}")
-    print(f"    RIGHT CURVATURE: {right_curv}")
-    print(f"    LEFT WHITE MATTER: {left_white_matter}")
-    print(f"    RIGHT WHITE MATTER: {right_white_matter}")
+    print(f"    LEFT MIDTHICKNESS: {left_midthickness}")
+    print(f"    RIGHT MIDTHICKNESS: {right_midthickness}")
+    print(f"    LEFT CORTEX: {left_cortex}")
+    print(f"    RIGHT CORTEX: {right_cortex}")
 
     left_output = path.join(subject_dir, "lh.curv.shape.gii")
     right_output = path.join(subject_dir, "rh.curv.shape.gii")
@@ -2415,8 +2415,10 @@ def convert_curvature(dataset: str, subject: str, time_point: str):
     print(f"    RIGHT OUT: {right_output}")
     
     print(f"{datetime.now()}[STEP]Run convert commands")
-    run_logged(f"mris_convert -c {left_curv} {left_white_matter} {left_output}")
-    run_logged(f"mris_convert -c {right_curv} {right_white_matter} {right_output}")
+    run_logged(f"wb_command -surface-curvature {left_midthickness} -mean {left_output}")
+    run_logged(f"wb_command -surface-curvature {right_midthickness} -mean {right_output}")
+    run_logged(f'wb_command -metric-math "K*M" {left_output} -var K {left_output} -var M {left_cortex}')
+    run_logged(f'wb_command -metric-math "K*M" {right_output} -var K {right_output} -var M {right_cortex}')
     
     print(f"{datetime.now()}[COMPLETE]Finished converting curvate for subject {subject} at time point {time_point}")
     
