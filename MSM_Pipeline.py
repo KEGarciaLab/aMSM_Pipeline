@@ -2058,11 +2058,11 @@ def rescale_surfaces(dataset: str,  subject: str, time_point: str, uses_mcribs: 
     # ------------------------
     print(f"{datetime.now()}[STEP] Calculating surface areas")
     run_logged(f"wb_command -metric-stats {left_shape_file} -reduce SUM")
-    command_output = run(f"wb_command -metric-stats {left_shape_file} -reduce SUM", shell=True, capture_output=True, text=True, check=True)
+    command_output = run(f"wb_command -metric-stats {left_shape_file} -reduce SUM -roi {left_cortex}", shell=True, capture_output=True, text=True, check=True)
     left_surface_area = float(command_output.stdout.strip())
     
     run_logged(f"wb_command -metric-stats {right_shape_file} -reduce SUM")
-    command_output = run(f"wb_command -metric-stats {right_shape_file} -reduce SUM", shell=True, capture_output=True, text=True, check=True)
+    command_output = run(f"wb_command -metric-stats {right_shape_file} -reduce SUM -roi {right_cortex}", shell=True, capture_output=True, text=True, check=True)
     right_surface_area = float(command_output.stdout.strip())
     print(f"{datetime.now()}[INFO] Left Surface Area: {left_surface_area}")
     print(f"{datetime.now()}[INFO] Right Surface Area: {right_surface_area}")
