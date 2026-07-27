@@ -2053,6 +2053,34 @@ def rescale_surfaces(dataset: str,  subject: str, time_point: str, uses_mcribs: 
     run_logged(f"wb_command -surface-vertex-areas {left_midthickness_file} {left_shape_file}")
     run_logged(f"wb_command -surface-vertex-areas {left_midthickness_file} {right_shape_file}")
     
+    # ------------------
+    # Generate Spheres
+    # ------------------
+    print(f"{datetime.now()}[STEP] Generating new spheres for rescaled surfaces")
+    print(f"{datetime.now()}[INFO] Input files and options:")
+    print(f"    SUBJECT DIR: {subject_dir}")
+    print(f"    SUBJECT PREFIX: {subject_prefix}")
+    print(f"    LEFT MIDTHICKNESS: {left_midthickness_file}")
+    print(f"    RIGHT MIDTHICKNESS: {right_midthickness_file}")
+    print(f"    MAX ANAT: {max_anat}")
+    print(f"{datetime.now()}[FUNCTION] generate_sphere(subject_dir=subject_dir, subject_prefix=subject_prefix, left_midthickness=left_midthickness_file, right_midthickness=right_midthickness_file, max_anat=max_anat)")
+    left_spherical_surface, right_spherical_surface = generate_sphere(subject_dir=subject_dir, subject_prefix=subject_prefix, left_midthickness=left_midthickness_file, right_midthickness=right_midthickness_file, max_anat=max_anat)
+    print()
+    
+    # --------------------------
+    # Rescale Native Surfaces
+    # --------------------------
+    print(f"{datetime.now()}[STEP] Rescampling native surface")
+    print(f"{datetime.now()}[INFO] Resampling to ANATgrid resolution")
+    run_logged(f'wb_command -surface-resample {left_midthickness_file} {left_spherical_surface} {max_anat} "BARYCENTRIC" {left_resampled_native_surface_anatgrid}',step="RESAMPLE NATIVE ANAT")
+    run_logged(f'wb_command -surface-resample {right_midthickness_file} {right_spherical_surface} {max_anat} "BARYCENTRIC" {right_resampled_native_surface_anatgrid}',step="RESAMPLE NATIVE ANAT")
+    print(f"{datetime.now()}[INFO] Resampling to ANATgrid resolution complete")
+    
+    print(f"{datetime.now()}[INFO] Resampling to CPgrid resolution")
+    run_logged(f'wb_command -surface-resample {left_midthickness_file} {left_spherical_surface} {max_cp} "BARYCENTRIC" {left_resampled_native_surface_cpgrid}',step="RESAMPLE NATIVE CP")
+    run_logged(f'wb_command -surface-resample {right_midthickness_file} {right_spherical_surface} {max_cp} "BARYCENTRIC" {right_resampled_native_surface_cpgrid}',step="RESAMPLE NATIVE CP")
+    print(f"{datetime.now()}[INFO] Resampling to CPgrid resolution complete")
+    
     # ------------------------
     # Calculate Surface area
     # ------------------------
@@ -2094,22 +2122,8 @@ def rescale_surfaces(dataset: str,  subject: str, time_point: str, uses_mcribs: 
         
     
     print(f"{datetime.now()}[STEP] Applying affine matrices to surfaces")
-    run_logged(f"wb_command -surface-apply-affine {left_midthickness_file} {left_affine_matrix} {left_rescaled_surface}")
-    run_logged(f"wb_command -surface-apply-affine {right_midthickness_file} {right_affine_matrix} {right_rescaled_surface}")
-    
-    # ------------------
-    # Generate Spheres
-    # ------------------
-    print(f"{datetime.now()}[STEP] Generating new spheres for rescaled surfaces")
-    print(f"{datetime.now()}[INFO] Input files and options:")
-    print(f"    SUBJECT DIR: {subject_dir}")
-    print(f"    SUBJECT PREFIX: {subject_prefix}")
-    print(f"    LEFT MIDTHICKNESS: {left_midthickness_file}")
-    print(f"    RIGHT MIDTHICKNESS: {right_midthickness_file}")
-    print(f"    MAX ANAT: {max_anat}")
-    print(f"{datetime.now()}[FUNCTION] generate_sphere(subject_dir=subject_dir, subject_prefix=subject_prefix, left_midthickness=left_midthickness_file, right_midthickness=right_midthickness_file, max_anat=max_anat)")
-    left_spherical_surface, right_spherical_surface = generate_sphere(subject_dir=subject_dir, subject_prefix=subject_prefix, left_midthickness=left_midthickness_file, right_midthickness=right_midthickness_file, max_anat=max_anat)
-    print()
+    run_logged(f"wb_command -surface-apply-affine {left_resampled_native_surface_anatgrid} {left_affine_matrix} {left_rescaled_surface}")
+    run_logged(f"wb_command -surface-apply-affine {right_resampled_native_surface_anatgrid} {right_affine_matrix} {right_rescaled_surface}")
     
     # -----------------------
     # Resample to anat grid
@@ -2195,19 +2209,7 @@ def rescale_surfaces(dataset: str,  subject: str, time_point: str, uses_mcribs: 
     run_logged(f'wb_command -metric-merge {right_resampled_curvature_cpgrid} -metric {right_resampled_curvature_cpgrid} -metric {right_medial_wall_cpgrid}')
     print(f"{datetime.now()}[INFO] Right hemisphere complete")
     
-    # --------------------------
-    # Rescale Native Surfaces
-    # --------------------------
-    print(f"{datetime.now()}[STEP] Rescampling native surface")
-    print(f"{datetime.now()}[INFO] Resampling to ANATgrid resolution")
-    run_logged(f'wb_command -surface-resample {left_midthickness_file} {left_spherical_surface} {max_anat} "BARYCENTRIC" {left_resampled_native_surface_anatgrid}',step="RESAMPLE NATIVE ANAT")
-    run_logged(f'wb_command -surface-resample {right_midthickness_file} {right_spherical_surface} {max_anat} "BARYCENTRIC" {right_resampled_native_surface_anatgrid}',step="RESAMPLE NATIVE ANAT")
-    print(f"{datetime.now()}[INFO] Resampling to ANATgrid resolution complete")
     
-    print(f"{datetime.now()}[INFO] Resampling to CPgrid resolution")
-    run_logged(f'wb_command -surface-resample {left_midthickness_file} {left_spherical_surface} {max_cp} "BARYCENTRIC" {left_resampled_native_surface_cpgrid}',step="RESAMPLE NATIVE CP")
-    run_logged(f'wb_command -surface-resample {right_midthickness_file} {right_spherical_surface} {max_cp} "BARYCENTRIC" {right_resampled_native_surface_cpgrid}',step="RESAMPLE NATIVE CP")
-    print(f"{datetime.now()}[INFO] Resampling to CPgrid resolution complete")
     
     
     print(f"{datetime.now()}[COMPLETE] Rescaling complete")
