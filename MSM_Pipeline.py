@@ -1202,9 +1202,7 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
                 "maxanat": max_anat,
                 "maxcp": max_cp,
                 "hemisphere": "L",
-                "structure": "CORTEX_LEFT",
-                "yns": left_younger_resampled_native,
-                "ons": left_older_resampled_native,
+                "structure": "CORTEX_LEFT"
             }
             template_dict_r = {
                 "levels": levels,
@@ -1219,9 +1217,7 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
                 "maxanat": max_anat,
                 "maxcp": max_cp,
                 "hemisphere": "R",
-                "structure": "CORTEX_RIGHT",
-                "yns": right_younger_resampled_native,
-                "ons": right_older_resampled_native,
+                "structure": "CORTEX_RIGHT"
             }
             
             

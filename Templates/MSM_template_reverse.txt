@@ -16,22 +16,22 @@
 msm --levels=${levels} --conf=${config} --inmesh=${maxanat} --refmesh=${maxanat} --indata=${oc} --refdata=${yc} --inanat=${oas} --refanat=${yas} --out=${r_out} --verbose
 
 ########## RESAMPLE INPUT SURFACES
-wb_command -surface-resample ${ons} ${maxanat} ${maxanat} "BARYCENTRIC" ${r_out}${hemisphere}OAS.ANATgrid.surf.gii
+wb_command -surface-resample ${oas} ${maxanat} ${maxanat} "BARYCENTRIC" ${r_out}${hemisphere}OAS.ANATgrid.surf.gii
 wb_command -set-structure ${r_out}${hemisphere}OAS.ANATgrid.surf.gii ${structure}
-wb_command -surface-resample ${ons} ${maxanat} ${maxcp} "BARYCENTRIC" ${r_out}${hemisphere}OAS.CPgrid.surf.gii
+wb_command -surface-resample ${oas} ${maxanat} ${maxcp} "BARYCENTRIC" ${r_out}${hemisphere}OAS.CPgrid.surf.gii
 wb_command -set-structure ${r_out}${hemisphere}OAS.CPgrid.surf.gii ${structure}
 
 ########### CREATE TRUE REG SURFDIST
-wb_command -surface-resample ${yns} ${maxanat} ${r_out}sphere.reg.surf.gii "BARYCENTRIC" ${r_out}anat.true.reg.surf.gii
-wb_command -surface-distortion ${ons} ${r_out}anat.true.reg.surf.gii ${r_out}surfdist.func.gii
+wb_command -surface-resample ${yas} ${maxanat} ${r_out}sphere.reg.surf.gii "BARYCENTRIC" ${r_out}anat.true.reg.surf.gii
+wb_command -surface-distortion ${oas} ${r_out}anat.true.reg.surf.gii ${r_out}surfdist.func.gii
 
 ########### MAXCP SURFDIST
 wb_command -surface-sphere-project-unproject ${maxcp} ${maxanat} ${r_out}sphere.reg.surf.gii ${r_out}sphere.CPgrid.reg.surf.gii
-wb_command -surface-resample ${yns} ${maxanat} ${r_out}sphere.CPgrid.reg.surf.gii "BARYCENTRIC" ${r_out}anat.CPgrid.reg.surf.gii
+wb_command -surface-resample ${yas} ${maxanat} ${r_out}sphere.CPgrid.reg.surf.gii "BARYCENTRIC" ${r_out}anat.CPgrid.reg.surf.gii
 wb_command -surface-distortion ${r_out}${hemisphere}OAS.CPgrid.surf.gii ${r_out}anat.CPgrid.reg.surf.gii ${r_out}surfdist.CPgrid.func.gii
 
 ########### MAXANAT SURFDIST
 wb_command -surface-sphere-project-unproject ${maxanat} ${maxanat} ${r_out}sphere.reg.surf.gii ${r_out}sphere.ANATgrid.reg.surf.gii
-wb_command -surface-resample ${yns} ${maxanat} ${r_out}sphere.ANATgrid.reg.surf.gii "BARYCENTRIC" ${r_out}anat.ANATgrid.reg.surf.gii
+wb_command -surface-resample ${yas} ${maxanat} ${r_out}sphere.ANATgrid.reg.surf.gii "BARYCENTRIC" ${r_out}anat.ANATgrid.reg.surf.gii
 wb_command -surface-distortion ${r_out}${hemisphere}OAS.ANATgrid.surf.gii ${r_out}anat.ANATgrid.reg.surf.gii ${r_out}surfdist.ANATgrid.func.gii
 
