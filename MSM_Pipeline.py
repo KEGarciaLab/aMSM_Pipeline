@@ -2385,11 +2385,11 @@ def convert_curvature(dataset: str, subject: str, time_point: str):
     print(f"{datetime.now()}[STEP] Retrieve midthickness and cortex files files")
     
     print(f'{datetime.now()}[FUNCTION]find(patterns="lh.midthickness.surf.gii", search_path=subject_dir)')
-    left_midthickness = find(patterns="lh.midthickness.surf.gii", search_path=subject_dir)
+    left_midthickness = find(patterns=["lh.midthickness_svd_rot.surf.gii",f"lh.{subject}{time_point}_midthickness_711-2N.surf.gii", f"lh.{subject}{time_point}_midthickness_711-2B.surf.gii", "lh.midthickness.surf.gii"], search_path=subject_dir)
     print()
     
     print(f'{datetime.now()}[FUNCTION]find(patterns="rh.midthickness.surf.gii", search_path=subject_dir)')
-    right_midthickness = find(patterns="rh.midthickness.surf.gii", search_path=subject_dir)
+    right_midthickness = find(patterns=["rh.midthickness_svd_rot.surf.gii",f"rh.{subject}{time_point}_midthickness_711-2N.surf.gii", f"rh.{subject}{time_point}_midthickness_711-2B.surf.gii", "rh.midthickness.surf.gii"], search_path=subject_dir)
     print()
     
     print(f'{datetime.now()}[FUNCTION]find(patterns="lh.*_cortex_roi.shape.gii", search_path=subject_dir)')
