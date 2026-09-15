@@ -2265,11 +2265,11 @@ def get_files_mcribs(dataset: str, subject: str, time_point: str, is_rescaled=Fa
     print()
     
     print(f'{datetime.now()}[FUNCTION] find(patterns=f"lh.*_cortex_roi.shape.gii", search_path=subject_dir)')
-    left_cortex = find(patterns=f"lh.*_cortex_roi.shape.gii", search_path=subject_dir)
+    left_cortex = find(patterns=["lh.*_cortex_roi.shape.gii", "lh.cortex_roi.shape.gii"], search_path=subject_dir)
     print()
     
     print(f'{datetime.now()}[FUNCTION] find(patterns=f"rh.*_cortex_roi.shape.gii", search_path=subject_dir)')
-    right_cortex = find(patterns=f"rh.*_cortex_roi.shape.gii", search_path=subject_dir)
+    right_cortex = find(patterns=["rh.*_cortex_roi.shape.gii", "rh.cortex_roi.shape.gii"], search_path=subject_dir)
     print()
     
     # ---------------------------------------------
@@ -2393,11 +2393,11 @@ def convert_curvature(dataset: str, subject: str, time_point: str):
     print()
     
     print(f'{datetime.now()}[FUNCTION]find(patterns="lh.*_cortex_roi.shape.gii", search_path=subject_dir)')
-    left_cortex = find(patterns="lh.*_cortex_roi.shape.gii", search_path=subject_dir)
+    left_cortex = find(patterns=["lh.*_cortex_roi.shape.gii", "lh.cortex_roi.shape.gii"], search_path=subject_dir)
     print()
     
     print(f'{datetime.now()}[FUNCTION]find(patterns="rh.*_cortex_roi.shape.gii", search_path=subject_dir)')
-    right_cortex = find(patterns="rh.*_cortex_roi.shape.gii", search_path=subject_dir)
+    right_cortex = find(patterns=["rh.*_cortex_roi.shape.gii", "rh.cortex_roi.shape.gii"], search_path=subject_dir)
     print()
        
     print(f"{datetime.now()}[FILES] Found the following files")
