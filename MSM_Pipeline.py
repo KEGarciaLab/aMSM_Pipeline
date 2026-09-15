@@ -2249,11 +2249,11 @@ def get_files_mcribs(dataset: str, subject: str, time_point: str, is_rescaled=Fa
     print()
     
     print(f'{datetime.now()}[FUNCTION] find(patterns="lh.sphere.reg2.surf.gii", search_path=subject_dir)')
-    left_spherical_surface = find(patterns="lh.sphere.reg2.surf.gii", search_path=subject_dir)
+    left_spherical_surface = find(patterns=["lh.sphere.reg2.surf.gii", "lh.sphere.reg2"], search_path=subject_dir)
     print()
     
     print(f'{datetime.now()}[FUNCTION] find(patterns="rh.sphere.reg2.surf.gii", search_path=subject_dir)')
-    right_spherical_surface = find(patterns="rh.sphere.reg2.surf.gii", search_path=subject_dir)
+    right_spherical_surface = find(patterns=["rh.sphere.reg2.surf.gii", "rh.sphere.reg2"], search_path=subject_dir)
     print()
     
     print(f'{datetime.now()}[FUNCTION] find(patterns="lh.curv.shape.gii", search_path=subject_dir)')
