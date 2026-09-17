@@ -45,7 +45,7 @@ sys.stdout = Tee(sys.__stdout__, log_file)
 sys.stderr = Tee(sys.__stderr__, log_file)
 Mode = Literal["forward", "reverse", "average"]
 Hemisphere = Literal["L", "R"]
-PIPELINE_VERSION = '1.6.0'
+PIPELINE_VERSION = '1.6.1'
 
 print(f"{datetime.now()}[START] Begin pipeline execution")
 print(f"{datetime.now()}[INFO] Pipeline Version: {PIPELINE_VERSION}")
