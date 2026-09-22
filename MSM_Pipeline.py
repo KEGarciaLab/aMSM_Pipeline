@@ -2064,7 +2064,7 @@ def rescale_surfaces(dataset: str,  subject: str, time_point: str, uses_mcribs: 
     print()
     
     # --------------------------
-    # Rescale Native Surfaces
+    # Resample Native Surfaces
     # --------------------------
     print(f"{datetime.now()}[STEP] Rescampling native surface")
     print(f"{datetime.now()}[INFO] Resampling to ANATgrid resolution")
@@ -2122,7 +2122,7 @@ def rescale_surfaces(dataset: str,  subject: str, time_point: str, uses_mcribs: 
     run_logged(f"wb_command -surface-apply-affine {right_midthickness_file} {right_affine_matrix} {right_rescaled_surface}")
     
     # -----------------------
-    # Resample to anat grid
+    # Resample rescaled surfaces
     # -----------------------
     print(f"{datetime.now()}[STEP] Resampling rescaled surfaces, curvature, and cortex")
     print(f"{datetime.now()}[INFO] Input Files:")
