@@ -45,7 +45,7 @@ sys.stdout = Tee(sys.__stdout__, log_file)
 sys.stderr = Tee(sys.__stderr__, log_file)
 Mode = Literal["forward", "reverse", "average"]
 Hemisphere = Literal["L", "R"]
-PIPELINE_VERSION = '1.6.1'
+PIPELINE_VERSION = '1.6.1-hotfix1'
 
 print(f"{datetime.now()}[START] Begin pipeline execution")
 print(f"{datetime.now()}[INFO] Pipeline Version: {PIPELINE_VERSION}")
@@ -2047,7 +2047,7 @@ def rescale_surfaces(dataset: str,  subject: str, time_point: str, uses_mcribs: 
     # -------------------
     print(f"{datetime.now()}[STEP] Creating shape files")
     run_logged(f"wb_command -surface-vertex-areas {left_midthickness_file} {left_shape_file}")
-    run_logged(f"wb_command -surface-vertex-areas {left_midthickness_file} {right_shape_file}")
+    run_logged(f"wb_command -surface-vertex-areas {right_midthickness_file} {right_shape_file}")
     
     # ------------------
     # Generate Spheres
@@ -2118,8 +2118,8 @@ def rescale_surfaces(dataset: str,  subject: str, time_point: str, uses_mcribs: 
         
     
     print(f"{datetime.now()}[STEP] Applying affine matrices to surfaces")
-    run_logged(f"wb_command -surface-apply-affine {left_resampled_native_surface_anatgrid} {left_affine_matrix} {left_rescaled_surface}")
-    run_logged(f"wb_command -surface-apply-affine {right_resampled_native_surface_anatgrid} {right_affine_matrix} {right_rescaled_surface}")
+    run_logged(f"wb_command -surface-apply-affine {left_midthickness_file} {left_affine_matrix} {left_rescaled_surface}")
+    run_logged(f"wb_command -surface-apply-affine {right_midthickness_file} {right_affine_matrix} {right_rescaled_surface}")
     
     # -----------------------
     # Resample to anat grid
