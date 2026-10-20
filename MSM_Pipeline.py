@@ -2118,8 +2118,8 @@ def rescale_surfaces(dataset: str,  subject: str, time_point: str, uses_mcribs: 
         
     
     print(f"{datetime.now()}[STEP] Applying affine matrices to surfaces")
-    run_logged(f"wb_command -surface-apply-affine {left_midthickness_file} {left_affine_matrix} {left_rescaled_surface}")
-    run_logged(f"wb_command -surface-apply-affine {right_midthickness_file} {right_affine_matrix} {right_rescaled_surface}")
+    run_logged(f"wb_command -surface-apply-affine {left_resampled_native_surface_anatgrid} {left_affine_matrix} {left_rescaled_surface}")
+    run_logged(f"wb_command -surface-apply-affine {right_resampled_native_surface_anatgrid} {right_affine_matrix} {right_rescaled_surface}")
     
     # -----------------------
     # Resample rescaled surfaces
