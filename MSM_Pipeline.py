@@ -45,7 +45,7 @@ sys.stdout = Tee(sys.__stdout__, log_file)
 sys.stderr = Tee(sys.__stderr__, log_file)
 Mode = Literal["forward", "reverse", "average"]
 Hemisphere = Literal["L", "R"]
-PIPELINE_VERSION = '1.6.1-hotfix1'
+PIPELINE_VERSION = '1.6.2-indev'
 
 print(f"{datetime.now()}[START] Begin pipeline execution")
 print(f"{datetime.now()}[INFO] Pipeline Version: {PIPELINE_VERSION}")
@@ -1202,7 +1202,9 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
                 "maxanat": max_anat,
                 "maxcp": max_cp,
                 "hemisphere": "L",
-                "structure": "CORTEX_LEFT"
+                "structure": "CORTEX_LEFT",
+                "yns": left_younger_resampled_native,
+                "ons": left_older_resampled_native
             }
             template_dict_r = {
                 "levels": levels,
@@ -1217,7 +1219,9 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
                 "maxanat": max_anat,
                 "maxcp": max_cp,
                 "hemisphere": "R",
-                "structure": "CORTEX_RIGHT"
+                "structure": "CORTEX_RIGHT",
+                "yns": right_younger_resampled_native,
+                "ons": right_older_resampled_native
             }
             
             
@@ -1511,14 +1515,14 @@ def run_msm(dataset: str, output: str, subject: str, younger_timepoint: str,
         print(f"{datetime.now()}[STEP] Running script locally")
         if hemisphere == "L":
             print(f"{datetime.now()}[INFO] Script to run: {script_output_l}")
-            run_logged(fr"bash {temp_output}/Subject_{subject}_L_{younger_timepoint}-{older_timepoint}_MSM.sh", step="RUN MSM")
-            print(f"{datetime.now()}[INFO] Deleting {script_output_r}")
-            remove(fr"{temp_output}/Subject_{subject}_L_{younger_timepoint}-{older_timepoint}_MSM.sh")
+            run_logged(fr"bash {script_output_l}", step="RUN MSM")
+            print(f"{datetime.now()}[INFO] Deleting {script_output_l}")
+            remove(fr"{script_output_l}")
         elif hemisphere == "R":
             print(f"{datetime.now()}[INFO] Script to run: {script_output_r}")
-            run_logged(fr"bash {temp_output}/Subject_{subject}_R_{younger_timepoint}-{older_timepoint}_MSM.sh", step="RUN MSM")
+            run_logged(fr"bash {script_output_r}", step="RUN MSM")
             print(f"{datetime.now()}[INFO] Deleting {script_output_r}")
-            remove(fr"{temp_output}/Subject_{subject}_R_{younger_timepoint}-{older_timepoint}_MSM.sh")
+            remove(fr"{script_output_r}")
     if is_local:
         print(f"{datetime.now()}[COMPLETE] MSM registration complete")
     else:
@@ -2122,7 +2126,7 @@ def rescale_surfaces(dataset: str,  subject: str, time_point: str, uses_mcribs: 
     run_logged(f"wb_command -surface-apply-affine {right_resampled_native_surface_anatgrid} {right_affine_matrix} {right_rescaled_surface}")
     
     # -----------------------
-    # Resample rescaled surfaces
+    # Resample to anat grid
     # -----------------------
     print(f"{datetime.now()}[STEP] Resampling rescaled surfaces, curvature, and cortex")
     print(f"{datetime.now()}[INFO] Input Files:")
@@ -2477,13 +2481,13 @@ def concatenate_registrations(msm_dataset: str, pre_msm_dataset: str, subject: s
         left_concat_output = path.join(concat_output_dir, f"{subject}_L_{concat_start_time}-{intermediate_timepoints[1]}.concat.sphere.{resolution}.reg.surf.gii")
         right_concat_output = path.join(concat_output_dir, f"{subject}_R_{concat_start_time}-{intermediate_timepoints[1]}.concat.sphere.{resolution}.reg.surf.gii")
         left_as_time_end = path.join(forward_intermediate_to_end, f"{subject}_L_{intermediate_timepoints[0]}-{intermediate_timepoints[1]}.LOAS.{resolution}.surf.gii")
-        right_as_time_end = path.join(forward_intermediate_to_end, f"{subject}_R_{intermediate_timepoints[0]}-{intermediate_timepoints[1]}.LOAS.{resolution}.surf.gii")
+        right_as_time_end = path.join(forward_intermediate_to_end, f"{subject}_R_{intermediate_timepoints[0]}-{intermediate_timepoints[1]}.ROAS.{resolution}.surf.gii")
         left_anat_output = path.join(concat_output_dir, f"{subject}_L_{concat_start_time}-{intermediate_timepoints[1]}.concat.anat.{resolution}.reg.surf.gii")
         right_anat_output = path.join(concat_output_dir, f"{subject}_R_{concat_start_time}-{intermediate_timepoints[1]}.concat.anat.{resolution}.reg.surf.gii")
         left_surfdist_output = path.join(concat_output_dir, f"{subject}_L_{concat_start_time}-{intermediate_timepoints[1]}.concat.surfdist.{resolution}.func.gii")
         right_surfdist_output = path.join(concat_output_dir, f"{subject}_R_{concat_start_time}-{intermediate_timepoints[1]}.concat.surfdist.{resolution}.func.gii")
-        left_sphere_unproject_from = path.join(avg_intermediate_to_end, f"{subject}_L_{intermediate_timepoints[0]}_{intermediate_timepoints[1]}.avgfor.sphere.{resolution}.reg.surf.gii")
-        right_sphere_unproject_from = path.join(avg_intermediate_to_end, f"{subject}_R_{intermediate_timepoints[0]}_{intermediate_timepoints[1]}.avgfor.sphere.{resolution}.reg.surf.gii")
+        left_sphere_unproject_from = path.join(avg_intermediate_to_end, f"{subject}_L_{intermediate_timepoints[0]}-{intermediate_timepoints[1]}.avgfor.sphere.{resolution}.reg.surf.gii")
+        right_sphere_unproject_from = path.join(avg_intermediate_to_end, f"{subject}_R_{intermediate_timepoints[0]}-{intermediate_timepoints[1]}.avgfor.sphere.{resolution}.reg.surf.gii")
     else:
         print("Only one intermediate time point found. Single concatenation run.")
         # used if there is only one intermediate time point
@@ -2493,18 +2497,18 @@ def concatenate_registrations(msm_dataset: str, pre_msm_dataset: str, subject: s
         left_concat_output = path.join(concat_output_dir, f"{subject}_L_{concat_start_time}-{concat_end_time}.concat.sphere.{resolution}.reg.surf.gii")
         right_concat_output = path.join(concat_output_dir, f"{subject}_R_{concat_start_time}-{concat_end_time}.concat.sphere.{resolution}.reg.surf.gii")
         left_as_time_end = path.join(forward_intermediate_to_end, f"{subject}_L_{intermediate_timepoints[0]}-{concat_end_time}.LOAS.{resolution}.surf.gii")
-        right_as_time_end = path.join(forward_intermediate_to_end, f"{subject}_R_{intermediate_timepoints[0]}-{concat_end_time}.LOAS.{resolution}.surf.gii")
+        right_as_time_end = path.join(forward_intermediate_to_end, f"{subject}_R_{intermediate_timepoints[0]}-{concat_end_time}.ROAS.{resolution}.surf.gii")
         left_anat_output = path.join(concat_output_dir, f"{subject}_L_{concat_start_time}-{concat_end_time}.concat.anat.{resolution}.reg.surf.gii")
         right_anat_output = path.join(concat_output_dir, f"{subject}_R_{concat_start_time}-{concat_end_time}.concat.anat.{resolution}.reg.surf.gii")
         left_surfdist_output = path.join(concat_output_dir, f"{subject}_L_{concat_start_time}-{concat_end_time}.concat.surfdist.{resolution}.func.gii")
         right_surfdist_output = path.join(concat_output_dir, f"{subject}_R_{concat_start_time}-{concat_end_time}.concat.surfdist.{resolution}.func.gii")
-        left_sphere_unproject_from = path.join(avg_intermediate_to_end, f"{subject}_L_{intermediate_timepoints[0]}_{concat_end_time}.avgfor.sphere.{resolution}.reg.surf.gii")
-        right_sphere_unproject_from = path.join(avg_intermediate_to_end, f"{subject}_R_{intermediate_timepoints[0]}_{concat_end_time}.avgfor.sphere.{resolution}.reg.surf.gii")
+        left_sphere_unproject_from = path.join(avg_intermediate_to_end, f"{subject}_L_{intermediate_timepoints[0]}-{concat_end_time}.avgfor.sphere.{resolution}.reg.surf.gii")
+        right_sphere_unproject_from = path.join(avg_intermediate_to_end, f"{subject}_R_{intermediate_timepoints[0]}-{concat_end_time}.avgfor.sphere.{resolution}.reg.surf.gii")
     
-    left_sphere_in = path.join(avg_start_to_intermediate, f"{subject}_L_{concat_start_time}_{intermediate_timepoints[0]}.avgfor.sphere.{resolution}.reg.surf.gii")
-    right_sphere_in = path.join(avg_start_to_intermediate, f"{subject}_R_{concat_start_time}_{intermediate_timepoints[0]}.avgfor.sphere.{resolution}.reg.surf.gii")
-    left_surface_reference = path.join(forward_start_to_intermediate, f"{subject}_L_{concat_start_time}_{intermediate_timepoints[0]}.LYAS.{resolution}.surf.gii")
-    right_surface_reference = path.join(forward_start_to_intermediate, f"{subject}_R_{concat_start_time}_{intermediate_timepoints[0]}.RYAS.{resolution}.surf.gii")
+    left_sphere_in = path.join(avg_start_to_intermediate, f"{subject}_L_{concat_start_time}-{intermediate_timepoints[0]}.avgfor.sphere.{resolution}.reg.surf.gii")
+    right_sphere_in = path.join(avg_start_to_intermediate, f"{subject}_R_{concat_start_time}-{intermediate_timepoints[0]}.avgfor.sphere.{resolution}.reg.surf.gii")
+    left_surface_reference = path.join(forward_start_to_intermediate, f"{subject}_L_{concat_start_time}-{intermediate_timepoints[0]}.LYAS.{resolution}.surf.gii")
+    right_surface_reference = path.join(forward_start_to_intermediate, f"{subject}_R_{concat_start_time}-{intermediate_timepoints[0]}.RYAS.{resolution}.surf.gii")
     
     if resolution == "CPgrid":
         sphere_project_to = max_cp
@@ -2582,7 +2586,7 @@ def concatenate_registrations(msm_dataset: str, pre_msm_dataset: str, subject: s
             right_surface_reference = path.join(concat_output_dir, f"{subject}_R_{start_time}-{intermediate_time}.concat.anat.{resolution}.reg.surf.gii")
             
             left_as_time_end = path.join(forward_intermediate_to_end, f"{subject}_L_{intermediate_time}-{end_time}.LOAS.{resolution}.surf.gii")
-            right_as_time_end = path.join(forward_intermediate_to_end, f"{subject}_R_{intermediate_time}-{end_time}.LOAS.{resolution}.surf.gii")
+            right_as_time_end = path.join(forward_intermediate_to_end, f"{subject}_R_{intermediate_time}-{end_time}.ROAS.{resolution}.surf.gii")
             left_sphere_unproject_from = path.join(avg_intermediate_to_end, f"{subject}_L_{intermediate_time}_{end_time}.avgfor.sphere.{resolution}.reg.surf.gii")
             right_sphere_unproject_from = path.join(avg_intermediate_to_end, f"{subject}_R_{intermediate_time}_{end_time}.avgfor.sphere.{resolution}.reg.surf.gii")
 
